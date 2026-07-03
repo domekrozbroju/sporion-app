@@ -60,7 +60,8 @@
   @keyframes edgeSweep { to { transform:translate(-50%,-50%) rotate(360deg); } }
   .dash-title-row { display:flex; align-items:center; gap:10px; margin-bottom:14px; }
   .dash-title { font-family:'Silkscreen',monospace; font-size:16px; font-weight:700; color:#000; letter-spacing:1px; }
-  .pot-info-btn { width:20px; height:20px; border:2px solid #000; background:#fdf6e7; color:#000; font-family:'Silkscreen',monospace; font-size:9px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; padding:0; flex-shrink:0; image-rendering:pixelated; }
+  .pot-info-btn { width:26px; height:26px; border:2px solid #000; background:#fff; color:#000; font-family:'Silkscreen',monospace; font-size:9px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; padding:0; flex-shrink:0; image-rendering:pixelated; }
+  .pot-info-btn svg { width:11px; height:15px; display:block; }
   .pot-info-btn:hover { background:#000; color:#fff; }
   .info-text { font-family:'Silkscreen',monospace; font-size:10px; line-height:1.9; color:#222; margin:0; }
 
@@ -185,7 +186,7 @@
   .pots-list .pot-card { flex-direction:row; align-items:center; width:100%; min-height:58px; position:relative; }
   .pots-list .pot-card:hover { transform:none; box-shadow:none; background:#f0f0f0; }
   .pots-list .pot-name-banner { flex:0 0 32%; min-width:150px; max-width:32%; flex-shrink:0; display:flex; align-items:center; padding:10px 14px; }
-  .pots-list .pot-name-banner .pot-name { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .pots-list .pot-name-banner .pot-name { white-space:normal; overflow:visible; word-break:break-word; }
   .pots-list .complete-badge, .pots-list .pot-name-banner .new-tag { display:none; }
   .pots-list .pot-body { display:none; }
   .row-spark { position:absolute; inset:0; z-index:3; pointer-events:none; display:none; }
@@ -312,7 +313,8 @@
     .topnav { padding:0 8px; }
     .dash-title-row { gap:8px; }
     .dash-title { font-size:12px; }
-    .pot-info-btn { width:16px; height:16px; }
+    .pot-info-btn { width:24px; height:24px; }
+    .pot-info-btn svg { width:10px; height:14px; }
     .section-title { font-size:9px; }
     /* karty pod sebe */
     .pots-grid { grid-template-columns:1fr; }
