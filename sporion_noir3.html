@@ -1,0 +1,1568 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;700&display=swap');
+
+:root {
+  --bg:      #08090f;
+  --bg2:     #0c0d16;
+  --card-bg: #0e0f1c;
+  --blue:    #00cfff;
+  --yellow:  #ffe600;
+  --white:   #e8e4d8;
+  --grey:    #889;
+  --dim:     #1e2030;
+}
+
+* { box-sizing:border-box; margin:0; padding:0; }
+body { background:var(--bg); color:var(--white); font-family:'Comfortaa',sans-serif; font-weight:300; min-height:100vh; }
+
+/* ── BANNER ── */
+.banner {
+  position:relative; overflow:hidden;
+  background:linear-gradient(180deg,#05060c 0%,#08090f 100%);
+  border-bottom:1px solid var(--dim);
+  height:110px;
+  display:flex; align-items:center; justify-content:flex-start;
+  padding-left:32px; cursor:pointer;
+}
+canvas#rain { position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:1; }
+
+.neon-logo {
+  font-family:'Comfortaa',sans-serif;
+  font-weight:700; font-size:52px;
+  letter-spacing:0.1em; text-transform:uppercase;
+  color:#fff;
+  position:relative; z-index:2;
+  text-shadow:
+    0 0 6px #fff,
+    0 0 14px #fff,
+    0 0 28px var(--blue),
+    0 0 60px var(--blue),
+    0 0 90px var(--blue);
+  animation: neonBlink 7s infinite;
+  user-select:none;
+}
+
+@keyframes neonBlink {
+  0%,100% { text-shadow:0 0 6px #fff,0 0 14px #fff,0 0 28px var(--blue),0 0 60px var(--blue),0 0 90px var(--blue); opacity:1; }
+  18%,20% { text-shadow:none; opacity:0.12; }
+  19%     { text-shadow:0 0 6px #fff,0 0 14px #fff,0 0 28px var(--yellow),0 0 60px var(--yellow); opacity:1; }
+  48%,50% { text-shadow:none; opacity:0.15; }
+  49%     { text-shadow:0 0 6px #fff,0 0 14px #fff,0 0 28px var(--blue),0 0 60px var(--blue); opacity:1; }
+  72%,74% { text-shadow:0 0 6px #fff,0 0 14px #fff,0 0 28px var(--yellow),0 0 80px var(--yellow); opacity:1; }
+}
+
+/* hotový pot: hvězda neonově probliká (jemně) */
+@keyframes starBlink {
+  0%,100% { opacity:1; }
+  43%     { opacity:0.55; }
+  46%,47% { opacity:0.9; }
+  68%     { opacity:0.45; }
+  71%     { opacity:1; }
+}
+.star-blink { animation:starBlink 2.8s ease-in-out infinite; }
+
+/* ── NAV ── */
+header {
+  background:var(--bg2); border-bottom:1px solid var(--dim);
+  padding:0 32px; height:46px;
+  display:flex; align-items:center; justify-content:space-between;
+  position:sticky; top:0; z-index:100;
+}
+nav { display:flex; gap:28px; }
+nav a {
+  font-family:'Comfortaa',sans-serif; font-size:13px; font-weight:400;
+  letter-spacing:0.1em; color:var(--grey); text-transform:uppercase;
+  text-decoration:none; cursor:pointer; transition:all 0.2s;
+}
+nav a:hover, nav a.active { color:var(--blue); text-shadow:0 0 8px rgba(0,207,255,0.5); }
+.back-btn {
+  font-family:'Comfortaa',sans-serif; font-size:11px; font-weight:400; text-transform:uppercase; letter-spacing:0.08em;
+  background:none; border:1px solid var(--dim); padding:5px 14px;
+  color:var(--grey); cursor:pointer; border-radius:20px; display:none; transition:all 0.2s;
+}
+.back-btn:hover { border-color:var(--blue); color:var(--blue); }
+.new-btn {
+  font-family:'Comfortaa',sans-serif; font-size:18px; font-weight:700; line-height:1;
+  background:none; border:1px solid var(--yellow);
+  width:32px; height:32px; display:inline-flex; align-items:center; justify-content:center;
+  color:var(--yellow); cursor:pointer; border-radius:50%;
+  text-shadow:0 0 6px rgba(255,230,0,0.3);
+  box-shadow:0 0 8px rgba(255,230,0,0.08);
+  transition:all 0.2s;
+}
+.new-btn:hover { background:rgba(255,230,0,0.06); box-shadow:0 0 14px rgba(255,230,0,0.18); }
+
+/* ── PAGES ── */
+.page { display:none; }
+.page.active { display:block; animation:fadeIn .2s ease; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:translateY(0)} }
+
+/* ── MAIN ── */
+main { max-width:1040px; margin:0 auto; padding:36px 32px; }
+
+.page-header {
+  display:flex; justify-content:space-between; align-items:baseline;
+  margin-bottom:28px; padding-bottom:14px; border-bottom:1px solid var(--dim);
+}
+.page-title-row { display:flex; align-items:center; gap:12px; }
+.page-title {
+  font-family:'Comfortaa',sans-serif; font-size:22px; font-weight:400;
+  letter-spacing:0.14em; text-transform:uppercase;
+  color:var(--blue); text-shadow:0 0 8px rgba(0,207,255,0.3);
+}
+.pot-info-btn { width:21px; height:21px; border-radius:50%; border:1px solid var(--blue); background:none; color:var(--blue); font-family:'Comfortaa',sans-serif; font-size:12px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; line-height:1; padding:0; flex-shrink:0; text-shadow:0 0 6px rgba(0,207,255,0.4); transition:all 0.2s; }
+.pot-info-btn:hover { background:rgba(0,207,255,0.12); box-shadow:0 0 12px rgba(0,207,255,0.4); }
+.info-box { max-width:540px; }
+.info-text { font-family:'Comfortaa',sans-serif; font-weight:300; font-size:14px; line-height:1.75; color:#c9d4dd; margin:0; }
+.page-meta { font-size:11px; font-weight:300; color:var(--grey); letter-spacing:0.08em; }
+
+/* ── GRID ── */
+.pots-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+  gap:14px; margin-bottom:14px;
+}
+
+/* ── CARD ── */
+.pot-card {
+  background:var(--card-bg);
+  border:1px solid var(--dim);
+  border-radius:4px;
+  cursor:pointer; position:relative;
+  display:flex; flex-direction:column;
+  transition:transform .12s, box-shadow .12s, border-color .12s;
+  overflow:hidden;
+}
+.pot-card:hover {
+  transform:translate(-3px,-3px);
+  border-color:var(--blue);
+  box-shadow:4px 4px 0 rgba(0,207,255,0.3), 0 0 20px rgba(0,207,255,0.1);
+}
+.pot-card.complete {
+  border-color:rgba(255,230,0,0.4);
+  box-shadow:0 0 16px rgba(255,230,0,0.1);
+}
+.pot-card.complete:hover {
+  border-color:var(--yellow);
+  box-shadow:4px 4px 0 rgba(255,230,0,0.3), 0 0 20px rgba(255,230,0,0.12);
+}
+
+/* Card name */
+.pot-name-area {
+  padding:14px 16px 10px;
+  border-bottom:1px solid var(--dim);
+}
+.pot-card.complete .pot-name-area { border-bottom-color:#1a1500; }
+.pot-name {
+  font-family:'Comfortaa',sans-serif; font-weight:700;
+  font-size:15px; color:var(--white); line-height:1.3; letter-spacing:0.03em;
+}
+.pot-card.complete .pot-name {
+  color:var(--yellow);
+  text-shadow:0 0 10px rgba(255,230,0,0.3);
+}
+.pot-occasion {
+  font-size:9px; font-weight:300; color:var(--grey);
+  letter-spacing:0.12em; margin-top:3px; text-transform:uppercase;
+}
+
+/* Star area */
+.star-area {
+  flex:1; display:flex; align-items:center; justify-content:center;
+  padding:16px 12px; position:relative; min-height:140px;
+}
+.star-wrap { position:relative; width:130px; height:130px; }
+.star-wrap svg { position:absolute; top:0; left:0; }
+.star-pct {
+  position:absolute; inset:0;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Comfortaa',sans-serif; font-weight:700;
+  font-size:20px; letter-spacing:-0.01em;
+  color:var(--blue);
+  text-shadow:0 0 10px rgba(0,207,255,0.6);
+}
+.pot-card.complete .star-pct {
+  color:var(--yellow);
+  text-shadow:0 0 10px rgba(255,230,0,0.6);
+}
+
+/* Stats */
+.card-stats {
+  border-top:1px solid var(--dim);
+  padding:10px 14px;
+  display:flex; justify-content:space-between; align-items:center;
+}
+.pot-card.complete .card-stats { border-top-color:#1a1500; }
+.cs-collected {
+  font-family:'Comfortaa',sans-serif; font-weight:700; font-size:14px;
+  color:var(--blue); text-shadow:0 0 6px rgba(0,207,255,0.3);
+}
+.pot-card.complete .cs-collected {
+  color:var(--yellow); text-shadow:0 0 6px rgba(255,230,0,0.3);
+}
+.cs-goal { font-size:10px; font-weight:300; color:var(--grey); }
+.cs-right { display:inline-flex; align-items:center; gap:10px; }
+.cs-hotovo {
+  font-size:10px; font-weight:700; letter-spacing:0.12em;
+  text-transform:uppercase; color:var(--yellow);
+  text-shadow:0 0 8px rgba(255,230,0,0.5);
+}
+
+/* Add card */
+.add-card {
+  border:1px dashed var(--dim); border-radius:4px; padding:18px 20px;
+  display:flex; align-items:center; justify-content:center; gap:10px;
+  cursor:pointer; transition:all 0.2s;
+  width:100%; box-sizing:border-box;
+}
+.add-card:hover { border-style:solid; border-color:var(--blue); background:rgba(0,207,255,0.06); box-shadow:0 0 16px rgba(0,207,255,0.18); }
+.add-card span {
+  font-family:'Comfortaa',sans-serif; font-size:13px; font-weight:400;
+  letter-spacing:0.1em; text-transform:uppercase; color:var(--grey); transition:color 0.2s;
+}
+.add-card:hover span { color:var(--blue); text-shadow:0 0 8px rgba(0,207,255,0.4); }
+/* prázdný stav: obří CTA obdélník se světlem brázdícím po okraji */
+.add-card.full { position:relative; overflow:hidden; min-height:clamp(320px,60vh,680px); }
+.add-card.full::before { content:''; position:absolute; pointer-events:none; z-index:0; will-change:transform; top:50%; left:50%; width:175%; height:175%; transform:translate(-50%,-50%); background:conic-gradient(from 0deg, rgba(0,207,255,0) 0deg, rgba(0,207,255,0) 295deg, rgba(0,207,255,0.95) 335deg, rgba(0,207,255,0) 360deg); animation:edgeSweep 4.5s linear infinite; }
+.add-card.full::after { content:''; position:absolute; pointer-events:none; z-index:1; inset:3px; border-radius:3px; background:var(--bg2); transition:background 0.2s; }
+.add-card.full:hover::after { background:#141a30; }
+.add-card.full:hover { box-shadow:0 0 22px rgba(0,207,255,0.18); }
+.add-card.full > span { position:relative; z-index:2; transform:translateZ(0); will-change:transform; text-shadow:0 0 1px rgba(0,207,255,0.4); }
+@keyframes edgeSweep { to { transform:translate(-50%,-50%) rotate(360deg); } }
+
+/* ── DETAIL ── */
+.detail-wrap { max-width:1040px; margin:0 auto; padding:36px 32px; }
+
+.detail-hero {
+  display:grid; grid-template-columns:1fr auto;
+  gap:32px; align-items:start;
+  border:1px solid var(--dim); border-radius:4px;
+  padding:28px; background:var(--card-bg); margin-bottom:20px;
+}
+.detail-left { display:flex; flex-direction:column; gap:14px; }
+.detail-badge {
+  font-size:10px; font-weight:300; letter-spacing:0.2em;
+  text-transform:uppercase; color:var(--blue);
+  text-shadow:0 0 6px rgba(0,207,255,0.3);
+}
+.detail-title {
+  font-family:'Comfortaa',sans-serif; font-weight:700;
+  font-size:36px; color:var(--white); line-height:1.15; letter-spacing:0.02em;
+}
+.detail-sub { font-size:11px; font-weight:300; color:var(--grey); letter-spacing:0.12em; text-transform:uppercase; }
+.detail-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:4px; }
+.btn-p {
+  font-family:'Comfortaa',sans-serif; font-size:11px; font-weight:700;
+  border:1px solid var(--blue); padding:7px 18px; color:var(--blue);
+  background:none; cursor:pointer; border-radius:20px; text-transform:uppercase; letter-spacing:0.08em;
+  text-shadow:0 0 6px rgba(0,207,255,0.3);
+  box-shadow:0 0 8px rgba(0,207,255,0.1);
+  transition:all 0.2s;
+}
+.btn-p:hover { background:rgba(0,207,255,0.07); box-shadow:0 0 14px rgba(0,207,255,0.2); }
+.btn-s {
+  font-family:'Comfortaa',sans-serif; font-size:11px; font-weight:300;
+  border:1px solid var(--dim); padding:7px 14px;
+  color:var(--grey); background:none; cursor:pointer; border-radius:20px; transition:all 0.2s; text-transform:uppercase; letter-spacing:0.08em;
+}
+.btn-s:hover { border-color:var(--grey); color:var(--white); }
+
+/* Detail right */
+.detail-right { display:flex; flex-direction:column; align-items:center; gap:12px; }
+.detail-star-wrap { position:relative; width:180px; height:180px; }
+.detail-star-wrap svg { position:absolute; top:0; left:0; }
+.detail-star-pct {
+  position:absolute; inset:0; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; gap:2px;
+}
+.d-pct-num {
+  font-family:'Comfortaa',sans-serif; font-weight:700; font-size:24px;
+  letter-spacing:-0.01em; color:var(--blue);
+  text-shadow:0 0 14px rgba(0,207,255,0.7); line-height:1;
+}
+.d-pct-lbl {
+  font-size:8px; font-weight:300; letter-spacing:0.12em;
+  text-transform:uppercase; color:rgba(0,207,255,0.4);
+}
+.detail-amounts { text-align:center; }
+.d-collected {
+  font-family:'Comfortaa',sans-serif; font-weight:700; font-size:18px;
+  color:var(--blue); text-shadow:0 0 8px rgba(0,207,255,0.4); letter-spacing:0.02em;
+}
+.d-goal { font-size:10px; font-weight:300; color:var(--grey); margin-top:3px; text-transform:uppercase; letter-spacing:0.08em; }
+
+/* Stats grid */
+.stats-grid {
+  display:grid; grid-template-columns:repeat(4,1fr);
+  gap:4px; margin-bottom:20px;
+}
+.stat-box {
+  background:var(--card-bg); border:1px solid var(--dim);
+  border-radius:4px; padding:16px 12px; transition:background 0.15s;
+}
+.stat-box:hover { background:#131525; }
+.stat-box-val {
+  font-family:'Comfortaa',sans-serif; font-weight:700; font-size:20px;
+  color:var(--blue); text-shadow:0 0 6px rgba(0,207,255,0.25);
+  line-height:1; margin-bottom:6px; letter-spacing:0.02em;
+}
+.stat-box-lbl {
+  font-size:9px; font-weight:300; color:var(--grey);
+  letter-spacing:0.08em; text-transform:uppercase; line-height:1.5;
+}
+
+/* Section heads */
+.sec-head {
+  font-size:10px; font-weight:400; letter-spacing:0.2em; text-transform:uppercase;
+  color:var(--blue); text-shadow:0 0 6px rgba(0,207,255,0.3);
+  margin-bottom:10px;
+  border-left:2px solid var(--blue); padding-left:10px;
+  box-shadow:-2px 0 8px rgba(0,207,255,0.15);
+}
+.sec-head-flex { display:flex; align-items:center; justify-content:space-between; }
+.chart-sort { position:relative; box-shadow:none; }
+.chart-sort-btn { font-family:'Comfortaa',sans-serif; font-size:9px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--grey); background:none; border:none; cursor:pointer; display:inline-flex; align-items:center; gap:5px; text-shadow:none; }
+.chart-sort-btn:hover { color:var(--blue); }
+.chart-sort-arrow { transition:transform 0.2s; }
+.chart-sort.open .chart-sort-arrow { transform:rotate(180deg); }
+.chart-sort-menu { display:none; position:absolute; right:0; top:calc(100% + 5px); background:var(--bg2); border:1px solid var(--blue); min-width:160px; z-index:50; box-shadow:0 0 18px rgba(0,207,255,0.25); }
+.chart-sort.open .chart-sort-menu { display:block; }
+.chart-sort-opt { padding:9px 13px; font-family:'Comfortaa',sans-serif; font-size:10px; font-weight:400; letter-spacing:0.06em; text-transform:uppercase; color:var(--grey); cursor:pointer; border-bottom:1px solid rgba(0,207,255,0.15); text-shadow:none; }
+.chart-sort-opt:last-child { border-bottom:none; }
+.chart-sort-opt:hover { background:rgba(0,207,255,0.1); color:var(--blue); }
+.chart-sort-opt.active { color:var(--blue); }
+
+.chart-box { border:1px solid var(--dim); border-radius:4px; background:var(--card-bg); padding:20px 16px 14px; margin-bottom:20px; }
+
+.pred-grid { display:grid; grid-template-columns:1fr 1fr; gap:4px; margin-bottom:20px; }
+.pred-box { background:var(--card-bg); border:1px solid var(--dim); border-radius:4px; padding:18px 16px; }
+.pred-val {
+  font-family:'Comfortaa',sans-serif; font-weight:700; font-size:22px;
+  color:var(--yellow); text-shadow:0 0 8px rgba(255,230,0,0.3);
+  margin-bottom:6px; line-height:1.2; letter-spacing:0.02em;
+}
+.pred-lbl { font-size:9px; font-weight:300; color:var(--grey); letter-spacing:0.1em; text-transform:uppercase; }
+.pred-note { font-size:10px; font-weight:300; color:#667; margin-top:4px; }
+
+.contrib-box { border:1px solid var(--dim); border-radius:4px; margin-bottom:32px; overflow:hidden; }
+.contrib-row {
+  display:grid; grid-template-columns:80px 1fr auto; gap:12px;
+  align-items:center; padding:12px 16px; border-bottom:1px solid #0e0f1c; transition:background 0.1s;
+}
+.contrib-row:last-child { border-bottom:none; }
+.contrib-row:hover { background:#111220; }
+.c-date { font-size:10px; font-weight:300; color:var(--grey); letter-spacing:0.08em; text-transform:uppercase; }
+.c-name { font-size:13px; font-weight:400; color:var(--white); text-transform:uppercase; letter-spacing:0.05em; }
+.c-anon { color:var(--grey); font-weight:300; }
+.c-amount {
+  font-family:'Comfortaa',sans-serif; font-weight:700; font-size:14px;
+  color:var(--yellow); text-shadow:0 0 6px rgba(255,230,0,0.25); white-space:nowrap;
+}
+
+footer {
+  border-top:1px solid var(--dim); padding:16px 32px;
+  display:flex; justify-content:space-between; align-items:center;
+}
+.f-logo {
+  font-family:'Comfortaa',sans-serif; font-weight:700; font-size:16px;
+  letter-spacing:0.1em; text-transform:uppercase;
+  color:var(--blue); text-shadow:0 0 8px rgba(0,207,255,0.3);
+}
+.f-copy { font-size:10px; font-weight:300; color:#667; letter-spacing:0.06em; }
+
+
+
+/* ── LIST VIEW ── */
+.pots-list { display:flex; flex-direction:column; gap:8px; margin-bottom:16px; }
+.pots-list .pot-card { flex-direction:row; align-items:center; }
+.pots-list .pot-name-area { min-width:160px; flex-shrink:0; border-bottom:none; border-right:1px solid var(--dim); }
+.pots-list .star-area { min-height:70px; padding:8px; flex-shrink:0; }
+.pots-list .star-wrap { width:60px; height:60px; }
+.pots-list .star-pct { font-size:14px; }
+.pots-list .card-stats { flex:1; border-top:none; border-left:1px solid var(--dim); }
+
+/* ── SETTINGS ── */
+.noir-settings { display:flex; flex-direction:column; gap:8px; }
+.noir-sgroup { border:1px solid var(--dim); border-radius:4px; background:var(--card-bg); }
+.noir-stitle { font-size:9px; font-weight:400; letter-spacing:0.2em; text-transform:uppercase; padding:10px 16px; border-bottom:1px solid var(--dim); color:var(--blue); text-shadow:0 0 6px rgba(0,207,255,0.3); }
+.noir-srow { display:flex; justify-content:space-between; align-items:center; padding:12px 16px; border-bottom:1px solid #0e0f1c; font-size:12px; }
+.noir-srow:last-child { border-bottom:none; }
+.noir-sval { color:var(--grey); font-size:11px; }
+.noir-lang-btn { font-family:'Comfortaa',sans-serif; font-size:11px; font-weight:300; letter-spacing:0.08em; text-transform:uppercase; border:1px solid var(--dim); padding:6px 14px; background:none; color:var(--grey); cursor:pointer; border-radius:16px; margin-right:6px; transition:all 0.2s; }
+.noir-lang-btn.active { border-color:var(--yellow); color:var(--yellow); text-shadow:0 0 6px rgba(255,230,0,0.3); }
+.noir-lang-btn:hover:not(.active) { border-color:var(--blue); color:var(--blue); }
+
+
+/* ── ICON NAV NOIR ── */
+.icon-nav-noir { display:flex; align-items:center; gap:10px; }
+.icon-item-noir { position:relative; }
+.icon-btn-noir {
+  position:relative; display:flex; align-items:center; justify-content:center;
+  width:40px; height:36px; box-sizing:border-box;
+  background:none; border:none; cursor:pointer;
+  color:var(--grey); padding:8px; transition:all 0.2s;
+}
+.icon-btn-noir:hover { color:var(--blue); text-shadow:0 0 8px rgba(0,207,255,0.5); }
+.icon-btn-noir.active { color:var(--blue); }
+.noir-arrow { position:absolute; right:1px; top:50%; transform:translateY(-50%); opacity:0.4; transition:transform 0.2s; }
+.icon-item-noir.open .noir-arrow { transform:translateY(-50%) rotate(90deg); opacity:0.8; }
+.submenu-noir {
+  display:none; position:absolute; left:0; top:100%;
+  background:var(--bg2); border:1px solid var(--dim);
+  min-width:160px; z-index:200;
+  box-shadow:4px 4px 16px rgba(0,0,0,0.4);
+}
+.submenu-item-noir {
+  display:block; padding:10px 14px;
+  font-family:'Comfortaa',sans-serif; font-size:11px; font-weight:300;
+  letter-spacing:0.1em; text-transform:uppercase;
+  color:var(--grey); cursor:pointer; border-bottom:1px solid var(--dim); transition:all 0.15s;
+}
+.submenu-item-noir:last-child { border-bottom:none; }
+.submenu-item-noir:hover { color:var(--blue); background:rgba(0,207,255,0.04); }
+.submenu-item-noir.view-active { color:var(--yellow); }
+
+/* ── LIST VIEW NOIR ── */
+.pots-list { display:flex; flex-direction:column; gap:6px; margin-bottom:16px; }
+.pots-list .pot-card { flex-direction:row; align-items:center; width:100%; min-height:62px; padding:0 6px; }
+.pots-list .pot-card:hover { transform:none; box-shadow:none; background:#131525; }
+.pots-list .pot-name-area { flex:0 0 32%; min-width:150px; max-width:32%; border-bottom:none; border-right:none; display:flex; flex-direction:column; justify-content:center; padding:14px 18px; }
+.pots-list .pot-occasion { display:none; }
+.pots-list .pot-name { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.pots-list .star-area { display:none; }
+.pots-list .card-stats { display:none; }
+@keyframes noirRowGlow { 0%,100%{ box-shadow:inset 0 0 0 1px var(--yellow), 0 0 9px rgba(255,230,0,0.18); } 50%{ box-shadow:inset 0 0 0 1px var(--yellow), 0 0 20px rgba(255,230,0,0.45); } }
+.pots-list .pot-card.complete { animation:noirRowGlow 2.6s ease-in-out infinite; }
+.list-extra { display:none; }
+.pots-list .list-extra { display:flex; flex:1; align-items:center; gap:30px; padding:0 18px; }
+.le-pct { font-family:'Comfortaa',sans-serif; font-weight:700; font-size:18px; color:var(--yellow); text-shadow:0 0 8px rgba(255,230,0,0.35); min-width:54px; }
+.le-amount { font-size:12px; font-weight:300; color:var(--grey); min-width:175px; }
+.le-badge { margin-left:auto; font-size:9px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; padding:3px 9px; border-radius:3px; white-space:nowrap; }
+.le-done { color:var(--yellow); border:1px solid var(--yellow); text-shadow:0 0 6px rgba(255,230,0,0.4); box-shadow:0 0 8px rgba(255,230,0,0.2); }
+.le-new { color:var(--blue); border:1px solid var(--blue); box-shadow:0 0 8px rgba(0,207,255,0.25); }
+
+/* ── LOGOUT MODAL NOIR ── */
+.logout-power { color:var(--blue) !important; filter:drop-shadow(0 0 5px rgba(0,207,255,0.6)); }
+.logout-power:hover { color:#fff !important; }
+.logout-modal { display:none; position:fixed; inset:0; z-index:700; align-items:center; justify-content:center; background:rgba(0,0,0,0.5); backdrop-filter:blur(7px); -webkit-backdrop-filter:blur(7px); }
+.logout-modal.show { display:flex; }
+.logout-box { background:var(--bg2); border:1px solid var(--blue); box-shadow:0 0 30px rgba(0,207,255,0.35); padding:28px 30px; max-width:320px; text-align:center; }
+.logout-q { font-family:'Comfortaa',sans-serif; font-size:13px; letter-spacing:0.08em; text-transform:uppercase; color:#cfe8f5; margin-bottom:22px; }
+.logout-actions { display:flex; gap:12px; justify-content:center; }
+.logout-yes, .logout-no { font-family:'Comfortaa',sans-serif; font-size:11px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; padding:11px 24px; cursor:pointer; transition:all 0.2s; }
+.logout-yes { background:var(--blue); color:var(--bg); border:1px solid var(--blue); box-shadow:0 0 14px rgba(0,207,255,0.4); }
+.logout-yes:hover { box-shadow:0 0 22px rgba(0,207,255,0.7); }
+.logout-no { background:none; color:var(--grey); border:1px solid var(--dim); }
+.logout-no:hover { color:var(--blue); border-color:var(--blue); }
+/* mazací mini-okno (3 možnosti) — víc prostoru od okraje */
+#confirm-modal .logout-box { max-width:460px; padding:32px 36px; }
+#confirm-modal .logout-actions { gap:12px; flex-wrap:wrap; }
+
+/* ── NEW POT MODAL NOIR ── */
+.np-modal { display:none; position:fixed; inset:0; z-index:600; align-items:center; justify-content:center; background:rgba(0,0,0,0.5); backdrop-filter:blur(7px); -webkit-backdrop-filter:blur(7px); padding:24px; }
+.np-modal.show { display:flex; }
+.np-box { background:var(--bg2); border:1px solid var(--blue); box-shadow:0 0 36px rgba(0,207,255,0.32); width:100%; max-width:620px; max-height:88vh; overflow-y:auto; font-family:'Comfortaa',sans-serif; }
+.np-head { display:flex; align-items:center; justify-content:space-between; padding:20px 24px 14px; border-bottom:1px solid rgba(0,207,255,0.25); position:sticky; top:0; background:var(--bg2); z-index:2; }
+.np-title { font-size:14px; letter-spacing:0.14em; text-transform:uppercase; font-weight:700; color:var(--blue); text-shadow:0 0 10px rgba(0,207,255,0.5); }
+.np-back { font-family:inherit; font-size:11px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; background:none; border:none; cursor:pointer; color:var(--grey); }
+.np-back:hover { color:var(--blue); }
+.np-body { padding:22px 24px; display:flex; flex-direction:column; gap:20px; }
+.np-field { display:flex; flex-direction:column; gap:7px; }
+.np-lbl { font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:#9fb8c4; }
+.np-lbl em { color:var(--yellow); font-style:normal; }
+.np-input { font-family:inherit; font-size:13px; color:var(--white); background:#0a0b12; border:1px solid var(--dim); padding:11px 13px; outline:none; width:100%; }
+.np-input:focus { border-color:var(--blue); box-shadow:0 0 10px rgba(0,207,255,0.25); }
+.np-area { resize:vertical; min-height:66px; }
+.np-amt { display:flex; align-items:center; border:1px solid var(--dim); background:#0a0b12; }
+.np-amt:focus-within { border-color:var(--blue); box-shadow:0 0 10px rgba(0,207,255,0.25); }
+.np-amt .np-input { border:none; flex:1; background:none; }
+.np-amt .np-input:focus { box-shadow:none; }
+.np-cur { padding:0 14px; font-size:13px; color:var(--yellow); }
+.np-sect { display:flex; flex-direction:column; gap:12px; }
+.np-sect-t { font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:var(--blue); }
+.np-share { display:flex; gap:8px; flex-wrap:wrap; }
+.np-chip { font-family:inherit; font-size:11px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; padding:9px 14px; border:1px solid var(--dim); background:none; color:var(--grey); cursor:pointer; transition:all 0.18s; display:flex; align-items:center; gap:7px; }
+.np-chip:hover { border-color:var(--blue); color:var(--blue); }
+.np-chip.active { border-color:var(--blue); color:var(--blue); box-shadow:0 0 14px rgba(0,207,255,0.3); text-shadow:0 0 6px rgba(0,207,255,0.5); }
+.np-chip svg { width:13px; height:13px; }
+.np-vis { display:flex; flex-direction:column; }
+.np-vrow { display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.06); }
+.np-vrow:last-child { border-bottom:none; }
+.np-vname { font-size:13px; color:var(--white); }
+.np-eye { background:none; border:none; cursor:pointer; color:#41525c; padding:4px; display:flex; transition:all 0.18s; }
+.np-eye.on { color:var(--blue); filter:drop-shadow(0 0 4px rgba(0,207,255,0.5)); }
+.np-eye:hover { color:var(--blue); }
+.np-eye.locked { cursor:default; opacity:0.7; }
+.np-eye.locked:hover { color:#41525c; filter:none; }
+.np-eye svg { width:20px; height:20px; }
+.np-eye .eye-shut { display:none; }
+.np-eye:not(.on) .eye-open { display:none; }
+.np-eye:not(.on) .eye-shut { display:block; }
+.np-foot { display:flex; gap:10px; justify-content:flex-end; padding:16px 24px 22px; border-top:1px solid rgba(0,207,255,0.25); position:sticky; bottom:0; background:var(--bg2); }
+.np-cancel, .np-create { font-family:inherit; font-size:11px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; padding:12px 22px; cursor:pointer; transition:all 0.2s; }
+.np-cancel { background:none; color:var(--grey); border:1px solid var(--dim); }
+.np-cancel:hover { color:var(--blue); border-color:var(--blue); }
+.np-create { background:var(--blue); color:var(--bg); border:1px solid var(--blue); box-shadow:0 0 14px rgba(0,207,255,0.4); }
+.np-create:hover { box-shadow:0 0 22px rgba(0,207,255,0.7); }
+.np-photo-wrap { display:flex; flex-direction:column; gap:9px; }
+.np-icons { display:flex; gap:6px; flex-wrap:wrap; }
+.np-ico { font-size:17px; line-height:1; width:38px; height:38px; display:flex; align-items:center; justify-content:center; border:1px solid var(--dim); background:#0a0b12; cursor:pointer; transition:all 0.15s; }
+.np-ico:hover { border-color:var(--blue); }
+.np-ico.sel { border-color:var(--blue); box-shadow:0 0 12px rgba(0,207,255,0.4); }
+.np-full { width:100%; text-align:center; }
+.pot-card { position:relative; }
+.pot-card.has-del .pot-name-area { padding-right:34px; }
+.pot-del { position:absolute; top:9px; right:9px; z-index:6; width:30px; height:30px; display:flex; align-items:center; justify-content:center; background:var(--bg2); border:1px solid var(--dim); color:var(--grey); cursor:pointer; opacity:0.6; transition:all 0.18s; }
+.pot-del:hover { opacity:1; color:#ff5a5a; border-color:#ff5a5a; box-shadow:0 0 12px rgba(255,90,90,0.35); }
+.pot-del svg { width:15px; height:15px; }
+.pot-av { display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; font-size:13px; border:1px solid var(--dim); vertical-align:middle; margin-right:8px; overflow:hidden; border-radius:2px; }
+.pot-av img { width:100%; height:100%; object-fit:cover; }
+.new-tag { display:inline-block; font-size:9px; letter-spacing:0.1em; text-transform:uppercase; color:var(--blue); border:1px solid var(--blue); padding:2px 7px; border-radius:3px; box-shadow:0 0 8px rgba(0,207,255,0.25); }
+.hist-row { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:11px 0; border-bottom:1px solid rgba(255,255,255,0.06); }
+.hist-row:last-child { border-bottom:none; }
+.hist-info { font-size:13px; color:var(--white); }
+.hist-acts { display:flex; gap:8px; flex-shrink:0; }
+.hist-btn { font-family:'Comfortaa',sans-serif; font-size:10px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; padding:7px 12px; border:1px solid var(--dim); background:none; color:var(--grey); cursor:pointer; transition:all 0.18s; }
+.hist-btn:hover { color:var(--blue); border-color:var(--blue); }
+.hist-del { color:#ff7a7a; border-color:rgba(255,90,90,0.4); }
+.hist-del:hover { color:#ff5a5a; border-color:#ff5a5a; }
+.hist-empty { font-size:12px; color:var(--grey); padding:6px 16px; }
+.np-opt { color:var(--grey); text-transform:none; letter-spacing:0; font-size:10px; }
+.np-hint { font-size:11px; color:#9fb8c4; letter-spacing:0.04em; margin-top:2px; }
+.np-input.np-err, .np-amt.np-err { border-color:#ff5a5a !important; box-shadow:0 0 10px rgba(255,90,90,0.3); }
+.np-drop { border:1px dashed var(--dim); background:#0a0b12; padding:18px 14px; text-align:center; cursor:pointer; transition:all 0.18s; }
+.np-drop:hover, .np-drop.drag { border-color:var(--blue); box-shadow:0 0 12px rgba(0,207,255,0.2); }
+.np-drop-inner { position:relative; }
+.np-drop-txt { font-size:12px; color:#9fb8c4; letter-spacing:0.03em; }
+.np-or { font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:var(--grey); }
+.np-preview { max-width:100%; max-height:120px; display:block; margin:0 auto; border-radius:3px; }
+.np-photo-rm { position:absolute; top:-8px; right:-8px; width:24px; height:24px; border:1px solid var(--dim); background:var(--bg2); color:var(--white); cursor:pointer; font-size:14px; line-height:1; padding:0; border-radius:3px; }
+.np-photo-rm:hover { background:#ff5a5a; color:#fff; border-color:#ff5a5a; }
+.np-foot { position:relative; }
+.np-bubble { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%) scale(0.92); max-width:88%; background:#ff3b3b; color:#fff; font-family:'Comfortaa',sans-serif; font-size:17px; font-weight:700; line-height:1.45; text-align:center; padding:22px 28px; opacity:0; pointer-events:none; transition:opacity 0.2s, transform 0.2s; z-index:30; box-shadow:0 0 40px rgba(255,59,59,0.65); border-radius:8px; }
+.np-bubble.show { opacity:1; transform:translate(-50%,-50%) scale(1); }
+.detail-del-wrap { display:flex; justify-content:center; margin:18px 0 40px; }
+.detail-del { font-family:'Comfortaa',sans-serif; font-size:11px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; display:inline-flex; align-items:center; gap:8px; padding:11px 22px; background:none; border:1px solid rgba(255,90,90,0.5); color:#ff7a7a; cursor:pointer; transition:all 0.2s; }
+.detail-del:hover { color:#ff5a5a; border-color:#ff5a5a; box-shadow:0 0 14px rgba(255,90,90,0.35); }
+.detail-del svg { width:15px; height:15px; }
+.hist-row { flex-wrap:wrap; row-gap:8px; padding:11px 16px; }
+.hist-acts { margin-left:auto; }
+.flag { width:21px; height:14px; border-radius:2px; vertical-align:middle; flex-shrink:0; box-shadow:0 0 0 1px rgba(0,0,0,0.3); }
+.lang-opt-flag { display:inline-flex; align-items:center; gap:8px; }
+</style>
+</head>
+<body>
+
+<!-- BANNER -->
+<div class="banner" onclick="showDashboard()">
+  <canvas id="rain"></canvas>
+  <div class="neon-logo">SPORION</div>
+</div>
+
+<!-- NAV -->
+<header>
+  <nav class="icon-nav-noir">
+    <button class="icon-btn-noir active" id="sb-home" onclick="showDashboard()" title="Tady jsem doma." data-i18n-title="ttDash">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7"/><circle cx="7.4" cy="7.6" r="1.5"/><circle cx="12.8" cy="11.4" r="2"/><circle cx="8.7" cy="13" r="1.1"/></svg>
+    </button>
+    <div class="icon-item-noir" id="item-view">
+      <button class="icon-btn-noir" onclick="toggleSubmenu('sub-view')" title="Co ti víc vyhovuje?" data-i18n-title="ttView">
+        <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="7" height="7" rx="1"/><rect x="11" y="2" width="7" height="7" rx="1"/><rect x="2" y="11" width="7" height="7" rx="1"/><rect x="11" y="11" width="7" height="7" rx="1"/></svg>
+        <svg class="noir-arrow" width="8" height="8" viewBox="0 0 8 8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 1l3 3-3 3"/></svg>
+      </button>
+      <div class="submenu-noir" id="sub-view">
+        <div class="submenu-item-noir view-active" data-view="grid" onclick="setView('grid')"><span data-i18n="viewCards">Karty</span></div>
+        <div class="submenu-item-noir" data-view="list" onclick="setView('list')"><span data-i18n="viewList">Seznam</span></div>
+      </div>
+    </div>
+    <div class="icon-item-noir">
+      <button class="icon-btn-noir" onclick="toggleSubmenu('sub-theme')" title="Jak si to tady vymaluješ?" data-i18n-title="ttTheme">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18.37 2.63 14 7l-1.59-1.59a2 2 0 0 0-2.82 0L8 7l9 9 1.59-1.59a2 2 0 0 0 0-2.82L17 10l4.37-4.37a2.12 2.12 0 1 0-3-3Z"/><path d="M9 8c-2 3-4 3.5-7 4l8 10c2-1 6-5 6-7"/><path d="M14.5 17.5 4.5 15"/></svg>
+        <svg class="noir-arrow" width="8" height="8" viewBox="0 0 8 8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 1l3 3-3 3"/></svg>
+      </button>
+      <div class="submenu-noir" id="sub-theme">
+        <div class="submenu-item-noir theme-opt" onclick="parent.postMessage({theme:'minimal'},'*')">Minimal Elegance</div>
+        <div class="submenu-item-noir theme-opt" onclick="parent.postMessage({theme:'pixel'},'*')">8Bit Shroomies</div>
+        <div class="submenu-item-noir theme-opt view-active" onclick="parent.postMessage({theme:'noir'},'*')">Neon Noir</div>
+      </div>
+    </div>
+    <div class="icon-item-noir">
+      <button class="icon-btn-noir" onclick="showSettings()" title="Volím si tebe, Charizarde!" data-i18n-title="ttSettings">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+      </button>
+    </div>
+  </nav>
+  <div style="display:flex;gap:8px;align-items:center;">
+    <button class="back-btn" id="back-btn" onclick="showDashboard()">← <span data-i18n="back">Zpět</span></button>
+    <button class="new-btn" id="main-new-btn" title="Vytvoř nový money pot" data-i18n-title="ttNewPot" aria-label="Vytvoř nový money pot">+</button>
+    <button class="icon-btn-noir logout-power" onclick="document.getElementById('logout-modal').classList.add('show')" title="Odhlásit" data-i18n-title="logoutTip">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.5v6"/><path d="M8.1 7.7a6 6 0 1 0 7.8 0"/></svg>
+    </button>
+  </div>
+</header>
+<div class="logout-modal" id="logout-modal">
+  <div class="logout-box">
+    <p class="logout-q" data-i18n="logoutQ">Opravdu se chcete odhlásit?</p>
+    <div class="logout-actions">
+      <button class="logout-yes" onclick="window.top.postMessage({sporion:'logout'},'*');showDashboard();document.getElementById('logout-modal').classList.remove('show')" data-i18n="ano">Ano</button>
+      <button class="logout-no" onclick="document.getElementById('logout-modal').classList.remove('show')" data-i18n="ne">Ne</button>
+    </div>
+  </div>
+</div>
+<!-- NEW POT MODAL -->
+<div class="np-modal" id="np-modal">
+  <div class="np-box" role="dialog" aria-modal="true" aria-label="Nový pot">
+    <div class="np-head">
+      <span class="np-title" data-i18n="newPot">Nový pot</span>
+      <button class="np-back" type="button" onclick="closeNp()">← <span data-i18n="back">Zpět</span></button>
+    </div>
+    <div class="np-body">
+      <div class="np-field">
+        <span class="np-lbl"><span data-i18n="name">Název</span> <em>*</em></span>
+        <input class="np-input" id="np-name" type="text" placeholder="Např. Dovolená v Chorvatsku" data-i18n-ph="namePh">
+      </div>
+      <div class="np-field">
+        <span class="np-lbl"><span data-i18n="desc">Popis</span> <span class="np-opt" data-i18n="optional">(nepovinné)</span></span>
+        <textarea class="np-input np-area" id="np-desc" placeholder="Pár slov, na co společně sbíráte…" data-i18n-ph="descPh"></textarea>
+      </div>
+      <div class="np-field">
+        <span class="np-lbl"><span data-i18n="goal">Cílová částka</span> <em>*</em></span>
+        <div class="np-amt"><input class="np-input" id="np-goal" type="number" min="100" max="50000" placeholder="10 000" data-i18n-ph="goalPh"><span class="np-cur">Kč</span></div>
+        <span class="np-hint" data-i18n="amountHint">Min. 100 Kč · max 50 000 Kč</span>
+      </div>
+      <div class="np-field">
+        <span class="np-lbl" data-i18n="photo">Fotka</span>
+        <div class="np-photo-wrap">
+          <div class="np-drop" id="np-drop">
+            <input type="file" id="np-file" accept="image/*" hidden>
+            <div class="np-drop-inner" id="np-drop-inner"><span class="np-drop-txt" data-i18n="dropTxt">Přetáhni sem obrázek nebo klikni pro výběr z počítače</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="np-sect">
+        <span class="np-sect-t" data-i18n="visibleToDonors">Viditelné pro dárce</span>
+        <div class="np-vis" id="np-vis"></div>
+      </div>
+    </div>
+    <div class="np-foot">
+      <button class="np-create np-full" type="button" onclick="createPot()" data-i18n="createPot">Vytvořit pot</button>
+    </div>
+  </div>
+  <div class="np-bubble" id="np-bubble"></div>
+</div>
+<script>
+(function(){
+  var EYE_OPEN='<svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>';
+  var EYE_SHUT='<svg class="eye-shut" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+  var ITEMS=[
+    {n:'Cílová částka',k:'viCastka',on:true,lock:false},
+    {n:'Průběh vybírání',k:'viProgress',on:true,lock:false},
+    {n:'Seznam přispěvatelů',k:'viList',on:false,lock:false},
+    {n:'Jednotlivé příspěvky',k:'viIndiv',on:false,lock:false}
+  ];
+  var vis=document.getElementById('np-vis');
+  ITEMS.forEach(function(it){
+    var row=document.createElement('div'); row.className='np-vrow';
+    var nm=document.createElement('span'); nm.className='np-vname'; nm.textContent=it.n; nm.setAttribute('data-i18n', it.k);
+    var btn=document.createElement('button'); btn.type='button';
+    btn.className='np-eye'+(it.on?' on':'')+(it.lock?' locked':'');
+    btn.innerHTML=EYE_OPEN+EYE_SHUT;
+    if(it.lock){ btn.title='Povinné — vždy viditelné'; btn.setAttribute('aria-disabled','true'); }
+    else { btn.addEventListener('click',function(){ btn.classList.toggle('on'); }); }
+    row.appendChild(nm); row.appendChild(btn); vis.appendChild(row);
+  });
+  var _selIco='';
+  document.querySelectorAll('#np-icons .np-ico').forEach(function(b){
+    b.addEventListener('click',function(){
+      if(b.classList.contains('sel')){ b.classList.remove('sel'); _selIco=''; }
+      else { document.querySelectorAll('#np-icons .np-ico').forEach(function(x){x.classList.remove('sel');}); b.classList.add('sel'); _selIco=b.dataset.ico; _clearPhoto(); }
+      window.npSelectedIcon=_selIco;
+    });
+  });
+  window.npSelectedIcon=''; window.npPhotoData='';
+  var _drop=document.getElementById('np-drop'), _file=document.getElementById('np-file'), _inner=document.getElementById('np-drop-inner');
+  var _dropTxt=_inner?_inner.innerHTML:'';
+  function _readPhoto(f){ if(!f||!/^image\//.test(f.type)) return; var r=new FileReader(); r.onload=function(){ window.npPhotoData=r.result; if(_inner){ _inner.innerHTML='<img class="np-preview" src="'+r.result+'"><button type="button" class="np-photo-rm">×</button>'; _inner.querySelector('.np-photo-rm').addEventListener('click',function(ev){ ev.stopPropagation(); _clearPhoto(); }); } document.querySelectorAll('#np-icons .np-ico').forEach(function(x){x.classList.remove('sel');}); _selIco=''; window.npSelectedIcon=''; }; r.readAsDataURL(f); }
+  function _clearPhoto(){ window.npPhotoData=''; if(_file) _file.value=''; if(_inner) _inner.innerHTML=_dropTxt; }
+  window.npFillPhoto=function(data){
+    if(!data) return;
+    if(/^(https?:|data:)/.test(data)){ window.npPhotoData=data; window.npSelectedIcon=''; if(_inner){ _inner.innerHTML='<img class="np-preview" src="'+data+'"><button type="button" class="np-photo-rm">×</button>'; var rm=_inner.querySelector('.np-photo-rm'); if(rm) rm.addEventListener('click',function(ev){ ev.stopPropagation(); _clearPhoto(); }); } }
+    else { window.npSelectedIcon=data; window.npPhotoData=''; }
+  };
+  if(_drop){
+    _drop.addEventListener('click',function(){ _file.click(); });
+    _file.addEventListener('change',function(){ if(_file.files[0]) _readPhoto(_file.files[0]); });
+    ['dragenter','dragover'].forEach(function(ev){ _drop.addEventListener(ev,function(e){ e.preventDefault(); _drop.classList.add('drag'); }); });
+    ['dragleave','dragend'].forEach(function(ev){ _drop.addEventListener(ev,function(e){ e.preventDefault(); _drop.classList.remove('drag'); }); });
+    _drop.addEventListener('drop',function(e){ e.preventDefault(); _drop.classList.remove('drag'); var f=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0]; if(f) _readPhoto(f); });
+  }
+  ['np-name','np-goal'].forEach(function(i){ var el=document.getElementById(i); if(el) el.addEventListener('input',function(){ el.classList.remove('np-err'); var a=el.closest('.np-amt'); if(a)a.classList.remove('np-err'); if(window.hideBubble) window.hideBubble(); }); });
+  var _npm=document.getElementById('np-modal');
+  if(_npm) _npm.addEventListener('keydown', function(e){ if(e.key==='Enter' && e.target && e.target.tagName!=='TEXTAREA'){ e.preventDefault(); if(typeof createPot==='function') createPot(); } });
+  var _bubble=document.getElementById('np-bubble'), _bubbleT=null;
+  window.showBubble=function(msg){ if(!_bubble) return; _bubble.textContent=msg; _bubble.classList.add('show'); if(_bubbleT) clearTimeout(_bubbleT); _bubbleT=setTimeout(function(){ _bubble.classList.remove('show'); },5200); };
+  window.hideBubble=function(){ if(_bubble) _bubble.classList.remove('show'); if(_bubbleT) clearTimeout(_bubbleT); };
+  window.resetNpForm=function(){
+    ['np-name','np-desc','np-goal'].forEach(function(i){ var el=document.getElementById(i); if(el){ el.value=''; el._real=''; el.classList.remove('np-err'); var a=el.closest('.np-amt'); if(a)a.classList.remove('np-err'); } });
+    document.querySelectorAll('#np-icons .np-ico').forEach(function(x){x.classList.remove('sel');});
+    window.npSelectedIcon=''; _selIco=''; _clearPhoto(); if(window.hideBubble) window.hideBubble();
+  };
+  function openNp(){ _editId=null; if(window.resetNpForm) window.resetNpForm(); if(window._setNpMode) window._setNpMode(false); document.getElementById('np-modal').classList.add('show'); }
+  function closeNp(){ document.getElementById('np-modal').classList.remove('show'); _editId=null; if(window.resetNpForm) window.resetNpForm(); if(window._setNpMode) window._setNpMode(false); }
+  window.openNp=openNp; window.closeNp=closeNp;
+  document.getElementById('main-new-btn').addEventListener('click',openNp);
+  var modal=document.getElementById('np-modal');
+  modal.addEventListener('click',function(e){ if(e.target===modal) closeNp(); });
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape') closeNp(); });
+  document.querySelectorAll('#np-modal .np-chip').forEach(function(c){
+    c.addEventListener('click',function(){ c.classList.toggle('active'); });
+  });
+})();
+</script>
+<div class="logout-modal" id="confirm-modal">
+  <div class="logout-box">
+    <p class="logout-q" id="confirm-q"></p>
+    <div class="logout-actions" id="confirm-actions"></div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div class="page active" id="page-dashboard">
+  <main>
+    <div class="page-header">
+      <div class="page-title-row">
+        <div class="page-title">▸ <span data-i18n="yourPots">Vaše money pots</span></div>
+        <button class="pot-info-btn" type="button" onclick="openInfo()" title="Co je to money pot?" data-i18n-title="ttWhatPot" aria-label="Co je to money pot?">i</button>
+      </div>
+      <div class="page-meta" id="dash-meta"></div>
+    </div>
+    <div class="pots-grid" id="pots-grid"></div>
+    <div class="add-card" id="dash-add" onclick="openNp()"><span data-i18n="createNewPot">+ Vytvoř nový money pot</span></div>
+  </main>
+</div>
+
+<!-- DETAIL -->
+<div class="page" id="page-detail">
+  <div class="detail-wrap">
+    <div class="detail-hero">
+      <div class="detail-left">
+        <div class="detail-badge" id="d-badge"></div>
+        <div class="detail-title" id="d-title"></div>
+        <div class="detail-sub" id="d-sub"></div>
+        <div class="detail-actions">
+          <button class="btn-p" data-i18n="addContrib">+ Přidat příspěvek</button>
+          <button class="btn-s" onclick="openShare()" data-i18n="shareBtn">Sdílet</button>
+          <button class="btn-s" onclick="openEdit()" data-i18n="editBtn">Upravit</button>
+        </div>
+      </div>
+      <div class="detail-right">
+        <div class="detail-star-wrap">
+          <svg id="d-star-svg" width="180" height="180" viewBox="0 0 180 180"></svg>
+          <div class="detail-star-pct">
+            <span class="d-pct-num" id="d-pct">0%</span>
+            <span class="d-pct-lbl" data-i18n="collectedLbl">vybráno</span>
+          </div>
+        </div>
+        <div class="detail-amounts">
+          <div class="d-collected" id="d-collected"></div>
+          <div class="d-goal" id="d-goal-txt"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-box"><div class="stat-box-val" id="s-contrib"></div><div class="stat-box-lbl" data-i18n="stContrib">Přispěvatelů</div></div>
+      <div class="stat-box"><div class="stat-box-val" id="s-avg"></div><div class="stat-box-lbl" data-i18n="stAvg">Průměr. příspěvek</div></div>
+      <div class="stat-box"><div class="stat-box-val" id="s-max"></div><div class="stat-box-lbl" data-i18n="stMax">Největší příspěvek</div></div>
+      <div class="stat-box"><div class="stat-box-val" id="s-rem"></div><div class="stat-box-lbl" data-i18n="stRemain">Zbývá vybrat</div></div>
+    </div>
+
+    <div class="sec-head sec-head-flex"><span data-i18n="progressSec">Průběh výběru</span>
+      <div class="chart-sort" id="chart-sort-wrap">
+        <button type="button" class="chart-sort-btn" onclick="toggleChartSort(event)"><span id="chart-sort-label">chronologicky</span><svg class="chart-sort-arrow" width="9" height="9" viewBox="0 0 8 8" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><path d="M1 2.5l3 3 3-3"/></svg></button>
+        <div class="chart-sort-menu" id="chart-sort-menu">
+          <div class="chart-sort-opt active" data-sort="chrono" onclick="setChartSort('chrono')" data-i18n="sortChrono">chronologicky</div>
+          <div class="chart-sort-opt" data-sort="asc" onclick="setChartSort('asc')" data-i18n="sortAsc">od nejnižší</div>
+          <div class="chart-sort-opt" data-sort="desc" onclick="setChartSort('desc')" data-i18n="sortDesc">od nejvyšší</div>
+        </div>
+      </div>
+    </div>
+    <div class="chart-box"><canvas id="noir-chart" height="140" style="display:block;width:100%;"></canvas></div>
+
+    <div class="sec-head" data-i18n="estimateSec">Odhad dokončení</div>
+    <div class="pred-grid">
+      <div class="pred-box"><div class="pred-val" id="p-date"></div><div class="pred-lbl" data-i18n="predDate">Předpokládané datum</div><div class="pred-note" data-i18n="predNote">Dle tempa příspěvků</div></div>
+      <div class="pred-box"><div class="pred-val" id="p-days"></div><div class="pred-lbl" data-i18n="predDays">Zbývá dní</div><div class="pred-note" id="p-note"></div></div>
+    </div>
+
+    <div class="sec-head" data-i18n="contributions">Příspěvky</div>
+    <div class="contrib-box" id="contrib-list"></div>
+    <div class="detail-del-wrap">
+      <button class="detail-del" type="button" onclick="deleteCurrentPot()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/></svg><span data-i18n="deletePot">Smazat pot</span></button>
+    </div>
+  </div>
+</div>
+
+<div class="np-modal" id="set-modal">
+  <div class="np-box set-box" role="dialog" aria-modal="true" aria-label="Nastavení">
+    <div class="np-head">
+      <span class="np-title" data-i18n="settings">Nastavení</span>
+      <button class="np-back" type="button" onclick="closeSet()">← <span data-i18n="back">Zpět</span></button>
+    </div>
+    <div class="np-body">
+      <div class="noir-sgroup">
+        <div class="noir-stitle" data-i18n="account">Účet</div>
+        <div class="noir-srow"><span data-i18n="jmeno">Jméno</span><span class="noir-sval">Jan Novák</span></div>
+        <div class="noir-srow"><span>E-mail</span><span class="noir-sval">jan@example.com</span></div>
+      </div>
+      <div class="noir-sgroup">
+        <div class="noir-stitle" data-i18n="jazyk">Jazyk</div>
+        <div class="noir-srow">
+          <button class="noir-lang-btn lang-opt-flag active" data-lang="cs" onclick="setLang('cs')"><svg class="flag" viewBox="0 0 36 24" preserveAspectRatio="none"><rect width="36" height="12" fill="#fff"/><rect y="12" width="36" height="12" fill="#d7141a"/><path d="M0 0 L18 12 L0 24 Z" fill="#11457e"/></svg>Čeština</button>
+          <button class="noir-lang-btn lang-opt-flag" data-lang="en" onclick="setLang('en')"><svg class="flag" viewBox="0 0 36 24" preserveAspectRatio="none"><rect width="36" height="24" fill="#012169"/><path d="M0,0 36,24 M36,0 0,24" stroke="#fff" stroke-width="5"/><path d="M0,0 36,24 M36,0 0,24" stroke="#C8102E" stroke-width="3"/><path d="M18,0 V24 M0,12 H36" stroke="#fff" stroke-width="8"/><path d="M18,0 V24 M0,12 H36" stroke="#C8102E" stroke-width="4.5"/></svg>English</button>
+        </div>
+      </div>
+      <div class="noir-sgroup">
+        <div class="noir-stitle" data-i18n="historie">Historie potů</div>
+        <div id="history-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+<footer>
+  <div class="f-logo">Sporion</div>
+  <div class="f-copy">SPORION app created by ROJERI SOFTWORKS © 2026</div>
+</footer>
+<!-- INFO MODAL: Co je money pot -->
+<div class="np-modal" id="info-modal">
+  <div class="np-box info-box" role="dialog" aria-modal="true" aria-label="Co je money pot?">
+    <div class="np-head">
+      <span class="np-title" data-i18n="whatPotTitle">Co je money pot?</span>
+      <button class="np-back" type="button" onclick="closeInfo()">← <span data-i18n="back">Zpět</span></button>
+    </div>
+    <div class="np-body">
+      <p class="info-text" data-i18n="whatPotBody">Money pot je společná online pokladnička. Založíš ji k nějaké příležitosti — narozeninám, svatbě, dovolené — a sdílíš odkaz s ostatními. Každý může bezpečně přispět libovolnou částkou ze svého a ty pak vidíš, jak se vybraná suma blíží k cíli. Až je vybráno, peníze pošleš obdarovanému nebo je použiješ na společný účel. Žádné obíhání s hotovostí, žádné připomínání — jen jeden odkaz, kam všichni přidají svůj díl.</p>
+    </div>
+  </div>
+</div>
+<script>
+function openInfo(){ var m=document.getElementById('info-modal'); if(m) m.classList.add('show'); }
+function closeInfo(){ var m=document.getElementById('info-modal'); if(m) m.classList.remove('show'); }
+(function(){ var m=document.getElementById('info-modal'); if(m) m.addEventListener('click',function(e){ if(e.target===m) closeInfo(); }); document.addEventListener('keydown',function(e){ if(e.key==='Escape') closeInfo(); }); })();
+</script>
+
+<style>
+.share-box { max-width:460px; }
+.share-body { align-items:center; text-align:center; gap:16px; }
+.share-qr { width:100%; max-width:380px; image-rendering:pixelated; }
+.share-sub { font-family:'Comfortaa',sans-serif; font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--grey); }
+.share-link-row { display:flex; width:100%; max-width:380px; border:1px solid var(--dim); border-radius:4px; overflow:hidden; }
+.share-link { flex:1; min-width:0; font-family:'Comfortaa',sans-serif; font-size:13px; color:var(--blue); padding:11px 13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; user-select:all; text-align:left; text-shadow:0 0 6px rgba(0,207,255,0.3); }
+.share-copy { font-family:'Comfortaa',sans-serif; font-size:11px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; background:var(--blue); color:var(--bg); border:none; padding:0 16px; cursor:pointer; box-shadow:0 0 14px rgba(0,207,255,0.4); transition:all 0.2s; }
+.share-copy:hover { box-shadow:0 0 22px rgba(0,207,255,0.7); }
+.share-via { font-family:'Comfortaa',sans-serif; font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:var(--grey); margin-top:2px; }
+.share-socials { display:flex; gap:12px; flex-wrap:wrap; justify-content:center; }
+.share-soc { width:44px; height:44px; border-radius:50%; border:1px solid var(--dim); background:transparent; color:var(--grey); display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 0.18s; }
+.share-soc:hover { border-color:var(--blue); color:var(--blue); box-shadow:0 0 14px rgba(0,207,255,0.3); text-shadow:0 0 8px rgba(0,207,255,0.6); }
+.share-soc svg { width:20px; height:20px; }
+.share-toast { position:fixed; left:50%; bottom:32px; transform:translateX(-50%) translateY(10px); background:var(--bg2); border:1px solid var(--blue); color:var(--blue); font-family:'Comfortaa',sans-serif; font-size:11px; letter-spacing:0.06em; padding:9px 18px; opacity:0; pointer-events:none; transition:all 0.2s; white-space:nowrap; z-index:800; box-shadow:0 0 20px rgba(0,207,255,0.3); }
+.share-toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+</style>
+<div class="np-modal" id="share-modal">
+  <div class="np-box share-box" role="dialog" aria-modal="true" aria-label="Sdílet pot">
+    <div class="np-head">
+      <span class="np-title" data-i18n="shareTitle">Sdílet pot</span>
+      <button class="np-back" type="button" onclick="closeShare()">← <span data-i18n="back">Zpět</span></button>
+    </div>
+    <div class="np-body share-body">
+      <canvas id="share-qr" class="share-qr"></canvas>
+      <div class="share-sub" data-i18n="shareSub">Naskenuj QR nebo sdílej odkaz</div>
+      <div class="share-link-row">
+        <span class="share-link" id="share-link"></span>
+        <button class="share-copy" type="button" onclick="copyShareLink()" data-i18n="shareCopy">Kopírovat</button>
+      </div>
+      <div class="share-via" data-i18n="shareVia">Sdílet přes</div>
+      <div class="share-socials" id="share-socials"></div>
+    </div>
+  </div>
+  <div class="share-toast" id="share-toast"></div>
+</div>
+<script>
+(function(){
+  var QR_FG='#00cfff', QR_BG='transparent', QR_GLOW='rgba(0,207,255,0.55)';
+  var SOCIALS=[
+    {n:'WhatsApp', svg:'<path d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.16-.17.2-.35.22-.64.08-.3-.15-1.26-.46-2.4-1.48-.88-.79-1.48-1.76-1.65-2.06-.17-.3-.02-.46.13-.6.13-.14.3-.35.45-.52.15-.18.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.61-.92-2.21-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.07 2.88 1.21 3.07.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.69.62.71.23 1.36.2 1.87.12.57-.08 1.76-.72 2.01-1.41.25-.7.25-1.29.17-1.41-.07-.12-.27-.2-.57-.35M12.05 21.79h-.01a9.87 9.87 0 0 1-5.03-1.38l-.36-.21-3.74.98 1-3.65-.24-.37a9.86 9.86 0 0 1-1.51-5.26c0-5.45 4.44-9.88 9.89-9.88 2.64 0 5.12 1.03 6.99 2.9a9.83 9.83 0 0 1 2.89 6.99c0 5.45-4.43 9.88-9.88 9.88M20.52 3.45A11.82 11.82 0 0 0 12.04 0C5.46 0 .1 5.36.1 11.94c0 2.1.55 4.14 1.59 5.95L0 24l6.3-1.65a11.9 11.9 0 0 0 5.69 1.45h.01c6.58 0 11.94-5.36 11.95-11.94a11.82 11.82 0 0 0-3.5-8.41"/>', url:function(l,t){return 'https://wa.me/?text='+encodeURIComponent(t+' '+l);}},
+    {n:'Facebook', svg:'<path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07c0 6.02 4.39 11.01 10.13 11.93v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.8-4.69 4.54-4.69 1.31 0 2.69.24 2.69.24v2.97h-1.52c-1.49 0-1.96.93-1.96 1.89v2.25h3.33l-.53 3.49h-2.8V24C19.61 23.08 24 18.09 24 12.07"/>', url:function(l){return 'https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(l);}},
+    {n:'X', svg:'<path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93zM17.61 20.64h2.04L6.49 3.24H4.3z"/>', url:function(l,t){return 'https://twitter.com/intent/tweet?text='+encodeURIComponent(t)+'&url='+encodeURIComponent(l);}},
+    {n:'Telegram', svg:'<path d="M11.94 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.06 0m4.96 7.22c.1 0 .32.02.47.14a.5.5 0 0 1 .17.33c.02.09.04.3.02.47-.18 1.9-.96 6.5-1.36 8.63-.17.9-.5 1.2-.82 1.23-.7.06-1.23-.46-1.9-.9-1.06-.7-1.65-1.12-2.68-1.8-1.19-.78-.42-1.21.26-1.91.18-.18 3.25-2.98 3.31-3.23 0-.03.01-.15-.06-.21-.07-.06-.17-.04-.25-.02-.1.02-1.79 1.14-5.06 3.34-.48.33-.91.5-1.3.48-.43 0-1.25-.24-1.87-.44-.75-.24-1.35-.37-1.3-.79.03-.21.33-.43.9-.66 3.5-1.52 5.83-2.53 7-3.01 3.33-1.39 4.02-1.63 4.48-1.64"/>', url:function(l,t){return 'https://t.me/share/url?url='+encodeURIComponent(l)+'&text='+encodeURIComponent(t);}},
+    {n:'Instagram', svg:'<path d="M12 2.16c3.2 0 3.58.01 4.85.07 1.17.05 1.8.25 2.23.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.43.36 1.06.41 2.23.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.25 1.8-.41 2.23-.22.56-.48.96-.9 1.38-.42.42-.82.68-1.38.9-.43.16-1.06.36-2.23.41-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.8-.25-2.23-.41a3.7 3.7 0 0 1-1.38-.9 3.7 3.7 0 0 1-.9-1.38c-.16-.43-.36-1.06-.41-2.23C2.17 15.58 2.16 15.2 2.16 12s.01-3.58.07-4.85c.05-1.17.25-1.8.41-2.23.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.43-.16 1.06-.36 2.23-.41C8.42 2.17 8.8 2.16 12 2.16M12 0C8.74 0 8.33.01 7.05.07 5.78.13 4.9.33 4.14.63c-.79.3-1.46.72-2.13 1.38C1.35 2.68.93 3.35.63 4.14.33 4.9.13 5.78.07 7.05.01 8.33 0 8.74 0 12s.01 3.67.07 4.95c.06 1.27.26 2.15.56 2.91.3.79.72 1.46 1.38 2.13.67.66 1.34 1.08 2.13 1.38.76.3 1.64.5 2.91.56C8.33 23.99 8.74 24 12 24s3.67-.01 4.95-.07c1.27-.06 2.15-.26 2.91-.56a5.9 5.9 0 0 0 2.13-1.38 5.9 5.9 0 0 0 1.38-2.13c.3-.76.5-1.64.56-2.91.06-1.28.07-1.69.07-4.95s-.01-3.67-.07-4.95c-.06-1.27-.26-2.15-.56-2.91a5.9 5.9 0 0 0-1.38-2.13A5.9 5.9 0 0 0 19.86.63c-.76-.3-1.64-.5-2.91-.56C15.67.01 15.26 0 12 0m0 5.84a6.16 6.16 0 1 0 0 12.32 6.16 6.16 0 0 0 0-12.32M12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8m6.41-10.85a1.44 1.44 0 1 0 0 2.88 1.44 1.44 0 0 0 0-2.88"/>', copy:true},
+    {n:'TikTok', svg:'<path d="M12.53.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/>', copy:true}
+  ];
+  function hash(s){ var h=2166136261; for(var i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619); } return h>>>0; }
+  function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; var t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+  window._shareLink=function(pot){ var seed=hash('sporion-gift:'+(pot?pot.id:0)+':'+(pot?pot.name:'')); var num=1000000+(seed%9000000); return 'sporion.eu/gift'+num; };
+  function drawQR(canvas, text){
+    var N=33, quiet=0, total=N+quiet*2;
+    var box=canvas.clientWidth||280, px=Math.max(2,Math.floor(box/total)), dim=px*total, dpr=window.devicePixelRatio||1;
+    canvas.width=dim*dpr; canvas.height=dim*dpr; canvas.style.height='auto';
+    var cc=canvas.getContext('2d'); cc.setTransform(dpr,0,0,dpr,0,0);
+    cc.fillStyle=QR_BG; cc.fillRect(0,0,dim,dim);
+    var g=[]; for(var y=0;y<N;y++){ g[y]=[]; for(var x=0;x<N;x++) g[y][x]=false; }
+    var rnd=mulberry32(hash(text)^0x9e3779b9);
+    function inFinder(x,y){ function blk(ox,oy){ return x>=ox-1&&x<=ox+7&&y>=oy-1&&y<=oy+7; } return blk(0,0)||blk(N-7,0)||blk(0,N-7); }
+    for(var y2=0;y2<N;y2++)for(var x2=0;x2<N;x2++){ if(!inFinder(x2,y2)&&x2!==6&&y2!==6) g[y2][x2]=rnd()>0.5; }
+    function finder(ox,oy){ for(var dy=0;dy<7;dy++)for(var dx=0;dx<7;dx++){ var on=(dx===0||dx===6||dy===0||dy===6)||(dx>=2&&dx<=4&&dy>=2&&dy<=4); g[oy+dy][ox+dx]=on; } }
+    finder(0,0); finder(N-7,0); finder(0,N-7);
+    for(var i=8;i<N-8;i++){ var on2=(i%2===0); g[6][i]=on2; g[i][6]=on2; }
+    if(QR_GLOW){ cc.shadowColor=QR_GLOW; cc.shadowBlur=px*1.4; }
+    cc.fillStyle=QR_FG;
+    for(var yy=0;yy<N;yy++)for(var xx=0;xx<N;xx++){ if(g[yy][xx]) cc.fillRect((quiet+xx)*px,(quiet+yy)*px,px,px); }
+    cc.shadowBlur=0;
+  }
+  function toast(msg){ var to=document.getElementById('share-toast'); if(!to) return; to.textContent=msg; to.classList.add('show'); clearTimeout(to._t); to._t=setTimeout(function(){ to.classList.remove('show'); },2000); }
+  function fallbackCopy(s){ try{ var ta=document.createElement('textarea'); ta.value=s; ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.focus(); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); }catch(e){} }
+  function doCopy(s){ if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(s).catch(function(){ fallbackCopy(s); }); } else { fallbackCopy(s); } }
+  window.copyShareLink=function(){ var le=document.getElementById('share-link'); if(!le) return; doCopy('https://'+le.textContent); toast(t('shareCopied')); };
+  window.openShare=function(pot){
+    pot = pot || (typeof _currentPot!=='undefined'?_currentPot:null); if(!pot) return;
+    var link=window._shareLink(pot), full='https://'+link;
+    var le=document.getElementById('share-link'); if(le) le.textContent=link;
+    var cv=document.getElementById('share-qr'); if(cv) requestAnimationFrame(function(){ drawQR(cv, full); });
+    var box=document.getElementById('share-socials');
+    if(box){ box.innerHTML=''; SOCIALS.forEach(function(s){ var b=document.createElement('button'); b.type='button'; b.className='share-soc'; b.title=s.n; b.setAttribute('aria-label',s.n); b.innerHTML='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">'+s.svg+'</svg>'; b.onclick=function(){ var msg=t('shareMsg'); if(s.url){ try{ window.open(s.url(full,msg),'_blank','noopener'); }catch(e){} } else { doCopy(full); toast(t('shareCopyHint')); } }; box.appendChild(b); }); }
+    document.getElementById('share-modal').classList.add('show');
+  };
+  window.closeShare=function(){ var m=document.getElementById('share-modal'); if(m) m.classList.remove('show'); };
+  var sm=document.getElementById('share-modal'); if(sm) sm.addEventListener('click',function(e){ if(e.target===sm) window.closeShare(); });
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape') window.closeShare(); });
+})();
+</script>
+
+<script>
+// ── STAR PATH HELPER ──
+function starPath(cx, cy, r_outer, r_inner, points) {
+  const pts = [];
+  for (let i = 0; i < points * 2; i++) {
+    const angle = (i * Math.PI) / points - Math.PI / 2;
+    const r = i % 2 === 0 ? r_outer : r_inner;
+    pts.push([cx + Math.cos(angle) * r, cy + Math.sin(angle) * r]);
+  }
+  return pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p[0].toFixed(2)},${p[1].toFixed(2)}`).join(' ') + ' Z';
+}
+
+function starPerimeter(cx, cy, r_outer, r_inner, points) {
+  const pts = [];
+  for (let i = 0; i < points * 2; i++) {
+    const angle = (i * Math.PI) / points - Math.PI / 2;
+    const r = i % 2 === 0 ? r_outer : r_inner;
+    pts.push([cx + Math.cos(angle) * r, cy + Math.sin(angle) * r]);
+  }
+  let len = 0;
+  for (let i = 0; i < pts.length; i++) {
+    const a = pts[i], b = pts[(i + 1) % pts.length];
+    len += Math.hypot(b[0] - a[0], b[1] - a[1]);
+  }
+  return len;
+}
+
+function buildStarSVG(svgEl, progress, size, isComplete) {
+  const cx = size / 2, cy = size / 2;
+  const ro = size * 0.46, ri = size * 0.24;
+  const path = starPath(cx, cy, ro, ri, 5);
+  const perim = starPerimeter(cx, cy, ro, ri, 5);
+  const offset = perim * (1 - progress);
+  const blue = '#00cfff', yellow = '#ffe600';
+  const col = isComplete ? yellow : blue;
+  const glowColor = isComplete ? 'rgba(255,230,0,0.6)' : 'rgba(0,207,255,0.6)';
+  const dimColor = isComplete ? 'rgba(255,230,0,0.08)' : 'rgba(0,207,255,0.08)';
+
+  svgEl.innerHTML = `
+    <defs>
+      <filter id="glow-${size}">
+        <feGaussianBlur stdDeviation="3" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+    <!-- dim background star -->
+    <path d="${path}" fill="none" stroke="${dimColor}" stroke-width="${size*0.015}" stroke-linejoin="round"/>
+    <!-- progress fill -->
+    <path d="${path}" fill="none" stroke="${col}" stroke-width="${size*0.015}"
+      stroke-linejoin="round" stroke-linecap="round"
+      stroke-dasharray="${perim.toFixed(2)}"
+      stroke-dashoffset="${offset.toFixed(2)}"
+      ${isComplete?'class="star-blink"':''}
+      filter="url(#glow-${size})"/>
+  `;
+}
+
+// ── GLASS RAIN + LIGHTNING ──
+const rainCvs = document.getElementById('rain');
+const rctx = rainCvs.getContext('2d');
+let W, H;
+let glassDrops = [];
+let lightning = { active: false, alpha: 0, timer: 0, next: 180 + Math.floor(Math.random()*300), bolt: [], glowX: 0 };
+
+function resizeRain() {
+  const b = document.querySelector('.banner');
+  W = rainCvs.width = b.offsetWidth;
+  H = rainCvs.height = b.offsetHeight;
+  initDrops();
+}
+
+function initDrops() {
+  glassDrops = [];
+  // Streaks sliding down the glass
+  for (let i = 0; i < 28; i++) {
+    glassDrops.push({
+      type: 'streak',
+      x: Math.random() * W,
+      y: Math.random() * H,
+      len: 20 + Math.random() * 60,
+      speed: 0.15 + Math.random() * 0.4,
+      width: 1 + Math.random() * 2.5,
+      opacity: 0.06 + Math.random() * 0.14,
+      blur: 1 + Math.random() * 2,
+      wobble: (Math.random() - 0.5) * 0.3,
+    });
+  }
+  // Static blobs — stuck drops on glass
+  for (let i = 0; i < 22; i++) {
+    glassDrops.push({
+      type: 'blob',
+      x: Math.random() * W,
+      y: Math.random() * H,
+      rx: 2 + Math.random() * 5,
+      ry: 3 + Math.random() * 7,
+      opacity: 0.04 + Math.random() * 0.10,
+      blink: Math.random() * Math.PI * 2,
+      blinkSpeed: 0.005 + Math.random() * 0.012,
+    });
+  }
+}
+
+resizeRain(); window.addEventListener('resize', resizeRain);
+
+let rainTick = 0;
+
+function animRain() {
+  rctx.clearRect(0, 0, W, H);
+
+  // Draw glass overlay — very subtle blur feel
+  rctx.fillStyle = 'rgba(0,10,20,0.04)';
+  rctx.fillRect(0, 0, W, H);
+
+  glassDrops.forEach(d => {
+    if (d.type === 'streak') {
+      // Blurry streak sliding down
+      const grad = rctx.createLinearGradient(d.x, d.y, d.x + d.wobble * d.len, d.y + d.len);
+      grad.addColorStop(0, `rgba(0,207,255,0)`);
+      grad.addColorStop(0.3, `rgba(0,207,255,${d.opacity})`);
+      grad.addColorStop(0.7, `rgba(0,207,255,${d.opacity * 0.7})`);
+      grad.addColorStop(1, `rgba(0,207,255,0)`);
+      rctx.save();
+      rctx.filter = `blur(${d.blur}px)`;
+      rctx.strokeStyle = grad;
+      rctx.lineWidth = d.width;
+      rctx.lineCap = 'round';
+      rctx.beginPath();
+      rctx.moveTo(d.x, d.y);
+      // Slight curve
+      rctx.quadraticCurveTo(
+        d.x + d.wobble * d.len * 0.5,
+        d.y + d.len * 0.5,
+        d.x + d.wobble * d.len,
+        d.y + d.len
+      );
+      rctx.stroke();
+      rctx.filter = 'none';
+      rctx.restore();
+      d.y += d.speed;
+      if (d.y > H) { d.y = -d.len; d.x = Math.random() * W; }
+
+    } else if (d.type === 'blob') {
+      // Stuck drop — pulsing opacity
+      const pulse = Math.sin(rainTick * d.blinkSpeed + d.blink);
+      const alpha = d.opacity * (0.6 + 0.4 * ((pulse + 1) / 2));
+      rctx.save();
+      rctx.filter = 'blur(1.5px)';
+      rctx.beginPath();
+      rctx.ellipse(d.x, d.y, d.rx, d.ry, 0, 0, Math.PI * 2);
+      // Inner highlight
+      const blobGrad = rctx.createRadialGradient(d.x - d.rx*0.3, d.y - d.ry*0.3, 0, d.x, d.y, Math.max(d.rx, d.ry));
+      blobGrad.addColorStop(0, `rgba(180,240,255,${alpha * 1.5})`);
+      blobGrad.addColorStop(0.5, `rgba(0,207,255,${alpha})`);
+      blobGrad.addColorStop(1, `rgba(0,100,180,${alpha * 0.3})`);
+      rctx.fillStyle = blobGrad;
+      rctx.fill();
+      rctx.filter = 'none';
+      rctx.restore();
+    }
+  });
+
+  // Lightning — konkretni zigzag na nahodnem miste
+  lightning.timer--;
+  if (lightning.timer <= 0 && !lightning.active) {
+    lightning.active = true;
+    lightning.alpha = 1.0;
+    lightning.timer = lightning.next;
+    lightning.next = 220 + Math.floor(Math.random() * 450);
+    const bx = W * 0.1 + Math.random() * W * 0.8;
+    lightning.bolt = [];
+    let by = 0, cx = bx;
+    while (by < H) {
+      lightning.bolt.push([cx, by]);
+      cx += (Math.random() - 0.5) * 28;
+      by += 8 + Math.random() * 12;
+    }
+    lightning.bolt.push([cx, H]);
+    lightning.glowX = bx;
+  }
+  if (lightning.active && lightning.bolt.length) {
+    const ag = rctx.createRadialGradient(lightning.glowX, H*0.3, 0, lightning.glowX, H*0.3, W*0.28);
+    ag.addColorStop(0, `rgba(180,230,255,${lightning.alpha * 0.10})`);
+    ag.addColorStop(1, `rgba(0,0,0,0)`);
+    rctx.fillStyle = ag;
+    rctx.fillRect(0, 0, W, H);
+    // Glow outer
+    rctx.save();
+    rctx.filter = 'blur(4px)';
+    rctx.strokeStyle = `rgba(0,207,255,${lightning.alpha * 0.55})`;
+    rctx.lineWidth = 4;
+    rctx.lineCap = 'round'; rctx.lineJoin = 'round';
+    rctx.beginPath();
+    lightning.bolt.forEach(([px,py], i) => i===0 ? rctx.moveTo(px,py) : rctx.lineTo(px,py));
+    rctx.stroke();
+    rctx.filter = 'none';
+    rctx.restore();
+    // Bright core
+    rctx.save();
+    rctx.strokeStyle = `rgba(220,245,255,${lightning.alpha * 0.9})`;
+    rctx.lineWidth = 1;
+    rctx.lineCap = 'round'; rctx.lineJoin = 'round';
+    rctx.beginPath();
+    lightning.bolt.forEach(([px,py], i) => i===0 ? rctx.moveTo(px,py) : rctx.lineTo(px,py));
+    rctx.stroke();
+    rctx.restore();
+    lightning.alpha -= 0.04;
+    if (lightning.alpha <= 0) { lightning.active = false; lightning.alpha = 0; }
+  }
+
+  rainTick++;
+  requestAnimationFrame(animRain);
+}
+animRain();
+
+// ── DATA ──
+const POTS = [
+  { id:1, name:'Narozeniny Martiny', occasion:'Narozeniny', name_en:"Martina's Birthday", occasion_en:'Birthday', collected:1440, goal:2000, mush:'pravak', contributors:8, occasion_date:'18. 6. 2026', description:'', photo:'',
+    contributions:[{date:'24.4.',name:'Tomáš K.',amount:200},{date:'26.4.',name:'Anonymní',amount:150},{date:'28.4.',name:'Petra N.',amount:500},{date:'1.5.',name:'Martin S.',amount:100},{date:'5.5.',name:'Lucie V.',amount:200},{date:'9.5.',name:'Anonymní',amount:120},{date:'14.5.',name:'Jana H.',amount:100},{date:'20.5.',name:'Ondřej P.',amount:70}] },
+  { id:2, name:'Rozlučka Jana', occasion:'Rozlučka', name_en:"Jan's Bachelor Party", occasion_en:'Bachelor Party', collected:3500, goal:3500, mush:'vaclavky', contributors:12, occasion_date:'25. 5. 2026', description:'', photo:'',
+    contributions:[{date:'2.4.',name:'Markéta S.',amount:500},{date:'5.4.',name:'Tomáš V.',amount:300},{date:'10.4.',name:'Anonymní',amount:200},{date:'14.4.',name:'Petra K.',amount:400},{date:'18.4.',name:'Jan H.',amount:250},{date:'22.4.',name:'Lucie N.',amount:350},{date:'25.4.',name:'Anonymní',amount:300},{date:'28.4.',name:'Martin D.',amount:200},{date:'2.5.',name:'Eva R.',amount:300},{date:'6.5.',name:'Ondřej L.',amount:200},{date:'10.5.',name:'Jana P.',amount:200},{date:'15.5.',name:'Anonymní',amount:300}] },
+  { id:3, name:'Dovolená Kuba', occasion:'Dovolená', name_en:'Cuba Trip', occasion_en:'Holiday', collected:1200, goal:4000, mush:'bedla', contributors:6, occasion_date:'1. 8. 2026', description:'', photo:'',
+    contributions:[{date:'5.4.',name:'Kuba M.',amount:500},{date:'15.4.',name:'Anonymní',amount:200},{date:'1.5.',name:'Jana M.',amount:300},{date:'10.5.',name:'Petr M.',amount:100},{date:'16.5.',name:'Anonymní',amount:50},{date:'20.5.',name:'Tomáš M.',amount:50}] },
+];
+
+function buildDashboard() {
+  const grid = document.getElementById('pots-grid');
+  grid.innerHTML = '';
+  const complete = POTS.filter(p => p.collected >= p.goal).length;
+  document.getElementById('dash-meta').textContent = `${POTS.length - complete} ${t('active')} · ${complete} ${t('done')}`;
+  const addEl = document.getElementById('dash-add');
+  if (addEl) addEl.classList.toggle('full', POTS.length === 0);
+
+  POTS.forEach(pot => {
+    const progress = Math.min(pot.collected / pot.goal, 1);
+    const pct = Math.round(progress * 100);
+    const isComplete = pot.collected >= pot.goal;
+    const starId = `star-${pot.id}`;
+
+    const card = document.createElement('div');
+    card.className = 'pot-card' + (isComplete ? ' complete' : '');
+    card.innerHTML = `
+      <div class="pot-name-area">
+        <div class="pot-name">${potAvatar(pot)}${tName(pot)}</div>
+        <div class="pot-occasion">${tOcc(pot)}</div>
+      </div>
+      <div class="star-area">
+        <div class="star-wrap">
+          <svg id="${starId}" width="130" height="130" viewBox="0 0 130 130"></svg>
+          <div class="star-pct">${pct}%</div>
+        </div>
+      </div>
+      <div class="card-stats">
+        <span class="cs-collected">${money(pot.collected)}</span>
+        <span class="cs-right">${isComplete ? '<span class="cs-hotovo">'+t('badgeDoneChk')+'</span>' : `<span class="cs-goal">/ ${money(pot.goal)}</span>`}${pot.createdAt&&(Date.now()-pot.createdAt<_NEW_MS)&&!isComplete?'<span class="new-tag">'+t('badgeNew')+'</span>':''}</span>
+      </div>
+      <div class="list-extra">
+        <span class="le-pct">${pct} %</span>
+        <span class="le-amount">${money(pot.collected)} / ${money(pot.goal)}</span>
+        ${isComplete?'<span class="le-badge le-done">'+t('badgeDone')+'</span>':(pot.createdAt&&(Date.now()-pot.createdAt<_NEW_MS)?'<span class="le-badge le-new">'+t('badgeNew')+'</span>':'')}
+      </div>`;
+
+    card.addEventListener('click', () => showDetail(pot));
+    grid.appendChild(card);
+    buildStarSVG(document.getElementById(starId), progress, 130, isComplete);
+  });
+}
+
+function showDetail(pot) {
+  _currentPot = pot;
+  _footer(false);
+  document.getElementById('item-view').style.display='none';
+  const progress = Math.min(pot.collected / pot.goal, 1);
+  const pct = Math.round(progress * 100);
+  const isComplete = pot.collected >= pot.goal;
+
+  document.getElementById('d-badge').textContent = `▸ money pot · ${tOcc(pot)}`;
+  document.getElementById('d-title').textContent = tName(pot);
+  document.getElementById('d-sub').textContent = `${pot.contributors} `+t('contributors');
+  document.getElementById('d-pct').textContent = pct + '%';
+  document.getElementById('d-collected').textContent = money(pot.collected);
+  document.getElementById('d-goal-txt').textContent = '/ ' + money(pot.goal);
+
+  buildStarSVG(document.getElementById('d-star-svg'), progress, 180, isComplete);
+
+  const amounts = pot.contributions.map(c => c.amount);
+  const hasC = amounts.length>0;
+  const avg = hasC ? Math.round(amounts.reduce((a, b) => a + b, 0) / amounts.length) : 0;
+  const rem = Math.max(0, pot.goal - pot.collected);
+  document.getElementById('s-contrib').textContent = pot.contributors;
+  document.getElementById('s-avg').textContent = money(avg);
+  document.getElementById('s-max').textContent = money(hasC?Math.max(...amounts):0);
+  document.getElementById('s-rem').textContent = money(rem);
+
+  const daysLeft = (rem > 0 && avg > 0) ? Math.round((rem / avg) * 4) : 0;
+  const predDate = new Date(Date.now() + daysLeft * 86400000);
+  document.getElementById('p-date').textContent = rem > 0 ? (hasC?predDate.toLocaleDateString('cs-CZ', {day:'numeric',month:'numeric',year:'numeric'}):'—') : t('doneEx');
+  document.getElementById('p-days').textContent = rem > 0 ? (hasC?daysLeft + ' '+t('days'):'—') : '—';
+  document.getElementById('p-note').textContent = pot.occasion_date ? t('term')+`: ${pot.occasion_date}` : '';
+
+  const list = document.getElementById('contrib-list');
+  list.innerHTML = '';
+  [...pot.contributions].reverse().forEach(c => {
+    const row = document.createElement('div');
+    row.className = 'contrib-row';
+    const anon = c.name.indexOf('Anonym')===0;
+    row.innerHTML = `<div class="c-date">${c.date}</div><div class="c-name ${anon?'c-anon':''}">${tAnon(c.name)}</div><div class="c-amount">+${money(c.amount)}</div>`;
+    list.appendChild(row);
+  });
+
+  document.getElementById('page-dashboard').classList.remove('active');
+  document.getElementById('page-detail').classList.add('active');
+  _pushView();
+  document.getElementById('back-btn').style.display = 'block';
+  document.getElementById('main-new-btn').style.display = 'none';
+  window.scrollTo(0, 0);
+  if(typeof resetChartSort==='function') resetChartSort();
+  setTimeout(() => drawChart(pot), 80);
+}
+
+function drawChart(pot) {
+  const canvas = document.getElementById('noir-chart');
+  const w = canvas.offsetWidth || 700;
+  canvas.width = w * window.devicePixelRatio;
+  canvas.height = 140 * window.devicePixelRatio;
+  canvas.style.height = '140px';
+  const cc = canvas.getContext('2d');
+  cc.scale(window.devicePixelRatio, window.devicePixelRatio);
+  const cw = w, ch = 140, pad = {top:14,right:14,bottom:28,left:52};
+  const gw = cw-pad.left-pad.right, gh = ch-pad.top-pad.bottom;
+  let cum = 0;
+  var _cs=(typeof _chartSort!=='undefined')?_chartSort:'chrono';
+  var _src=pot.contributions.slice();
+  if(_cs==='asc') _src.sort(function(a,b){return a.amount-b.amount;});
+  else if(_cs==='desc') _src.sort(function(a,b){return b.amount-a.amount;});
+  const data = _src.map(c => { cum += c.amount; return {...c, cum}; });
+  const maxV = pot.goal;
+
+  [0,.25,.5,.75,1].forEach(t => {
+    const v = Math.round(maxV*t), y = pad.top+gh-t*gh;
+    cc.strokeStyle='#1a1c28'; cc.lineWidth=1;
+    cc.beginPath(); cc.moveTo(pad.left,y); cc.lineTo(pad.left+gw,y); cc.stroke();
+    if(v>0){cc.fillStyle='#2a2c3a'; cc.font='9px Comfortaa'; cc.textAlign='right'; cc.fillText(curNum(v),pad.left-4,y+4);}
+  });
+
+  cc.strokeStyle='rgba(255,230,0,0.2)'; cc.setLineDash([4,4]); cc.lineWidth=1;
+  cc.beginPath(); cc.moveTo(pad.left,pad.top); cc.lineTo(pad.left+gw,pad.top); cc.stroke();
+  cc.setLineDash([]);
+  cc.fillStyle='rgba(255,230,0,0.2)'; cc.textAlign='left'; cc.font='8px Comfortaa';
+  cc.fillText(t('chartGoal')+money(pot.goal), pad.left+4, pad.top-2);
+
+  cc.fillStyle='#2a2c3a'; cc.textAlign='center'; cc.font='8px Comfortaa';
+  data.forEach((d,i) => { const x=pad.left+(data.length>1?i/(data.length-1):0)*gw; cc.fillText(d.date,x,ch-4); });
+
+  if(data.length < 2) return;
+
+  cc.beginPath(); cc.moveTo(pad.left, pad.top+gh);
+  data.forEach((d,i) => { const x=pad.left+(i/(data.length-1))*gw; const y=pad.top+gh-(d.cum/maxV)*gh; cc.lineTo(x,y); });
+  cc.lineTo(pad.left+gw, pad.top+gh); cc.closePath();
+  const grad = cc.createLinearGradient(0,pad.top,0,pad.top+gh);
+  grad.addColorStop(0,'rgba(0,207,255,0.12)'); grad.addColorStop(1,'rgba(0,207,255,0.01)');
+  cc.fillStyle = grad; cc.fill();
+
+  cc.beginPath(); cc.strokeStyle='#00cfff'; cc.lineWidth=2;
+  cc.shadowColor='#00cfff'; cc.shadowBlur=6;
+  data.forEach((d,i) => { const x=Math.round(pad.left+(i/(data.length-1))*gw); const y=Math.round(pad.top+gh-(d.cum/maxV)*gh); i===0?cc.moveTo(x,y):cc.lineTo(x,y); });
+  cc.stroke(); cc.shadowBlur=0;
+
+  data.forEach((d,i) => {
+    const x=Math.round(pad.left+(i/(data.length-1))*gw);
+    const y=Math.round(pad.top+gh-(d.cum/maxV)*gh);
+    cc.beginPath(); cc.arc(x,y,4,0,Math.PI*2);
+    cc.fillStyle='#00cfff'; cc.shadowColor='#00cfff'; cc.shadowBlur=8; cc.fill();
+    cc.beginPath(); cc.arc(x,y,2,0,Math.PI*2);
+    cc.fillStyle='#08090f'; cc.shadowBlur=0; cc.fill();
+  });
+}
+
+function showDashboard() {
+  document.getElementById('item-view').style.display='';
+  _footer(true);
+  document.getElementById('page-detail').classList.remove('active'); closeSet();
+  document.getElementById('page-dashboard').classList.add('active');
+  _pushView();
+  document.getElementById('back-btn').style.display = 'none';
+  document.getElementById('main-new-btn').style.display = 'inline-flex';
+  window.scrollTo(0, 0);
+}
+
+// ── POTY: vytvořit / smazat / archiv ──
+const ARCHIVE = [];
+const _MUSH_KEYS = ['pravak','muchomurka','vaclavky','lisky','holubinka','bedla','kremenac','hliva','shiitake','kuratko'];
+const _NEW_MS = 3*24*60*60*1000;
+function _closeChoice(){ document.getElementById('confirm-modal').classList.remove('show'); }
+function closeConfirm(){ _closeChoice(); }
+function askChoice(msg, buttons){
+  document.getElementById('confirm-q').textContent = msg;
+  var box = document.getElementById('confirm-actions'); box.innerHTML='';
+  buttons.forEach(function(b){ var btn=document.createElement('button'); btn.className=b.primary?'logout-yes':'logout-no'; btn.textContent=b.label; btn.onclick=function(){ _closeChoice(); if(b.cb) b.cb(); }; box.appendChild(btn); });
+  document.getElementById('confirm-modal').classList.add('show');
+}
+function askConfirm(msg, cb){ askChoice(msg, [{label:t('ano'), primary:true, cb:cb}, {label:t('ne')}]); }
+function _footer(show){ var f=document.querySelector('footer, .footer'); if(f) f.style.display=show?'':'none'; }
+function askDeletePot(pot){ askConfirm('Přesunout „'+pot.name+'" do historie?', function(){ archivePot(pot.id); }); }
+function archivePot(id, reason){ const i = POTS.findIndex(p=>p.id===id); if(i<0) return; const p = POTS.splice(i,1)[0]; p.archivedAt = Date.now(); p.archReason = reason||''; ARCHIVE.unshift(p); buildDashboard(); renderHistory(); _pushState(); }
+function restorePot(id){ const i = ARCHIVE.findIndex(p=>p.id===id); if(i<0) return; const p = ARCHIVE.splice(i,1)[0]; delete p.archivedAt; delete p.archReason; POTS.push(p); buildDashboard(); renderHistory(); _pushState(); }
+function purgePot(id){ const i = ARCHIVE.findIndex(p=>p.id===id); if(i>=0) ARCHIVE.splice(i,1); renderHistory(); _pushState(); }
+function potAvatar(pot){
+  if(!pot.photo) return '';
+  const inner = /^(https?:|data:)/.test(pot.photo) ? '<img src="'+pot.photo+'" alt="">' : pot.photo;
+  return '<span class="pot-av">'+inner+'</span>';
+}
+function addDelBtn(card, pot){
+  const del = document.createElement('button'); del.className='pot-del'; del.title='Smazat pot';
+  del.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/></svg>';
+  del.addEventListener('click', function(ev){ ev.stopPropagation(); askDeletePot(pot); });
+  card.appendChild(del);
+}
+function renderHistory(){
+  const el = document.getElementById('history-list'); if(!el) return; el.innerHTML='';
+  if(!ARCHIVE.length){ el.innerHTML = '<div class="hist-empty">'+t('histEmpty')+'</div>'; return; }
+  ARCHIVE.forEach(function(pot){
+    const row = document.createElement('div'); row.className='hist-row';
+    const info = document.createElement('span'); info.className='hist-info';
+    info.textContent = tName(pot)+' · '+money(pot.collected)+' / '+money(pot.goal)+(pot.archReason?' · '+t(pot.archReason):'');
+    const acts = document.createElement('span'); acts.className='hist-acts';
+    const r = document.createElement('button'); r.className='hist-btn'; r.textContent=t('restore'); r.onclick=function(){ restorePot(pot.id); };
+    const d = document.createElement('button'); d.className='hist-btn hist-del'; d.textContent=t('purge'); d.onclick=function(){ askConfirm(t('purgePre')+tName(pot)+t('purgePost'), function(){ purgePot(pot.id); }); };
+    acts.appendChild(r); acts.appendChild(d); row.appendChild(info); row.appendChild(acts); el.appendChild(row);
+  });
+}
+let _currentPot = null;
+function deleteCurrentPot(){
+  if(!_currentPot) return; var pot=_currentPot;
+  if(pot.collected>0 && pot.collected<pot.goal){
+    askChoice(t('potPre')+tName(pot)+t('notReachedMid')+money(pot.collected)+t('whatMoney'), [
+      {label:t('refundBtn'), primary:true, cb:function(){ archivePot(pot.id,'refunded'); showDashboard(); }},
+      {label:t('withdrawBtn'), cb:function(){ archivePot(pot.id,'withdrawn'); showDashboard(); }},
+      {label:t('back')}
+    ]);
+  } else {
+    askChoice(t('delPre')+tName(pot)+t('delPost'), [
+      {label:t('smazatBtn'), primary:true, cb:function(){ archivePot(pot.id, pot.collected>0?'withdrawn':''); showDashboard(); }},
+      {label:t('back')}
+    ]);
+  }
+}
+function createPot(){
+  const nameEl=document.getElementById('np-name'), goalEl=document.getElementById('np-goal');
+  const name=(nameEl.value||'').trim();
+  const goalRaw=(goalEl.value||'').replace(/\s/g,''); var goalNum=parseInt(goalRaw,10); const goal=(APPLANG==='en'&&!isNaN(goalNum))?Math.round(goalNum*RATE):goalNum;
+  const mark=function(el){ (el.closest('.np-amt')||el).classList.add('np-err'); };
+  const clr=function(el){ (el.closest('.np-amt')||el).classList.remove('np-err'); el.classList.remove('np-err'); };
+  clr(nameEl); clr(goalEl); if(window.hideBubble) window.hideBubble();
+  let bad=false;
+  if(!name){ mark(nameEl); bad=true; }
+  if(!goalRaw || isNaN(goal) || goal<=0){ mark(goalEl); bad=true; }
+  if(bad){ (name?goalEl:nameEl).focus(); return; }
+  if(goal<100){ mark(goalEl); goalEl.focus(); if(window.showBubble) window.showBubble(t('bubbleLow')); return; }
+  if(goal>50000){ mark(goalEl); goalEl.focus(); if(window.showBubble) window.showBubble(t('bubbleHigh')); return; }
+  const desc=(document.getElementById('np-desc').value||'').trim();
+  const photo = window.npPhotoData || window.npSelectedIcon || '';
+  if(_editId!=null){
+    var _ep=POTS.find(function(p){return p.id===_editId;});
+    if(!_ep){ _editId=null; closeNp(); return; }
+    askConfirm(t('editConfirmQ'), function(){
+      _ep.name=name; delete _ep.name_en; _ep.description=desc; _ep.goal=goal; _ep.photo=photo;
+      buildDashboard(); _pushState(); closeNp(); showDetail(_ep);
+    });
+    return;
+  }
+  const id = Math.max(0, ...POTS.map(p=>p.id), ...ARCHIVE.map(p=>p.id)) + 1;
+  POTS.push({ id:id, name:name, occasion:'Money pot', collected:0, goal:goal, mush:_MUSH_KEYS[Math.floor(Math.random()*_MUSH_KEYS.length)], contributors:0, occasion_date:'', contributions:[], description:desc, photo:photo, createdAt:Date.now() });
+  buildDashboard();
+  _pushState();
+  if(window.resetNpForm) window.resetNpForm();
+  closeNp();
+}
+// ── ŘAZENÍ GRAFU ──
+var _chartSort='chrono';
+function setChartSort(mode){ _chartSort=mode; var lbl=document.getElementById('chart-sort-label'); if(lbl) lbl.textContent=t(mode==='asc'?'sortAsc':mode==='desc'?'sortDesc':'sortChrono'); var w=document.getElementById('chart-sort-wrap'); if(w) w.classList.remove('open'); document.querySelectorAll('#chart-sort-menu .chart-sort-opt').forEach(function(o){ o.classList.toggle('active', o.dataset.sort===mode); }); if(_currentPot) drawChart(_currentPot); }
+function toggleChartSort(e){ if(e&&e.stopPropagation) e.stopPropagation(); var w=document.getElementById('chart-sort-wrap'); if(w) w.classList.toggle('open'); }
+function resetChartSort(){ _chartSort='chrono'; var lbl=document.getElementById('chart-sort-label'); if(lbl) lbl.textContent=t('sortChrono'); var w=document.getElementById('chart-sort-wrap'); if(w) w.classList.remove('open'); document.querySelectorAll('#chart-sort-menu .chart-sort-opt').forEach(function(o){ o.classList.toggle('active', o.dataset.sort==='chrono'); }); }
+document.addEventListener('click', function(e){ if(!e.target.closest('.chart-sort')){ var w=document.getElementById('chart-sort-wrap'); if(w) w.classList.remove('open'); } });
+
+// ── ÚPRAVA POTU ──
+var _editId=null;
+function _setNpMode(isEdit){ var ttl=document.querySelector('#np-modal .np-title'); var btn=document.querySelector('#np-modal .np-create'); if(ttl) ttl.textContent=t(isEdit?'editPotTitle':'newPot'); if(btn) btn.textContent=t(isEdit?'saveChanges':'createPot'); }
+window._setNpMode=_setNpMode;
+function openEdit(pot){
+  pot = pot || _currentPot; if(!pot) return;
+  _editId = pot.id;
+  if(window.resetNpForm) window.resetNpForm();
+  var nm=document.getElementById('np-name'); if(nm) nm.value = pot.name||'';
+  var ds=document.getElementById('np-desc'); if(ds) ds.value = pot.description||'';
+  var gl=document.getElementById('np-goal'); if(gl) gl.value = (APPLANG==='en') ? Math.round((pot.goal||0)/RATE) : (pot.goal||0);
+  if(pot.photo && window.npFillPhoto) window.npFillPhoto(pot.photo);
+  _setNpMode(true);
+  document.getElementById('np-modal').classList.add('show');
+  setTimeout(function(){ if(nm) nm.focus(); }, 60);
+}
+window.openEdit=openEdit;
+
+// ── SYNC POTŮ napříč tématy (postMessage přes wrapper) ──
+var APPLANG='cs', _langApplying=false;
+function tName(p){ return (APPLANG==='en' && p && p.name_en) ? p.name_en : (p?p.name:''); }
+function tOcc(p){ return (APPLANG==='en' && p && p.occasion_en) ? p.occasion_en : (p?p.occasion:''); }
+function tAnon(n){ return (APPLANG==='en' && /^Anonym/.test(n||'')) ? 'Anonymous' : n; }
+var I18N={
+ cs:{ yourPots:'Vaše money pots', newPotBtn:'+ Nový pot', addPot:'+ Přidat nový pot', active:'aktivních', done:'hotovo', badgeDone:'Hotovo', badgeDoneChk:'✓ Hotovo', badgeNew:'Nový', newPot:'Nový pot', back:'Zpět', name:'Název', desc:'Popis', optional:'(nepovinné)', goal:'Cílová částka', photo:'Fotka', dropTxt:'Přetáhni sem obrázek nebo klikni pro výběr z počítače', share:'Sdílení', visibleToDonors:'Viditelné pro dárce', createPot:'Vytvořit pot', amountHint:'Min. 100 Kč · max 50 000 Kč', contributors:'přispěvatelů', stContrib:'Přispěvatelů', stAvg:'Průměr. příspěvek', stMax:'Největší příspěvek', stRemain:'Zbývá vybrat', predDate:'Předpokládané datum', predDays:'Zbývá dní', predNote:'Dle tempa příspěvků', contributions:'Příspěvky', deletePot:'Smazat pot', doneEx:'Splněno!', term:'Termín', histEmpty:'Zatím žádné archivované poty.', restore:'Obnovit', purge:'Smazat navždy', refunded:'Vráceno dárcům', withdrawn:'Peníze vybrány', delPre:'Opravdu chcete pot „', delPost:'“ smazat?', purgePre:'Smazat „', purgePost:'“ navždy?', notReachedMid:'“ zatím nedosáhl cíle. Vybráno ', whatMoney:'. Co s penězi?', potPre:'Pot „', refundBtn:'Vrátit dárcům', withdrawBtn:'Vybrat peníze', smazatBtn:'Smazat', logoutQ:'Opravdu se chcete odhlásit?', ano:'Ano', ne:'Ne', account:'Účet', jmeno:'Jméno', jazyk:'Jazyk', historie:'Historie potů', bubbleLow:'O takový bakšiš si, člověče, řekni svojí tetce. Minimální částka je 100 Kč. :)', bubbleHigh:'To už je trochu moc, člověče. Maximální částka je 50 000 Kč. O větší obnos napiš panu Muskovi. :)' },
+ en:{ yourPots:'Your money pots', newPotBtn:'+ New pot', addPot:'+ Add new pot', active:'active', done:'done', badgeDone:'Done', badgeDoneChk:'✓ Done', badgeNew:'New', newPot:'New pot', back:'Back', name:'Name', desc:'Description', optional:'(optional)', goal:'Target amount', photo:'Photo', dropTxt:'Drag an image here or click to pick from your computer', share:'Sharing', visibleToDonors:'Visible to donors', createPot:'Create pot', amountHint:'Min. 100 Kč · max 50 000 Kč', contributors:'contributors', stContrib:'Contributors', stAvg:'Avg. contribution', stMax:'Largest contribution', stRemain:'Left to collect', predDate:'Estimated date', predDays:'Days left', predNote:'Based on contribution pace', contributions:'Contributions', deletePot:'Delete pot', doneEx:'Done!', term:'Deadline', histEmpty:'No archived pots yet.', restore:'Restore', purge:'Delete forever', refunded:'Refunded to donors', withdrawn:'Money withdrawn', delPre:'Do you really want to delete pot „', delPost:'“?', purgePre:'Delete „', purgePost:'“ forever?', notReachedMid:"“ hasn't reached its goal yet. Collected ", whatMoney:'. What about the money?', potPre:'Pot „', refundBtn:'Refund donors', withdrawBtn:'Withdraw money', smazatBtn:'Delete', logoutQ:'Do you really want to log out?', ano:'Yes', ne:'No', account:'Account', jmeno:'Name', jazyk:'Language', historie:'Pot history', bubbleLow:"That's pocket change, mate — go ask your auntie. Minimum is 100 Kč. :)", bubbleHigh:"That's a bit much, mate. Maximum is 50 000 Kč. For more, email Mr. Musk. :)" }
+};
+function t(k){ var d=I18N[APPLANG]||I18N.cs; return (d&&d[k]!=null)?d[k]:(I18N.cs[k]!=null?I18N.cs[k]:k); }
+function applyStatic(){ document.querySelectorAll('[data-i18n]').forEach(function(el){ el.textContent=t(el.getAttribute('data-i18n')); }); document.querySelectorAll('[data-i18n-ph]').forEach(function(el){ el.placeholder=t(el.getAttribute('data-i18n-ph')); }); document.querySelectorAll('[data-i18n-title]').forEach(function(el){ el.title=t(el.getAttribute('data-i18n-title')); }); }
+Object.assign(I18N.cs, { ttDash:'Tady jsem doma.', ttView:'Co ti víc vyhovuje?', ttTheme:'Jak si to tady vymaluješ?', ttSettings:'Volím si tebe, Charizarde!', ttNewPot:'Vytvoř nový money pot', ttWhatPot:'Co je to money pot?', createNewPot:'+ Vytvoř nový money pot', whatPotTitle:'Co je money pot?', whatPotBody:'Money pot je společná online pokladnička. Založíš ji k nějaké příležitosti — narozeninám, svatbě, dovolené — a sdílíš odkaz s ostatními. Každý může bezpečně přispět libovolnou částkou ze svého a ty pak vidíš, jak se vybraná suma blíží k cíli. Až je vybráno, peníze pošleš obdarovanému nebo je použiješ na společný účel. Žádné obíhání s hotovostí, žádné připomínání — jen jeden odkaz, kam všichni přidají svůj díl.', viewCards:'Karty', viewList:'Seznam', link:'Odkaz', qr:'QR kód', email:'E-mail', viCastka:'Cílová částka', viProgress:'Průběh vybírání', viList:'Seznam přispěvatelů', viIndiv:'Jednotlivé příspěvky' });
+Object.assign(I18N.en, { ttDash:'Home sweet home.', ttView:'What suits you better?', ttTheme:'How will you paint the place?', ttSettings:'I choose you, Charizard!', ttNewPot:'Create a new money pot', ttWhatPot:'What is a money pot?', createNewPot:'+ Create a new money pot', whatPotTitle:'What is a money pot?', whatPotBody:'A money pot is a shared online piggy bank. You set it up for an occasion — a birthday, a wedding, a holiday — and share the link with everyone. Each person can safely chip in any amount they like, and you watch the total grow toward your goal. Once it\'s collected, you send the money to the lucky person or put it toward your shared plan. No chasing cash, no reminders — just one link where everyone adds their part.', viewCards:'Cards', viewList:'List', link:'Link', qr:'QR code', email:'E-mail', viCastka:'Target amount', viProgress:'Collection progress', viList:'List of contributors', viIndiv:'Individual contributions' });
+setTimeout(applyStatic,0);
+var RATE=25.3;
+function money(v){ v=+v||0; if(APPLANG==='en') return '€'+Math.round(v/RATE).toLocaleString('en'); return v.toLocaleString('cs')+' Kč'; }
+function curNum(v){ v=+v||0; return (APPLANG==='en'?Math.round(v/RATE):v).toLocaleString(APPLANG==='en'?'en':'cs'); }
+Object.assign(I18N.cs, { logoutTip:'Odhlásit', namePh:'Např. Dovolená v Chorvatsku', descPh:'Pár slov, na co společně sbíráte…', editBtn:'Upravit', addContrib:'+ Přidat příspěvek', shareBtn:'Sdílet', progressSec:'Průběh výběru', estimateSec:'Odhad dokončení', collectedLbl:'vybráno', days:'dní', settings:'Nastavení', sortChrono:'chronologicky', sortAsc:'od nejnižší', sortDesc:'od nejvyšší', totalCount:'celkem', editPotTitle:'Upravit pot', saveChanges:'Uložit změny', editConfirmQ:'Opravdu chcete pot upravit?', shareTitle:'Sdílet pot', shareSub:'Naskenuj QR nebo sdílej odkaz', shareCopy:'Kopírovat', shareCopied:'Zkopírováno!', shareCopyHint:'Odkaz zkopírován — vlož ho do aplikace', shareVia:'Sdílet přes', shareMsg:'Přispěj do naší sbírky na Sporionu:' });
+Object.assign(I18N.en, { logoutTip:'Log out', namePh:'E.g. Holiday in Croatia', descPh:'A few words on what you are saving for…', editBtn:'Edit', addContrib:'+ Add contribution', shareBtn:'Share', progressSec:'Collection progress', estimateSec:'Completion estimate', collectedLbl:'collected', days:'days', settings:'Settings', sortChrono:'chronologically', sortAsc:'lowest first', sortDesc:'highest first', totalCount:'total', editPotTitle:'Edit pot', saveChanges:'Save changes', editConfirmQ:'Do you really want to edit this pot?', shareTitle:'Share pot', shareSub:'Scan the QR or share the link', shareCopy:'Copy', shareCopied:'Copied!', shareCopyHint:'Link copied — paste it in the app', shareVia:'Share via', shareMsg:'Chip in to our Sporion money pot:' });
+Object.assign(I18N.cs, { chartGoal:'Cíl: ', goalPh:'10 000' });
+Object.assign(I18N.en, { chartGoal:'Goal: ', goalPh:'400', amountHint:'Min. €4 · max €1,976', bubbleLow:"That's pocket change, mate — go ask your auntie. Minimum is €4. :)", bubbleHigh:"That's a bit much, mate. Maximum is €1,976. For more, email Mr. Musk. :)" });
+function setLang(lang){
+  APPLANG = (lang==='en')?'en':'cs';
+  document.querySelectorAll('.lang-opt-flag').forEach(function(b){ b.classList.toggle('active', b.dataset.lang===APPLANG); });
+  applyStatic();
+  if(window._imgsReady!==false) buildDashboard();
+  renderHistory();
+  if(_currentPot){ var pd=document.getElementById('page-detail'); if(pd&&pd.classList.contains('active')) showDetail(_findPot(_currentPot.id)||_currentPot); }
+  if(!_langApplying && window.parent && window.parent!==window) window.parent.postMessage({sporion:'lang',lang:APPLANG},'*');
+}
+function _applyState(st){
+  if(!st) return;
+  if(Array.isArray(st.pots)){ POTS.length=0; st.pots.forEach(function(p){ POTS.push(p); }); }
+  ARCHIVE.length=0; if(Array.isArray(st.archive)) st.archive.forEach(function(p){ ARCHIVE.push(p); });
+  if(window._imgsReady!==false) buildDashboard();
+  renderHistory();
+  if(_currentPot && !POTS.some(function(p){ return p.id===_currentPot.id; })){
+    var pd=document.getElementById('page-detail'); if(pd && pd.classList.contains('active')) showDashboard();
+  }
+}
+function _pushState(){ if(window.parent && window.parent!==window){ window.parent.postMessage({ sporion:'sync', pots:POTS, archive:ARCHIVE }, '*'); } }
+var _applyingView=false;
+function _curView(){ var d=document.getElementById('page-detail'); var view='dashboard', pid=null; if(d&&d.classList.contains('active')){ view='detail'; pid=(_currentPot?_currentPot.id:null); } return {view:view, potId:pid, mode:currentView}; }
+function _pushView(){ if(_applyingView) return; if(window.parent && window.parent!==window){ var v=_curView(); window.parent.postMessage({ sporion:'view', view:v.view, potId:v.potId, mode:v.mode }, '*'); } }
+function _findPot(id){ for(var i=0;i<POTS.length;i++){ if(POTS[i].id===id) return POTS[i]; } return null; }
+function _applyView(m){ _applyingView=true; try{ if(m.mode && typeof setView==='function' && m.mode!==currentView) setView(m.mode); if(m.view==='detail'){ var p=_findPot(m.potId); if(p) showDetail(p); else showDashboard(); } else { showDashboard(); } } finally { _applyingView=false; } }
+function _redrawShown(){ var d=document.getElementById('page-detail'); if(d&&d.classList.contains('active')&&_currentPot){ var p=_findPot(_currentPot.id)||_currentPot; _applyingView=true; try{ showDetail(p); } finally { _applyingView=false; } } }
+window.addEventListener('message', function(e){ if(!e.data) return; if(e.data.sporion==='state') _applyState(e.data); else if(e.data.sporion==='view') _applyView(e.data); else if(e.data.sporion==='shown') _redrawShown(); else if(e.data.sporion==='lang'){ _langApplying=true; try{ setLang(e.data.lang); } finally{ _langApplying=false; } } });
+if(window.parent && window.parent!==window){ window.parent.postMessage({ sporion:'hello', pots:POTS, archive:ARCHIVE }, '*'); }
+
+buildDashboard();
+
+function toggleSubmenu(id) {
+  const el = document.getElementById(id);
+  const isOpen = el.style.display === 'block';
+  document.querySelectorAll('.submenu, .submenu-noir').forEach(s => s.style.display = 'none');
+  document.querySelectorAll('.icon-item, .icon-item-noir, .icon-item-px, .sidebar-item').forEach(s => s.classList.remove('open'));
+  if (!isOpen) { el.style.display = 'block'; const p = el.closest('.icon-item-noir, .icon-item, .icon-item-px, .sidebar-item'); if (p) p.classList.add('open'); }
+}
+function noirCloseMenus(){
+  document.querySelectorAll('.submenu, .submenu-noir').forEach(s => s.style.display = 'none');
+  document.querySelectorAll('.icon-item, .icon-item-noir, .icon-item-px, .sidebar-item').forEach(s => s.classList.remove('open'));
+}
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.icon-item-noir') && !e.target.closest('.icon-item') && !e.target.closest('.sidebar-item')) noirCloseMenus();
+});
+document.querySelectorAll('.icon-item-noir').forEach(it => it.addEventListener('mouseleave', noirCloseMenus));  // odjedeš kurzorem → zavře
+document.addEventListener('click', function(e){ if(e.target.closest('.theme-opt')) noirCloseMenus(); });          // výběr tématu → zavře
+let currentView = 'grid';
+function setView(v) {
+  currentView = v;
+  document.querySelectorAll('.submenu, .submenu-noir').forEach(s => s.style.display = 'none');
+  document.querySelectorAll('.sidebar-item, .icon-item-noir').forEach(s => s.classList.remove('open'));
+  document.querySelectorAll('[data-view]').forEach(el => el.classList.toggle('view-active', el.dataset.view === v));
+  const grid = document.getElementById('pots-grid');
+  if (!grid) return;
+  // Reset all inline positioning before any view switch
+  grid.querySelectorAll('.pot-card').forEach(c => {
+    c.style.left = ''; c.style.top = '';
+    c.style.transform = ''; c.style.zIndex = '';
+    c.classList.remove('rev-front');
+    c.onmouseenter = null;
+  });
+  if (v === 'list') grid.className = 'pots-list';
+  else grid.className = 'pots-grid';
+  _pushView();
+}
+function layoutRevolver() {
+  const grid = document.getElementById('pots-grid');
+  const cards = grid.querySelectorAll('.pot-card');
+  const n = cards.length;
+  const radius = 260;
+  cards.forEach((card, i) => {
+    const angle = (i / n) * Math.PI * 2 - Math.PI / 2;
+    const x = Math.cos(angle) * radius;
+    const y = Math.sin(angle) * radius * 0.55;
+    card.style.left = `calc(50% + ${x}px - 120px)`;
+    card.style.top = `calc(50% + ${y}px - 130px)`;
+    card.classList.toggle('rev-front', i === 0);
+    card.onmouseenter = () => {
+      cards.forEach(c => c.classList.remove('rev-front'));
+      card.classList.add('rev-front');
+    };
+  });
+}
+function closeSet(){ var m=document.getElementById('set-modal'); if(m) m.classList.remove('show'); }
+(function(){ var m=document.getElementById('set-modal'); if(m) m.addEventListener('click',function(e){ if(e.target===m) closeSet(); }); document.addEventListener('keydown',function(e){ if(e.key==='Escape') closeSet(); }); })();
+function showSettings() {
+  document.querySelectorAll('.submenu, .submenu-noir, .submenu-px').forEach(function(s){ s.style.display = 'none'; });
+  renderHistory();
+  document.getElementById('set-modal').classList.add('show');
+}
+
+const _origSD = showDashboard;
+showDashboard = function() { _origSD(); document.getElementById('sb-home').classList.add('active'); };
+
+</script>
+</body>
+</html>

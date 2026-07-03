@@ -1,0 +1,1411 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;700&display=swap');
+
+:root {
+  --black: #0a0a0a;
+  --white: #fafafa;
+  --grey-light: #f0f0f0;
+  --grey-mid: #c8c8c8;
+  --grey-dark: #666;
+  --border: 1px solid #0a0a0a;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--white); color: var(--black); font-family: 'Outfit', sans-serif; font-weight: 300; min-height: 100vh; }
+
+/* ── BANNER ── */
+.sporion-banner {
+  background: var(--white); border-bottom: var(--border);
+  padding: 0 40px; height: 90px;
+  display: flex; align-items: center;
+  position: relative; overflow: hidden;
+}
+canvas#constellation { position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; }
+.logo {
+  font-family:'Outfit',sans-serif; font-weight:700; font-size:38px;
+  letter-spacing:0.28em; text-transform:uppercase; color:var(--black);
+  text-decoration:none; position:relative; z-index:2; cursor:pointer;
+}
+
+/* ── NAV ── */
+header {
+  border-bottom:var(--border); padding:0 40px; height:48px;
+  display:flex; align-items:center; justify-content:space-between;
+  background:var(--white); position:sticky; top:0; z-index:100;
+}
+nav { display:flex; align-items:center; gap:32px; }
+nav a {
+  font-family:'Outfit',sans-serif; font-size:12px; font-weight:300;
+  letter-spacing:0.12em; text-transform:uppercase; color:var(--grey-dark);
+  text-decoration:none; cursor:pointer; transition:color 0.2s;
+}
+nav a:hover { color:var(--black); }
+nav a.active { color:var(--black); border-bottom:1px solid var(--black); padding-bottom:2px; }
+.back-btn {
+  font-family:'Outfit',sans-serif; font-size:12px; font-weight:300;
+  letter-spacing:0.12em; text-transform:uppercase; background:none;
+  border:var(--border); padding:7px 16px; cursor:pointer; color:var(--black);
+  transition:background 0.15s; display:none;
+}
+.back-btn:hover { background:var(--grey-light); }
+.new-btn {
+  font-family:'Outfit',sans-serif; font-size:18px; font-weight:300; line-height:1;
+  background:var(--black); color:var(--white); border:none;
+  width:34px; height:34px; display:inline-flex; align-items:center; justify-content:center;
+  cursor:pointer; transition:opacity 0.2s;
+}
+.new-btn:hover { opacity:0.75; }
+
+/* ── PAGES ── */
+.page { display:none; }
+.page.active { display:block; }
+
+/* ── DASHBOARD ── */
+main { max-width:1040px; margin:0 auto; padding:52px 32px; }
+.page-header {
+  display:flex; justify-content:space-between; align-items:flex-end;
+  margin-bottom:40px; padding-bottom:20px; border-bottom:var(--border);
+}
+.page-title-row { display:flex; align-items:center; gap:12px; }
+.page-title { font-family:'Outfit',sans-serif; font-weight:200; font-size:22px; letter-spacing:0.18em; line-height:1; text-transform:uppercase; }
+.pot-info-btn { width:20px; height:20px; border-radius:50%; border:1px solid var(--grey-mid); background:none; color:var(--grey-dark); font-family:'Outfit',sans-serif; font-size:12px; font-weight:500; font-style:italic; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; line-height:1; transition:all 0.18s; flex-shrink:0; padding:0; }
+.pot-info-btn:hover { border-color:var(--black); color:var(--black); }
+.info-box { max-width:540px; }
+.info-text { font-family:'Outfit',sans-serif; font-weight:300; font-size:15px; line-height:1.7; color:#333; margin:0; }
+.page-meta { font-size:11px; font-weight:300; color:var(--grey-dark); letter-spacing:0.14em; text-transform:uppercase; }
+
+.pots-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:14px; margin-bottom:14px; }
+
+.pot-card {
+  background:var(--white); border:var(--border); padding:28px 28px 26px;
+  cursor:pointer; position:relative; transition:background 0.15s;
+  display:flex; flex-direction:column; gap:18px;
+}
+.pot-card:hover { background:var(--grey-light); }
+.pot-card.complete { background:var(--black); color:var(--white); border-color:var(--black); }
+.pot-card.complete:hover { background:#1a1a1a; }
+
+.card-top { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+.pot-name { font-family:'Outfit',sans-serif; font-weight:400; font-size:18px; line-height:1.3; color:#222; }
+.pot-card.complete .pot-name { color:#fff; }
+.hotovo-tag {
+  font-family:'Outfit',sans-serif; font-size:9px; font-weight:400;
+  letter-spacing:0.15em; text-transform:uppercase;
+  border:1px solid rgba(255,255,255,0.6); color:rgba(255,255,255,0.85);
+  padding:3px 8px; white-space:nowrap; flex-shrink:0;
+}
+
+.card-visual { display:flex; align-items:center; gap:20px; }
+.ring-wrap { flex-shrink:0; position:relative; width:100px; height:100px; }
+.ring-wrap svg { transform:rotate(-90deg); display:block; }
+.ring-bg { fill:none; stroke:#e8e8e8; stroke-width:2; }
+.pot-card.complete .ring-bg { stroke:#2a2a2a; }
+.ring-fill { fill:none; stroke:var(--black); stroke-width:2; stroke-linecap:butt; }
+.pot-card.complete .ring-fill { stroke:rgba(255,255,255,0.85); }
+/* hotový pot (detail): jemný "kapka do vody" ripple kolem kroužku */
+.big-ring-wrap.complete::before,
+.big-ring-wrap.complete::after {
+  content:''; position:absolute; inset:0; border-radius:50%;
+  border:1px solid rgba(255,255,255,0.32); pointer-events:none;
+  animation:dropRipple 4.2s ease-out infinite;
+}
+.big-ring-wrap.complete::after { animation-delay:2.1s; }
+@keyframes dropRipple {
+  0%   { transform:scale(0.55); opacity:0; }
+  14%  { opacity:0.45; }
+  100% { transform:scale(1.75); opacity:0; }
+}
+/* hotová karta: ze středu kolečka vyrůstají souhvězdí jako kořeny (světlá barva) */
+.card-surface { display:flex; flex-direction:column; gap:18px; }
+.pots-list .card-surface { display:contents; }
+.pot-card.complete { overflow:hidden; }
+.pot-card.complete .card-surface { position:relative; z-index:1; }
+.constellation-overlay { position:absolute; inset:0; z-index:0; pointer-events:none; }
+.pots-list .constellation-overlay { display:block; }
+.ring-pct {
+  position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  font-family:'Outfit',sans-serif; font-weight:500; font-size:30px;
+  letter-spacing:-0.04em; color:#bbb;
+}
+.pot-card.complete .ring-pct { color:rgba(255,255,255,0.5); }
+.card-amounts { flex:1; display:flex; flex-direction:column; gap:5px; }
+.amount-collected { font-family:'Outfit',sans-serif; font-weight:300; font-size:26px; letter-spacing:-0.02em; line-height:1; color:#1a1a1a; }
+.pot-card.complete .amount-collected { color:#fff; }
+.amount-goal { font-family:'Outfit',sans-serif; font-size:12px; font-weight:300; color:var(--grey-dark); }
+.pot-card.complete .amount-goal { color:#aaa; }
+
+.add-card {
+  background:var(--white); border:var(--border); padding:22px 28px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center; gap:10px; transition:background 0.15s;
+  width:100%; box-sizing:border-box;
+}
+.add-card:hover { background:var(--grey-light); }
+.add-card span { font-family:'Outfit',sans-serif; font-weight:300; font-size:14px; letter-spacing:0.1em; text-transform:uppercase; color:var(--grey-dark); }
+/* prázdný stav: obří CTA obdélník se světlem brázdícím po okraji */
+.add-card.full { position:relative; overflow:hidden; min-height:clamp(320px,60vh,680px); }
+.add-card.full::before { content:''; position:absolute; pointer-events:none; z-index:0; will-change:transform; top:50%; left:50%; width:175%; height:175%; transform:translate(-50%,-50%); background:conic-gradient(from 0deg, rgba(10,10,10,0) 0deg, rgba(10,10,10,0) 300deg, rgba(10,10,10,0.5) 338deg, rgba(10,10,10,0) 360deg); animation:edgeSweep 4.5s linear infinite; }
+.add-card.full > span { transform:translateZ(0); }
+.add-card.full::after { content:''; position:absolute; pointer-events:none; z-index:1; inset:3px; background:var(--white); transition:background 0.15s; }
+.add-card.full:hover::after { background:var(--grey-light); }
+.add-card.full > span { position:relative; z-index:2; }
+@keyframes edgeSweep { to { transform:translate(-50%,-50%) rotate(360deg); } }
+
+/* ── DETAIL ── */
+.detail-main { max-width:1040px; margin:0 auto; padding:52px 32px; }
+
+.pot-hero { display:grid; grid-template-columns:1fr auto; gap:40px; align-items:start; padding-bottom:40px; border-bottom:var(--border); margin-bottom:48px; }
+.pot-hero-left { display:flex; flex-direction:column; gap:16px; }
+.pot-label { font-size:11px; font-weight:300; letter-spacing:0.15em; text-transform:uppercase; color:var(--grey-dark); }
+.pot-title { font-family:'Outfit',sans-serif; font-weight:200; font-size:36px; letter-spacing:0.12em; line-height:1.1; text-transform:uppercase; }
+.pot-occasion { font-size:13px; font-weight:300; color:var(--grey-dark); letter-spacing:0.03em; }
+.pot-actions { display:flex; gap:10px; margin-top:8px; flex-wrap:wrap; }
+.btn-primary { font-family:'Outfit',sans-serif; font-size:11px; font-weight:400; letter-spacing:0.1em; text-transform:uppercase; background:var(--black); color:var(--white); border:none; padding:11px 22px; cursor:pointer; transition:opacity 0.2s; }
+.btn-primary:hover { opacity:0.75; }
+.btn-secondary { font-family:'Outfit',sans-serif; font-size:11px; font-weight:300; letter-spacing:0.1em; text-transform:uppercase; background:none; color:var(--black); border:var(--border); padding:11px 22px; cursor:pointer; transition:background 0.15s; }
+.btn-secondary:hover { background:var(--grey-light); }
+
+.pot-hero-right { display:flex; flex-direction:column; align-items:center; gap:12px; }
+.big-ring-wrap { position:relative; width:160px; height:160px; }
+.big-ring-wrap svg { transform:rotate(-90deg); display:block; }
+.big-ring-bg { fill:none; stroke:#e8e8e8; stroke-width:2; }
+.big-ring-fill { fill:none; stroke:var(--black); stroke-width:2; stroke-linecap:butt; }
+.big-ring-pct { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; }
+.big-pct-num { font-family:'Outfit',sans-serif; font-weight:500; font-size:42px; letter-spacing:-0.04em; color:#bbb; line-height:1; }
+.big-pct-label { font-size:10px; font-weight:300; letter-spacing:0.12em; text-transform:uppercase; color:var(--grey-mid); }
+.ring-amounts { text-align:center; }
+.ring-collected { font-family:'Outfit',sans-serif; font-weight:300; font-size:22px; letter-spacing:-0.02em; }
+.ring-goal { font-size:11px; font-weight:300; color:var(--grey-dark); margin-top:2px; text-transform:uppercase; letter-spacing:0.06em; }
+
+.stats-row { display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--black); border:var(--border); margin-bottom:48px; }
+.stat-box { background:var(--white); padding:24px 20px; display:flex; flex-direction:column; gap:6px; transition:background 0.1s; }
+.stat-box:hover { background:var(--grey-light); }
+.stat-value { font-family:'Outfit',sans-serif; font-weight:300; font-size:28px; letter-spacing:-0.02em; line-height:1; }
+.stat-label { font-size:10px; font-weight:300; letter-spacing:0.1em; text-transform:uppercase; color:var(--grey-dark); }
+
+.section-head { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:20px; }
+.section-title { font-family:'Outfit',sans-serif; font-weight:200; font-size:14px; letter-spacing:0.18em; text-transform:uppercase; }
+.section-meta { font-size:11px; font-weight:300; color:var(--grey-dark); letter-spacing:0.08em; }
+.chart-sort { position:relative; }
+.chart-sort-btn { font-family:'Outfit',sans-serif; font-size:11px; font-weight:300; letter-spacing:0.08em; text-transform:uppercase; color:var(--grey-dark); background:none; border:none; cursor:pointer; display:inline-flex; align-items:center; gap:6px; padding:2px 0; }
+.chart-sort-btn:hover { color:var(--black); }
+.chart-sort-arrow { transition:transform 0.2s; }
+.chart-sort.open .chart-sort-arrow { transform:rotate(180deg); }
+.chart-sort-menu { display:none; position:absolute; right:0; top:calc(100% + 4px); background:var(--white); border:var(--border); min-width:170px; z-index:50; box-shadow:4px 4px 0 rgba(0,0,0,0.05); }
+.chart-sort.open .chart-sort-menu { display:block; }
+.chart-sort-opt { padding:9px 14px; font-size:11px; font-weight:300; letter-spacing:0.06em; text-transform:uppercase; color:var(--black); cursor:pointer; border-bottom:1px solid var(--grey-light); }
+.chart-sort-opt:last-child { border-bottom:none; }
+.chart-sort-opt:hover { background:var(--grey-light); }
+.chart-sort-opt.active { font-weight:500; }
+
+.chart-wrap { border:var(--border); padding:28px 24px 16px; margin-bottom:48px; }
+
+.prediction-box { border:var(--border); padding:28px; display:grid; grid-template-columns:1fr 1fr; gap:32px; margin-bottom:48px; }
+.pred-item { display:flex; flex-direction:column; gap:6px; }
+.pred-value { font-family:'Outfit',sans-serif; font-weight:200; font-size:32px; letter-spacing:-0.02em; line-height:1; }
+.pred-label { font-size:11px; font-weight:300; letter-spacing:0.1em; text-transform:uppercase; color:var(--grey-dark); }
+.pred-note { font-size:12px; font-weight:300; color:var(--grey-mid); margin-top:2px; }
+
+.contrib-list { border:var(--border); margin-bottom:48px; }
+.contrib-row { display:grid; grid-template-columns:100px 1fr auto; gap:16px; align-items:center; padding:16px 20px; border-bottom:1px solid var(--grey-light); transition:background 0.1s; }
+.contrib-row:last-child { border-bottom:none; }
+.contrib-row:hover { background:var(--grey-light); }
+.contrib-date { font-size:10px; font-weight:300; color:var(--grey-dark); letter-spacing:0.08em; text-transform:uppercase; }
+.contrib-name { font-size:13px; font-weight:400; color:var(--black); text-transform:uppercase; letter-spacing:0.04em; }
+.contrib-anon { color:var(--grey-dark); font-style:italic; }
+.contrib-amount { font-family:'Outfit',sans-serif; font-weight:300; font-size:18px; letter-spacing:-0.02em; color:var(--black); white-space:nowrap; }
+
+/* ── PAGE TRANSITIONS ── */
+.page { animation: fadeIn 0.2s ease; }
+@keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+
+/* ── FOOTER ── */
+footer { border-top:var(--border); padding:22px 40px; display:flex; justify-content:space-between; align-items:center; }
+footer .f-logo { font-family:'Outfit',sans-serif; font-weight:200; font-size:15px; letter-spacing:0.25em; text-transform:uppercase; color:var(--grey-dark); }
+footer .f-copy { font-family:'Outfit',sans-serif; font-size:11px; font-weight:300; color:var(--grey-mid); letter-spacing:0.06em; }
+
+
+
+/* ── LIST VIEW ── */
+.pots-list { display:flex; flex-direction:column; gap:0; margin-bottom:12px; }
+.pots-list .pot-card {
+  flex-direction:row; align-items:center;
+  padding:14px 20px; gap:20px; border-bottom:none; border-top:none;
+  border-left:var(--border); border-right:var(--border); border-bottom:var(--border);
+}
+.pots-list .pot-card:first-child { border-top:var(--border); }
+.pots-list .card-top { flex:1; }
+.pots-list .card-visual { flex-shrink:0; }
+
+/* ── SETTINGS PAGE ── */
+.settings-section {
+  border:var(--border); margin-bottom:12px;
+}
+.set-box .settings-section { margin-bottom:0; }
+.settings-title {
+  font-size:10px; font-weight:400; letter-spacing:0.18em; text-transform:uppercase;
+  padding:10px 20px; border-bottom:var(--border); color:var(--grey-dark);
+}
+.settings-row {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:14px 20px; border-bottom:1px solid var(--grey-light); font-size:13px;
+}
+.settings-row:last-child { border-bottom:none; }
+.settings-val { color:var(--grey-dark); font-size:12px; }
+.lang-row { gap:8px; justify-content:flex-start; }
+.lang-btn {
+  font-family:'Outfit',sans-serif; font-size:11px; font-weight:300;
+  letter-spacing:0.1em; text-transform:uppercase;
+  border:var(--border); padding:6px 16px; background:none;
+  color:var(--grey-dark); cursor:pointer; transition:all 0.15s;
+}
+.lang-btn.active { background:var(--black); color:var(--white); border-color:var(--black); }
+.lang-btn:hover:not(.active) { background:var(--grey-light); }
+
+
+/* ── ICON NAV ── */
+.icon-nav { display:flex; align-items:center; gap:10px; }
+.icon-item { position:relative; }
+.icon-btn {
+  position:relative; display:flex; align-items:center; justify-content:center;
+  width:40px; height:36px; box-sizing:border-box;
+  background:none; border:none; cursor:pointer;
+  color:var(--grey-dark); padding:8px; transition:color 0.2s;
+  font-family:inherit;
+}
+.icon-btn:hover { color:var(--black); }
+.icon-btn.active { color:var(--black); border-bottom:2px solid var(--black); }
+.icon-arrow { position:absolute; right:2px; top:50%; transform:translateY(-50%); opacity:0.5; transition:transform 0.2s; }
+.icon-item.open .icon-arrow { transform:translateY(-50%) rotate(90deg); }
+.submenu {
+  display:none; position:absolute; left:0; top:100%;
+  background:var(--white); border:var(--border);
+  min-width:160px; z-index:200;
+  box-shadow:4px 4px 0 rgba(0,0,0,0.05);
+}
+.submenu-item {
+  display:flex; align-items:center; gap:10px;
+  padding:10px 16px; font-size:12px; font-weight:300;
+  letter-spacing:0.08em; text-transform:uppercase;
+  color:var(--black); cursor:pointer; transition:background 0.15s;
+  border-bottom:1px solid var(--grey-light);
+}
+.submenu-item:last-child { border-bottom:none; }
+.submenu-item:hover { background:var(--grey-light); }
+.submenu-item.view-active { font-weight:500; }
+.submenu-item.view-active::after { content:"✓"; margin-left:auto; }
+
+/* ── LIST VIEW ── */
+.pots-list { display:flex; flex-direction:column; gap:0; margin-bottom:12px; }
+.pots-list .pot-card { flex-direction:row; align-items:center; border-top:none; width:100%; padding:0 20px; min-height:60px; }
+.pots-list .pot-card:first-child { border-top:var(--border); }
+.pots-list .card-top { flex:0 0 34%; min-width:150px; max-width:34%; position:relative; z-index:1; }
+.pots-list .pot-name { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.pots-list .hotovo-tag, .pots-list .new-tag { display:none; }
+.pots-list .card-visual { display:none; }
+.pot-stats-list { display:none; }
+.pots-list .pot-stats-list {
+  display:flex; flex:1; align-items:center; gap:30px;
+  font-family:'Outfit',sans-serif; font-weight:400;
+  padding:14px 0; position:relative; z-index:1;
+}
+.pots-list .stat-pct-list { font-size:20px; font-weight:500; color:var(--black); letter-spacing:-0.02em; min-width:56px; text-align:left; }
+.pots-list .stat-amounts-list { font-size:13px; color:var(--grey-dark); font-weight:300; min-width:170px; text-align:left; }
+.pots-list .pot-card.complete .stat-pct-list, .pots-list .pot-card.complete .stat-amounts-list { color:var(--white); }
+.pots-list .list-badge { margin-left:auto; font-size:9px; letter-spacing:0.14em; text-transform:uppercase; padding:3px 9px; white-space:nowrap; }
+.pots-list .lb-done { border:1px solid rgba(255,255,255,0.7); color:rgba(255,255,255,0.9); }
+.pots-list .lb-new { border:1px solid var(--black); color:var(--black); }
+
+
+/* ── LOGOUT MODAL ── */
+.logout-modal { display:none; position:fixed; inset:0; z-index:700; align-items:center; justify-content:center; background:rgba(10,10,10,0.28); backdrop-filter:blur(7px); -webkit-backdrop-filter:blur(7px); }
+.logout-modal.show { display:flex; }
+.logout-box { background:var(--white); border:var(--border); padding:30px 32px; max-width:320px; text-align:center; box-shadow:8px 8px 0 rgba(0,0,0,0.08); }
+.logout-q { font-size:13px; letter-spacing:0.08em; text-transform:uppercase; color:var(--black); font-weight:400; margin-bottom:22px; }
+.logout-actions { display:flex; gap:10px; justify-content:center; }
+.logout-yes, .logout-no { font-family:inherit; font-size:11px; letter-spacing:0.14em; text-transform:uppercase; padding:11px 24px; cursor:pointer; border:1px solid var(--black); transition:opacity 0.2s; }
+.logout-yes { background:var(--black); color:var(--white); }
+.logout-no { background:none; color:var(--black); }
+.logout-yes:hover { background:#333; }
+.logout-no:hover { background:var(--grey-light); }
+/* mazací mini-okno (3 možnosti) — víc prostoru od okraje */
+#confirm-modal .logout-box { max-width:460px; padding:34px 38px; }
+#confirm-modal .logout-actions { gap:12px; flex-wrap:wrap; }
+
+/* ── NEW POT MODAL ── */
+.np-modal { display:none; position:fixed; inset:0; z-index:600; align-items:center; justify-content:center; background:rgba(10,10,10,0.28); backdrop-filter:blur(7px); -webkit-backdrop-filter:blur(7px); padding:24px; }
+.np-modal.show { display:flex; }
+.np-box { background:var(--white); border:var(--border); box-shadow:12px 12px 0 rgba(0,0,0,0.08); width:100%; max-width:620px; max-height:88vh; overflow-y:auto; }
+.np-head { display:flex; align-items:center; justify-content:space-between; padding:20px 24px 14px; border-bottom:var(--border); position:sticky; top:0; background:var(--white); z-index:2; }
+.np-title { font-size:15px; letter-spacing:0.18em; text-transform:uppercase; font-weight:400; }
+.np-back { font-family:inherit; font-size:11px; letter-spacing:0.12em; text-transform:uppercase; background:none; border:none; cursor:pointer; color:var(--grey-dark); }
+.np-back:hover { color:var(--black); }
+.np-body { padding:22px 24px; display:flex; flex-direction:column; gap:20px; }
+.np-field { display:flex; flex-direction:column; gap:7px; }
+.np-lbl { font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:var(--grey-dark); }
+.np-lbl em { color:var(--black); font-style:normal; }
+.np-input { font-family:inherit; font-size:14px; font-weight:300; color:var(--black); background:var(--white); border:var(--border); padding:11px 13px; outline:none; width:100%; }
+.np-input:focus { box-shadow:3px 3px 0 rgba(0,0,0,0.1); }
+.np-area { resize:vertical; min-height:66px; }
+.np-amt { display:flex; align-items:center; border:var(--border); }
+.np-amt .np-input { border:none; flex:1; }
+.np-amt .np-input:focus { box-shadow:none; }
+.np-cur { padding:0 14px; font-size:13px; letter-spacing:0.1em; color:var(--grey-dark); }
+.np-sect { display:flex; flex-direction:column; gap:12px; }
+.np-sect-t { font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:var(--grey-dark); }
+.np-share { display:flex; gap:8px; flex-wrap:wrap; }
+.np-chip { font-family:inherit; font-size:11px; letter-spacing:0.1em; text-transform:uppercase; padding:9px 15px; border:var(--border); background:var(--white); color:var(--black); cursor:pointer; transition:all 0.18s; display:flex; align-items:center; gap:7px; }
+.np-chip:hover { background:var(--grey-light); }
+.np-chip.active { background:var(--black); color:var(--white); }
+.np-chip svg { width:13px; height:13px; }
+.np-vis { display:flex; flex-direction:column; }
+.np-vrow { display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--grey-light); }
+.np-vrow:last-child { border-bottom:none; }
+.np-vname { font-size:13px; font-weight:300; }
+.np-eye { background:none; border:none; cursor:pointer; color:var(--grey-mid); padding:4px; display:flex; transition:color 0.18s; }
+.np-eye.on { color:var(--black); }
+.np-eye:hover { color:var(--black); }
+.np-eye.locked { cursor:default; opacity:0.5; }
+.np-eye.locked:hover { color:var(--grey-mid); }
+.np-eye svg { width:20px; height:20px; }
+.np-eye .eye-shut { display:none; }
+.np-eye:not(.on) .eye-open { display:none; }
+.np-eye:not(.on) .eye-shut { display:block; }
+.np-foot { display:flex; gap:10px; justify-content:flex-end; padding:16px 24px 22px; border-top:var(--border); position:sticky; bottom:0; background:var(--white); }
+.np-cancel, .np-create { font-family:inherit; font-size:11px; letter-spacing:0.14em; text-transform:uppercase; padding:12px 24px; cursor:pointer; border:1px solid var(--black); transition:opacity 0.2s; }
+.np-cancel { background:none; color:var(--black); }
+.np-create { background:var(--black); color:var(--white); }
+.np-cancel:hover, .np-create:hover { opacity:0.65; }
+.np-photo-wrap { display:flex; flex-direction:column; gap:9px; }
+.np-icons { display:flex; gap:6px; flex-wrap:wrap; }
+.np-ico { font-size:17px; line-height:1; width:38px; height:38px; display:flex; align-items:center; justify-content:center; border:var(--border); background:var(--white); cursor:pointer; transition:all 0.15s; }
+.np-ico:hover { background:var(--grey-light); }
+.np-ico.sel { box-shadow:0 0 0 2px var(--black); background:var(--grey-light); }
+.np-full { width:100%; text-align:center; }
+.pot-card { position:relative; }
+.pot-card.has-del .card-top { padding-right:34px; }
+.pot-del { position:absolute; top:9px; right:9px; z-index:6; width:30px; height:30px; display:flex; align-items:center; justify-content:center; background:var(--white); border:var(--border); color:var(--grey-dark); cursor:pointer; opacity:0.5; transition:opacity 0.18s,color 0.18s,border-color 0.18s; }
+.pot-del:hover { opacity:1; color:#c0392b; border-color:#c0392b; }
+.pot-del svg { width:15px; height:15px; }
+.pot-av { display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; font-size:13px; border:var(--border); vertical-align:middle; margin-right:8px; overflow:hidden; }
+.pot-av img { width:100%; height:100%; object-fit:cover; }
+.new-tag { font-family:'Outfit',sans-serif; font-size:9px; font-weight:400; letter-spacing:0.15em; text-transform:uppercase; border:1px solid var(--black); color:var(--black); padding:3px 8px; white-space:nowrap; flex-shrink:0; }
+.hist-row { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:11px 0; border-bottom:1px solid var(--grey-light); }
+.hist-row:last-child { border-bottom:none; }
+.hist-info { font-size:13px; font-weight:300; }
+.hist-acts { display:flex; gap:8px; flex-shrink:0; }
+.hist-btn { font-family:inherit; font-size:10px; letter-spacing:0.1em; text-transform:uppercase; padding:7px 12px; border:1px solid var(--black); background:none; color:var(--black); cursor:pointer; transition:opacity 0.18s; }
+.hist-btn:hover { opacity:0.55; }
+.hist-del { border-color:#c0392b; color:#c0392b; }
+.hist-empty { font-size:12px; color:var(--grey-dark); padding:6px 20px; letter-spacing:0.04em; }
+.np-opt { color:var(--grey-mid); text-transform:none; letter-spacing:0; font-size:10px; }
+.np-hint { font-size:11px; color:var(--grey-dark); letter-spacing:0.04em; margin-top:2px; }
+.np-input.np-err, .np-amt.np-err { border-color:#c0392b; box-shadow:0 0 0 1px #c0392b; }
+.np-drop { border:1px dashed var(--grey-mid); background:var(--white); padding:18px 14px; text-align:center; cursor:pointer; transition:all 0.18s; }
+.np-drop:hover, .np-drop.drag { border-color:var(--black); background:var(--grey-light); }
+.np-drop-inner { position:relative; }
+.np-drop-txt { font-size:12px; color:var(--grey-dark); letter-spacing:0.03em; }
+.np-or { font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:var(--grey-dark); }
+.np-preview { max-width:100%; max-height:120px; display:block; margin:0 auto; }
+.np-photo-rm { position:absolute; top:-8px; right:-8px; width:24px; height:24px; border:var(--border); background:var(--white); color:var(--black); cursor:pointer; font-size:14px; line-height:1; padding:0; }
+.np-photo-rm:hover { background:#c0392b; color:var(--white); border-color:#c0392b; }
+.np-foot { position:relative; }
+.np-bubble { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%) scale(0.92); max-width:88%; background:#c0392b; color:#fff; font-family:'Outfit',sans-serif; font-size:18px; font-weight:400; line-height:1.45; text-align:center; padding:22px 28px; opacity:0; pointer-events:none; transition:opacity 0.2s, transform 0.2s; z-index:30; box-shadow:0 14px 50px rgba(0,0,0,0.4); }
+.np-bubble.show { opacity:1; transform:translate(-50%,-50%) scale(1); }
+.detail-del-wrap { display:flex; justify-content:center; margin:8px 0 48px; }
+.detail-del { font-family:inherit; font-size:11px; letter-spacing:0.14em; text-transform:uppercase; display:inline-flex; align-items:center; gap:8px; padding:11px 22px; background:none; border:1px solid #c0392b; color:#c0392b; cursor:pointer; transition:all 0.18s; }
+.detail-del:hover { background:#c0392b; color:var(--white); }
+.detail-del svg { width:15px; height:15px; }
+.hist-row { flex-wrap:wrap; row-gap:8px; padding:12px 20px; }
+.hist-acts { margin-left:auto; }
+.flag { width:21px; height:14px; border-radius:2px; vertical-align:middle; flex-shrink:0; box-shadow:0 0 0 1px rgba(0,0,0,0.2); }
+.lang-opt-flag { display:inline-flex; align-items:center; gap:8px; }
+</style>
+</head>
+<body>
+
+<div class="sporion-banner">
+  <canvas id="constellation"></canvas>
+  <a class="logo" onclick="showDashboard()">SPORION</a>
+</div>
+<header>
+  <nav class="icon-nav">
+    <!-- Home -->
+    <button class="icon-btn active" id="sb-home" onclick="showDashboard()" title="Tady jsem doma." data-i18n-title="ttDash">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7"/><circle cx="7.4" cy="7.6" r="1.5"/><circle cx="12.8" cy="11.4" r="2"/><circle cx="8.7" cy="13" r="1.1"/></svg>
+    </button>
+    <!-- View -->
+    <div class="icon-item" id="item-view">
+      <button class="icon-btn" onclick="toggleSubmenu('sub-view')" title="Co ti víc vyhovuje?" data-i18n-title="ttView">
+        <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="7" height="7" rx="1"/><rect x="11" y="2" width="7" height="7" rx="1"/><rect x="2" y="11" width="7" height="7" rx="1"/><rect x="11" y="11" width="7" height="7" rx="1"/></svg>
+        <svg class="icon-arrow" width="8" height="8" viewBox="0 0 8 8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 1l3 3-3 3"/></svg>
+      </button>
+      <div class="submenu" id="sub-view">
+        <div class="submenu-item view-active" data-view="grid" onclick="setView('grid')">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1" y="1" width="4" height="4" rx="0.5"/><rect x="7" y="1" width="4" height="4" rx="0.5"/><rect x="1" y="7" width="4" height="4" rx="0.5"/><rect x="7" y="7" width="4" height="4" rx="0.5"/></svg>
+          <span data-i18n="viewCards">Karty</span>
+        </div>
+        <div class="submenu-item" data-view="list" onclick="setView('list')">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><line x1="4" y1="2" x2="11" y2="2"/><line x1="4" y1="6" x2="11" y2="6"/><line x1="4" y1="10" x2="11" y2="10"/><circle cx="1.5" cy="2" r="0.8" fill="currentColor" stroke="none"/><circle cx="1.5" cy="6" r="0.8" fill="currentColor" stroke="none"/><circle cx="1.5" cy="10" r="0.8" fill="currentColor" stroke="none"/></svg>
+          <span data-i18n="viewList">Seznam</span>
+        </div>
+      </div>
+    </div>
+    <!-- Theme -->
+    <div class="icon-item">
+      <button class="icon-btn" onclick="toggleSubmenu('sub-theme')" title="Jak si to tady vymaluješ?" data-i18n-title="ttTheme">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18.37 2.63 14 7l-1.59-1.59a2 2 0 0 0-2.82 0L8 7l9 9 1.59-1.59a2 2 0 0 0 0-2.82L17 10l4.37-4.37a2.12 2.12 0 1 0-3-3Z"/><path d="M9 8c-2 3-4 3.5-7 4l8 10c2-1 6-5 6-7"/><path d="M14.5 17.5 4.5 15"/></svg>
+        <svg class="icon-arrow" width="8" height="8" viewBox="0 0 8 8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 1l3 3-3 3"/></svg>
+      </button>
+      <div class="submenu" id="sub-theme">
+        <div class="submenu-item theme-opt active" onclick="parent.postMessage({theme:'minimal'},'*')">Minimal Elegance</div>
+        <div class="submenu-item theme-opt" onclick="parent.postMessage({theme:'pixel'},'*')">8Bit Shroomies</div>
+        <div class="submenu-item theme-opt" onclick="parent.postMessage({theme:'noir'},'*')">Neon Noir</div>
+      </div>
+    </div>
+    <!-- Settings -->
+    <div class="icon-item">
+      <button class="icon-btn" onclick="showSettings()" title="Volím si tebe, Charizarde!" data-i18n-title="ttSettings">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+      </button>
+    </div>
+  </nav>
+  <div style="display:flex;gap:8px;align-items:center;">
+    <button class="back-btn" id="back-btn" onclick="showDashboard()">← <span data-i18n="back">Zpět</span></button>
+    <button class="new-btn" id="main-new-btn" title="Vytvoř nový money pot" data-i18n-title="ttNewPot" aria-label="Vytvoř nový money pot">+</button>
+    <button class="icon-btn" onclick="document.getElementById('logout-modal').classList.add('show')" title="Odhlásit" data-i18n-title="logoutTip">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.5v6"/><path d="M8.1 7.7a6 6 0 1 0 7.8 0"/></svg>
+    </button>
+  </div>
+</header>
+<div class="logout-modal" id="logout-modal">
+  <div class="logout-box">
+    <p class="logout-q" data-i18n="logoutQ">Opravdu se chcete odhlásit?</p>
+    <div class="logout-actions">
+      <button class="logout-yes" onclick="window.top.postMessage({sporion:'logout'},'*');showDashboard();document.getElementById('logout-modal').classList.remove('show')" data-i18n="ano">Ano</button>
+      <button class="logout-no" onclick="document.getElementById('logout-modal').classList.remove('show')" data-i18n="ne">Ne</button>
+    </div>
+  </div>
+</div>
+<!-- NEW POT MODAL -->
+<div class="np-modal" id="np-modal">
+  <div class="np-box" role="dialog" aria-modal="true" aria-label="Nový pot">
+    <div class="np-head">
+      <span class="np-title" data-i18n="newPot">Nový pot</span>
+      <button class="np-back" type="button" onclick="closeNp()">← <span data-i18n="back">Zpět</span></button>
+    </div>
+    <div class="np-body">
+      <div class="np-field">
+        <span class="np-lbl"><span data-i18n="name">Název</span> <em>*</em></span>
+        <input class="np-input" id="np-name" type="text" placeholder="Např. Dovolená v Chorvatsku" data-i18n-ph="namePh">
+      </div>
+      <div class="np-field">
+        <span class="np-lbl"><span data-i18n="desc">Popis</span> <span class="np-opt" data-i18n="optional">(nepovinné)</span></span>
+        <textarea class="np-input np-area" id="np-desc" placeholder="Pár slov, na co společně sbíráte…" data-i18n-ph="descPh"></textarea>
+      </div>
+      <div class="np-field">
+        <span class="np-lbl"><span data-i18n="goal">Cílová částka</span> <em>*</em></span>
+        <div class="np-amt"><input class="np-input" id="np-goal" type="number" min="100" max="50000" placeholder="10 000" data-i18n-ph="goalPh"><span class="np-cur">Kč</span></div>
+        <span class="np-hint" data-i18n="amountHint">Min. 100 Kč · max 50 000 Kč</span>
+      </div>
+      <div class="np-field">
+        <span class="np-lbl" data-i18n="photo">Fotka</span>
+        <div class="np-photo-wrap">
+          <div class="np-drop" id="np-drop">
+            <input type="file" id="np-file" accept="image/*" hidden>
+            <div class="np-drop-inner" id="np-drop-inner"><span class="np-drop-txt" data-i18n="dropTxt">Přetáhni sem obrázek nebo klikni pro výběr z počítače</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="np-sect">
+        <span class="np-sect-t" data-i18n="visibleToDonors">Viditelné pro dárce</span>
+        <div class="np-vis" id="np-vis"></div>
+      </div>
+    </div>
+    <div class="np-foot">
+      <button class="np-create np-full" type="button" onclick="createPot()" data-i18n="createPot">Vytvořit pot</button>
+    </div>
+  </div>
+  <div class="np-bubble" id="np-bubble"></div>
+</div>
+<script>
+(function(){
+  var EYE_OPEN='<svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>';
+  var EYE_SHUT='<svg class="eye-shut" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+  var ITEMS=[
+    {n:'Cílová částka',k:'viCastka',on:true,lock:false},
+    {n:'Průběh vybírání',k:'viProgress',on:true,lock:false},
+    {n:'Seznam přispěvatelů',k:'viList',on:false,lock:false},
+    {n:'Jednotlivé příspěvky',k:'viIndiv',on:false,lock:false}
+  ];
+  var vis=document.getElementById('np-vis');
+  ITEMS.forEach(function(it){
+    var row=document.createElement('div'); row.className='np-vrow';
+    var nm=document.createElement('span'); nm.className='np-vname'; nm.textContent=it.n; nm.setAttribute('data-i18n', it.k);
+    var btn=document.createElement('button'); btn.type='button';
+    btn.className='np-eye'+(it.on?' on':'')+(it.lock?' locked':'');
+    btn.innerHTML=EYE_OPEN+EYE_SHUT;
+    if(it.lock){ btn.title='Povinné — vždy viditelné'; btn.setAttribute('aria-disabled','true'); }
+    else { btn.addEventListener('click',function(){ btn.classList.toggle('on'); }); }
+    row.appendChild(nm); row.appendChild(btn); vis.appendChild(row);
+  });
+  var _selIco='';
+  document.querySelectorAll('#np-icons .np-ico').forEach(function(b){
+    b.addEventListener('click',function(){
+      if(b.classList.contains('sel')){ b.classList.remove('sel'); _selIco=''; }
+      else { document.querySelectorAll('#np-icons .np-ico').forEach(function(x){x.classList.remove('sel');}); b.classList.add('sel'); _selIco=b.dataset.ico; _clearPhoto(); }
+      window.npSelectedIcon=_selIco;
+    });
+  });
+  window.npSelectedIcon=''; window.npPhotoData='';
+  var _drop=document.getElementById('np-drop'), _file=document.getElementById('np-file'), _inner=document.getElementById('np-drop-inner');
+  var _dropTxt=_inner?_inner.innerHTML:'';
+  function _readPhoto(f){ if(!f||!/^image\//.test(f.type)) return; var r=new FileReader(); r.onload=function(){ window.npPhotoData=r.result; if(_inner){ _inner.innerHTML='<img class="np-preview" src="'+r.result+'"><button type="button" class="np-photo-rm">×</button>'; _inner.querySelector('.np-photo-rm').addEventListener('click',function(ev){ ev.stopPropagation(); _clearPhoto(); }); } document.querySelectorAll('#np-icons .np-ico').forEach(function(x){x.classList.remove('sel');}); _selIco=''; window.npSelectedIcon=''; }; r.readAsDataURL(f); }
+  function _clearPhoto(){ window.npPhotoData=''; if(_file) _file.value=''; if(_inner) _inner.innerHTML=_dropTxt; }
+  window.npFillPhoto=function(data){
+    if(!data) return;
+    if(/^(https?:|data:)/.test(data)){ window.npPhotoData=data; window.npSelectedIcon=''; if(_inner){ _inner.innerHTML='<img class="np-preview" src="'+data+'"><button type="button" class="np-photo-rm">×</button>'; var rm=_inner.querySelector('.np-photo-rm'); if(rm) rm.addEventListener('click',function(ev){ ev.stopPropagation(); _clearPhoto(); }); } }
+    else { window.npSelectedIcon=data; window.npPhotoData=''; }
+  };
+  if(_drop){
+    _drop.addEventListener('click',function(){ _file.click(); });
+    _file.addEventListener('change',function(){ if(_file.files[0]) _readPhoto(_file.files[0]); });
+    ['dragenter','dragover'].forEach(function(ev){ _drop.addEventListener(ev,function(e){ e.preventDefault(); _drop.classList.add('drag'); }); });
+    ['dragleave','dragend'].forEach(function(ev){ _drop.addEventListener(ev,function(e){ e.preventDefault(); _drop.classList.remove('drag'); }); });
+    _drop.addEventListener('drop',function(e){ e.preventDefault(); _drop.classList.remove('drag'); var f=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0]; if(f) _readPhoto(f); });
+  }
+  ['np-name','np-goal'].forEach(function(i){ var el=document.getElementById(i); if(el) el.addEventListener('input',function(){ el.classList.remove('np-err'); var a=el.closest('.np-amt'); if(a)a.classList.remove('np-err'); if(window.hideBubble) window.hideBubble(); }); });
+  var _npm=document.getElementById('np-modal');
+  if(_npm) _npm.addEventListener('keydown', function(e){ if(e.key==='Enter' && e.target && e.target.tagName!=='TEXTAREA'){ e.preventDefault(); if(typeof createPot==='function') createPot(); } });
+  var _bubble=document.getElementById('np-bubble'), _bubbleT=null;
+  window.showBubble=function(msg){ if(!_bubble) return; _bubble.textContent=msg; _bubble.classList.add('show'); if(_bubbleT) clearTimeout(_bubbleT); _bubbleT=setTimeout(function(){ _bubble.classList.remove('show'); },5200); };
+  window.hideBubble=function(){ if(_bubble) _bubble.classList.remove('show'); if(_bubbleT) clearTimeout(_bubbleT); };
+  window.resetNpForm=function(){
+    ['np-name','np-desc','np-goal'].forEach(function(i){ var el=document.getElementById(i); if(el){ el.value=''; el._real=''; el.classList.remove('np-err'); var a=el.closest('.np-amt'); if(a)a.classList.remove('np-err'); } });
+    document.querySelectorAll('#np-icons .np-ico').forEach(function(x){x.classList.remove('sel');});
+    window.npSelectedIcon=''; _selIco=''; _clearPhoto(); if(window.hideBubble) window.hideBubble();
+  };
+  function openNp(){ _editId=null; if(window.resetNpForm) window.resetNpForm(); if(window._setNpMode) window._setNpMode(false); document.getElementById('np-modal').classList.add('show'); }
+  function closeNp(){ document.getElementById('np-modal').classList.remove('show'); _editId=null; if(window.resetNpForm) window.resetNpForm(); if(window._setNpMode) window._setNpMode(false); }
+  window.openNp=openNp; window.closeNp=closeNp;
+  document.getElementById('main-new-btn').addEventListener('click',openNp);
+  var modal=document.getElementById('np-modal');
+  modal.addEventListener('click',function(e){ if(e.target===modal) closeNp(); });
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape') closeNp(); });
+  document.querySelectorAll('#np-modal .np-chip').forEach(function(c){
+    c.addEventListener('click',function(){ c.classList.toggle('active'); });
+  });
+})();
+</script>
+<div class="logout-modal" id="confirm-modal">
+  <div class="logout-box">
+    <p class="logout-q" id="confirm-q"></p>
+    <div class="logout-actions" id="confirm-actions"></div>
+  </div>
+</div>
+<div class="app-layout">
+  <!-- SIDEBAR -->
+  
+<!-- DASHBOARD PAGE -->
+<div class="page active" id="page-dashboard">
+  <main>
+    <div class="page-header">
+      <div class="page-title-row">
+        <h1 class="page-title" data-i18n="yourPots">Vaše money pots</h1>
+        <button class="pot-info-btn" type="button" onclick="openInfo()" title="Co je to money pot?" data-i18n-title="ttWhatPot" aria-label="Co je to money pot?">i</button>
+      </div>
+      <div class="page-meta" id="dash-meta"></div>
+    </div>
+    <div class="pots-grid" id="pots-grid"></div>
+    <div class="add-card" id="dash-add" onclick="openNp()">
+      <span data-i18n="createNewPot">+ Vytvoř nový money pot</span>
+    </div>
+  </main>
+</div>
+
+<!-- DETAIL PAGE -->
+<div class="page" id="page-detail">
+  <div class="detail-main">
+    <div class="pot-hero">
+      <div class="pot-hero-left">
+        <div class="pot-label" id="d-label"></div>
+        <h1 class="pot-title" id="d-title"></h1>
+        <div class="pot-occasion" id="d-occasion"></div>
+        <div class="pot-actions">
+          <button class="btn-primary" data-i18n="addContrib">+ Přidat příspěvek</button>
+          <button class="btn-secondary" onclick="openShare()" data-i18n="shareBtn">Sdílet</button>
+          <button class="btn-secondary" onclick="openEdit()" data-i18n="editBtn">Upravit</button>
+        </div>
+      </div>
+      <div class="pot-hero-right">
+        <div class="big-ring-wrap">
+          <svg width="160" height="160" viewBox="0 0 160 160">
+            <circle class="big-ring-bg" cx="80" cy="80" r="74"/>
+            <circle class="big-ring-fill" cx="80" cy="80" r="74"
+              id="d-ring"
+              stroke-dasharray="464.96"
+              stroke-dashoffset="464.96"/>
+          </svg>
+          <div class="big-ring-pct">
+            <span class="big-pct-num" id="d-pct">0%</span>
+            <span class="big-pct-label" data-i18n="collectedLbl">vybráno</span>
+          </div>
+        </div>
+        <div class="ring-amounts">
+          <div class="ring-collected" id="d-collected"></div>
+          <div class="ring-goal" id="d-goal-txt"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-box"><div class="stat-value" id="s-contributors"></div><div class="stat-label" data-i18n="stContrib">Přispěvatelů</div></div>
+      <div class="stat-box"><div class="stat-value" id="s-avg"></div><div class="stat-label" data-i18n="stAvg">Průměrný příspěvek</div></div>
+      <div class="stat-box"><div class="stat-value" id="s-max"></div><div class="stat-label" data-i18n="stMax">Největší příspěvek</div></div>
+      <div class="stat-box"><div class="stat-value" id="s-remaining"></div><div class="stat-label" data-i18n="stRemain">Zbývá vybrat</div></div>
+    </div>
+
+    <div class="section-head">
+      <h2 class="section-title" data-i18n="progressSec">Průběh výběru</h2>
+      <div class="chart-sort" id="chart-sort-wrap">
+        <button type="button" class="chart-sort-btn" onclick="toggleChartSort(event)"><span id="chart-sort-label">chronologicky</span><svg class="chart-sort-arrow" width="9" height="9" viewBox="0 0 8 8" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><path d="M1 2.5l3 3 3-3"/></svg></button>
+        <div class="chart-sort-menu" id="chart-sort-menu">
+          <div class="chart-sort-opt active" data-sort="chrono" onclick="setChartSort('chrono')" data-i18n="sortChrono">chronologicky</div>
+          <div class="chart-sort-opt" data-sort="asc" onclick="setChartSort('asc')" data-i18n="sortAsc">od nejnižší</div>
+          <div class="chart-sort-opt" data-sort="desc" onclick="setChartSort('desc')" data-i18n="sortDesc">od nejvyšší</div>
+        </div>
+      </div>
+    </div>
+    <div class="chart-wrap">
+      <canvas id="detail-chart" height="160" style="display:block;width:100%;"></canvas>
+    </div>
+
+    <div class="section-head"><h2 class="section-title" data-i18n="estimateSec">Odhad dokončení</h2></div>
+    <div class="prediction-box">
+      <div class="pred-item">
+        <div class="pred-value" id="p-date"></div>
+        <div class="pred-label" data-i18n="predDate">Předpokládané datum</div>
+        <div class="pred-note" data-i18n="predBasis">Na základě průměrného tempa příspěvků</div>
+      </div>
+      <div class="pred-item">
+        <div class="pred-value" id="p-days"></div>
+        <div class="pred-label" data-i18n="predDays">Zbývá do cíle</div>
+        <div class="pred-note" id="p-note"></div>
+      </div>
+    </div>
+
+    <div class="section-head">
+      <h2 class="section-title" data-i18n="contributions">Příspěvky</h2>
+      <div class="section-meta" id="s-count"></div>
+    </div>
+    <div class="contrib-list" id="contrib-list"></div>
+    <div class="detail-del-wrap">
+      <button class="detail-del" type="button" onclick="deleteCurrentPot()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/></svg><span data-i18n="deletePot">Smazat pot</span></button>
+    </div>
+  </div>
+</div>
+
+<div class="np-modal" id="set-modal">
+  <div class="np-box set-box" role="dialog" aria-modal="true" aria-label="Nastavení">
+    <div class="np-head">
+      <span class="np-title" data-i18n="settings">Nastavení</span>
+      <button class="np-back" type="button" onclick="closeSet()">← <span data-i18n="back">Zpět</span></button>
+    </div>
+    <div class="np-body">
+      <div class="settings-section">
+        <div class="settings-title" data-i18n="account">Účet</div>
+        <div class="settings-row"><span data-i18n="jmeno">Jméno</span><span class="settings-val">Jan Novák</span></div>
+        <div class="settings-row"><span>E-mail</span><span class="settings-val">jan@example.com</span></div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-title" data-i18n="jazyk">Jazyk</div>
+        <div class="settings-row lang-row">
+          <button class="lang-btn lang-opt-flag active" data-lang="cs" onclick="setLang('cs')"><svg class="flag" viewBox="0 0 36 24" preserveAspectRatio="none"><rect width="36" height="12" fill="#fff"/><rect y="12" width="36" height="12" fill="#d7141a"/><path d="M0 0 L18 12 L0 24 Z" fill="#11457e"/></svg>Čeština</button>
+          <button class="lang-btn lang-opt-flag" data-lang="en" onclick="setLang('en')"><svg class="flag" viewBox="0 0 36 24" preserveAspectRatio="none"><rect width="36" height="24" fill="#012169"/><path d="M0,0 36,24 M36,0 0,24" stroke="#fff" stroke-width="5"/><path d="M0,0 36,24 M36,0 0,24" stroke="#C8102E" stroke-width="3"/><path d="M18,0 V24 M0,12 H36" stroke="#fff" stroke-width="8"/><path d="M18,0 V24 M0,12 H36" stroke="#C8102E" stroke-width="4.5"/></svg>English</button>
+        </div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-title" data-i18n="historie">Historie potů</div>
+        <div id="history-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+<!-- INFO MODAL: Co je money pot -->
+<div class="np-modal" id="info-modal">
+  <div class="np-box info-box" role="dialog" aria-modal="true" aria-label="Co je money pot?">
+    <div class="np-head">
+      <span class="np-title" data-i18n="whatPotTitle">Co je money pot?</span>
+      <button class="np-back" type="button" onclick="closeInfo()">← <span data-i18n="back">Zpět</span></button>
+    </div>
+    <div class="np-body">
+      <p class="info-text" data-i18n="whatPotBody">Money pot je společná online pokladnička. Založíš ji k nějaké příležitosti — narozeninám, svatbě, dovolené — a sdílíš odkaz s ostatními. Každý může bezpečně přispět libovolnou částkou ze svého a ty pak vidíš, jak se vybraná suma blíží k cíli. Až je vybráno, peníze pošleš obdarovanému nebo je použiješ na společný účel. Žádné obíhání s hotovostí, žádné připomínání — jen jeden odkaz, kam všichni přidají svůj díl.</p>
+    </div>
+  </div>
+</div>
+<script>
+function openInfo(){ var m=document.getElementById('info-modal'); if(m) m.classList.add('show'); }
+function closeInfo(){ var m=document.getElementById('info-modal'); if(m) m.classList.remove('show'); }
+(function(){ var m=document.getElementById('info-modal'); if(m) m.addEventListener('click',function(e){ if(e.target===m) closeInfo(); }); document.addEventListener('keydown',function(e){ if(e.key==='Escape') closeInfo(); }); })();
+</script>
+
+<style>
+.share-box { max-width:460px; }
+.share-body { align-items:center; text-align:center; gap:16px; }
+.share-qr { width:100%; max-width:380px; image-rendering:pixelated; }
+.share-sub { font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--grey-dark); }
+.share-link-row { display:flex; width:100%; max-width:380px; border:var(--border); }
+.share-link { flex:1; min-width:0; font-family:'Outfit',sans-serif; font-size:13px; color:var(--black); padding:11px 13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; user-select:all; text-align:left; }
+.share-copy { font-family:'Outfit',sans-serif; font-size:11px; letter-spacing:0.1em; text-transform:uppercase; background:var(--black); color:var(--white); border:none; padding:0 16px; cursor:pointer; transition:opacity 0.2s; }
+.share-copy:hover { opacity:0.75; }
+.share-via { font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:var(--grey-mid); margin-top:2px; }
+.share-socials { display:flex; gap:12px; flex-wrap:wrap; justify-content:center; }
+.share-soc { width:44px; height:44px; border-radius:50%; border:var(--border); background:var(--white); color:var(--black); display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 0.18s; }
+.share-soc:hover { background:var(--black); color:var(--white); }
+.share-soc svg { width:20px; height:20px; }
+.share-toast { position:fixed; left:50%; bottom:32px; transform:translateX(-50%) translateY(10px); background:var(--black); color:var(--white); font-size:11px; letter-spacing:0.06em; padding:9px 18px; opacity:0; pointer-events:none; transition:all 0.2s; white-space:nowrap; z-index:800; }
+.share-toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+</style>
+<div class="np-modal" id="share-modal">
+  <div class="np-box share-box" role="dialog" aria-modal="true" aria-label="Sdílet pot">
+    <div class="np-head">
+      <span class="np-title" data-i18n="shareTitle">Sdílet pot</span>
+      <button class="np-back" type="button" onclick="closeShare()">← <span data-i18n="back">Zpět</span></button>
+    </div>
+    <div class="np-body share-body">
+      <canvas id="share-qr" class="share-qr"></canvas>
+      <div class="share-sub" data-i18n="shareSub">Naskenuj QR nebo sdílej odkaz</div>
+      <div class="share-link-row">
+        <span class="share-link" id="share-link"></span>
+        <button class="share-copy" type="button" onclick="copyShareLink()" data-i18n="shareCopy">Kopírovat</button>
+      </div>
+      <div class="share-via" data-i18n="shareVia">Sdílet přes</div>
+      <div class="share-socials" id="share-socials"></div>
+    </div>
+  </div>
+  <div class="share-toast" id="share-toast"></div>
+</div>
+<script>
+(function(){
+  var QR_FG='#0a0a0a', QR_BG='transparent', QR_GLOW='';
+  var SOCIALS=[
+    {n:'WhatsApp', svg:'<path d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.16-.17.2-.35.22-.64.08-.3-.15-1.26-.46-2.4-1.48-.88-.79-1.48-1.76-1.65-2.06-.17-.3-.02-.46.13-.6.13-.14.3-.35.45-.52.15-.18.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.61-.92-2.21-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.07 2.88 1.21 3.07.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.69.62.71.23 1.36.2 1.87.12.57-.08 1.76-.72 2.01-1.41.25-.7.25-1.29.17-1.41-.07-.12-.27-.2-.57-.35M12.05 21.79h-.01a9.87 9.87 0 0 1-5.03-1.38l-.36-.21-3.74.98 1-3.65-.24-.37a9.86 9.86 0 0 1-1.51-5.26c0-5.45 4.44-9.88 9.89-9.88 2.64 0 5.12 1.03 6.99 2.9a9.83 9.83 0 0 1 2.89 6.99c0 5.45-4.43 9.88-9.88 9.88M20.52 3.45A11.82 11.82 0 0 0 12.04 0C5.46 0 .1 5.36.1 11.94c0 2.1.55 4.14 1.59 5.95L0 24l6.3-1.65a11.9 11.9 0 0 0 5.69 1.45h.01c6.58 0 11.94-5.36 11.95-11.94a11.82 11.82 0 0 0-3.5-8.41"/>', url:function(l,t){return 'https://wa.me/?text='+encodeURIComponent(t+' '+l);}},
+    {n:'Facebook', svg:'<path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07c0 6.02 4.39 11.01 10.13 11.93v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.8-4.69 4.54-4.69 1.31 0 2.69.24 2.69.24v2.97h-1.52c-1.49 0-1.96.93-1.96 1.89v2.25h3.33l-.53 3.49h-2.8V24C19.61 23.08 24 18.09 24 12.07"/>', url:function(l){return 'https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(l);}},
+    {n:'X', svg:'<path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93zM17.61 20.64h2.04L6.49 3.24H4.3z"/>', url:function(l,t){return 'https://twitter.com/intent/tweet?text='+encodeURIComponent(t)+'&url='+encodeURIComponent(l);}},
+    {n:'Telegram', svg:'<path d="M11.94 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.06 0m4.96 7.22c.1 0 .32.02.47.14a.5.5 0 0 1 .17.33c.02.09.04.3.02.47-.18 1.9-.96 6.5-1.36 8.63-.17.9-.5 1.2-.82 1.23-.7.06-1.23-.46-1.9-.9-1.06-.7-1.65-1.12-2.68-1.8-1.19-.78-.42-1.21.26-1.91.18-.18 3.25-2.98 3.31-3.23 0-.03.01-.15-.06-.21-.07-.06-.17-.04-.25-.02-.1.02-1.79 1.14-5.06 3.34-.48.33-.91.5-1.3.48-.43 0-1.25-.24-1.87-.44-.75-.24-1.35-.37-1.3-.79.03-.21.33-.43.9-.66 3.5-1.52 5.83-2.53 7-3.01 3.33-1.39 4.02-1.63 4.48-1.64"/>', url:function(l,t){return 'https://t.me/share/url?url='+encodeURIComponent(l)+'&text='+encodeURIComponent(t);}},
+    {n:'Instagram', svg:'<path d="M12 2.16c3.2 0 3.58.01 4.85.07 1.17.05 1.8.25 2.23.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.43.36 1.06.41 2.23.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.25 1.8-.41 2.23-.22.56-.48.96-.9 1.38-.42.42-.82.68-1.38.9-.43.16-1.06.36-2.23.41-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.8-.25-2.23-.41a3.7 3.7 0 0 1-1.38-.9 3.7 3.7 0 0 1-.9-1.38c-.16-.43-.36-1.06-.41-2.23C2.17 15.58 2.16 15.2 2.16 12s.01-3.58.07-4.85c.05-1.17.25-1.8.41-2.23.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.43-.16 1.06-.36 2.23-.41C8.42 2.17 8.8 2.16 12 2.16M12 0C8.74 0 8.33.01 7.05.07 5.78.13 4.9.33 4.14.63c-.79.3-1.46.72-2.13 1.38C1.35 2.68.93 3.35.63 4.14.33 4.9.13 5.78.07 7.05.01 8.33 0 8.74 0 12s.01 3.67.07 4.95c.06 1.27.26 2.15.56 2.91.3.79.72 1.46 1.38 2.13.67.66 1.34 1.08 2.13 1.38.76.3 1.64.5 2.91.56C8.33 23.99 8.74 24 12 24s3.67-.01 4.95-.07c1.27-.06 2.15-.26 2.91-.56a5.9 5.9 0 0 0 2.13-1.38 5.9 5.9 0 0 0 1.38-2.13c.3-.76.5-1.64.56-2.91.06-1.28.07-1.69.07-4.95s-.01-3.67-.07-4.95c-.06-1.27-.26-2.15-.56-2.91a5.9 5.9 0 0 0-1.38-2.13A5.9 5.9 0 0 0 19.86.63c-.76-.3-1.64-.5-2.91-.56C15.67.01 15.26 0 12 0m0 5.84a6.16 6.16 0 1 0 0 12.32 6.16 6.16 0 0 0 0-12.32M12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8m6.41-10.85a1.44 1.44 0 1 0 0 2.88 1.44 1.44 0 0 0 0-2.88"/>', copy:true},
+    {n:'TikTok', svg:'<path d="M12.53.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/>', copy:true}
+  ];
+  function hash(s){ var h=2166136261; for(var i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619); } return h>>>0; }
+  function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; var t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+  window._shareLink=function(pot){ var seed=hash('sporion-gift:'+(pot?pot.id:0)+':'+(pot?pot.name:'')); var num=1000000+(seed%9000000); return 'sporion.eu/gift'+num; };
+  function drawQR(canvas, text){
+    var N=33, quiet=0, total=N+quiet*2;
+    var box=canvas.clientWidth||280, px=Math.max(2,Math.floor(box/total)), dim=px*total, dpr=window.devicePixelRatio||1;
+    canvas.width=dim*dpr; canvas.height=dim*dpr; canvas.style.height='auto';
+    var cc=canvas.getContext('2d'); cc.setTransform(dpr,0,0,dpr,0,0);
+    cc.fillStyle=QR_BG; cc.fillRect(0,0,dim,dim);
+    var g=[]; for(var y=0;y<N;y++){ g[y]=[]; for(var x=0;x<N;x++) g[y][x]=false; }
+    var rnd=mulberry32(hash(text)^0x9e3779b9);
+    function inFinder(x,y){ function blk(ox,oy){ return x>=ox-1&&x<=ox+7&&y>=oy-1&&y<=oy+7; } return blk(0,0)||blk(N-7,0)||blk(0,N-7); }
+    for(var y2=0;y2<N;y2++)for(var x2=0;x2<N;x2++){ if(!inFinder(x2,y2)&&x2!==6&&y2!==6) g[y2][x2]=rnd()>0.5; }
+    function finder(ox,oy){ for(var dy=0;dy<7;dy++)for(var dx=0;dx<7;dx++){ var on=(dx===0||dx===6||dy===0||dy===6)||(dx>=2&&dx<=4&&dy>=2&&dy<=4); g[oy+dy][ox+dx]=on; } }
+    finder(0,0); finder(N-7,0); finder(0,N-7);
+    for(var i=8;i<N-8;i++){ var on2=(i%2===0); g[6][i]=on2; g[i][6]=on2; }
+    if(QR_GLOW){ cc.shadowColor=QR_GLOW; cc.shadowBlur=px*1.4; }
+    cc.fillStyle=QR_FG;
+    for(var yy=0;yy<N;yy++)for(var xx=0;xx<N;xx++){ if(g[yy][xx]) cc.fillRect((quiet+xx)*px,(quiet+yy)*px,px,px); }
+    cc.shadowBlur=0;
+  }
+  function toast(msg){ var to=document.getElementById('share-toast'); if(!to) return; to.textContent=msg; to.classList.add('show'); clearTimeout(to._t); to._t=setTimeout(function(){ to.classList.remove('show'); },2000); }
+  function fallbackCopy(s){ try{ var ta=document.createElement('textarea'); ta.value=s; ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.focus(); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); }catch(e){} }
+  function doCopy(s){ if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(s).catch(function(){ fallbackCopy(s); }); } else { fallbackCopy(s); } }
+  window.copyShareLink=function(){ var le=document.getElementById('share-link'); if(!le) return; doCopy('https://'+le.textContent); toast(t('shareCopied')); };
+  window.openShare=function(pot){
+    pot = pot || (typeof _currentPot!=='undefined'?_currentPot:null); if(!pot) return;
+    var link=window._shareLink(pot), full='https://'+link;
+    var le=document.getElementById('share-link'); if(le) le.textContent=link;
+    var cv=document.getElementById('share-qr'); if(cv) requestAnimationFrame(function(){ drawQR(cv, full); });
+    var box=document.getElementById('share-socials');
+    if(box){ box.innerHTML=''; SOCIALS.forEach(function(s){ var b=document.createElement('button'); b.type='button'; b.className='share-soc'; b.title=s.n; b.setAttribute('aria-label',s.n); b.innerHTML='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">'+s.svg+'</svg>'; b.onclick=function(){ var msg=t('shareMsg'); if(s.url){ try{ window.open(s.url(full,msg),'_blank','noopener'); }catch(e){} } else { doCopy(full); toast(t('shareCopyHint')); } }; box.appendChild(b); }); }
+    document.getElementById('share-modal').classList.add('show');
+  };
+  window.closeShare=function(){ var m=document.getElementById('share-modal'); if(m) m.classList.remove('show'); };
+  var sm=document.getElementById('share-modal'); if(sm) sm.addEventListener('click',function(e){ if(e.target===sm) window.closeShare(); });
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape') window.closeShare(); });
+})();
+</script>
+<footer>
+  <div class="f-logo">Sporion</div>
+  <div class="f-copy">SPORION app created by ROJERI SOFTWORKS © 2026</div>
+</footer>
+
+<script>
+// ── DATA ──
+const POTS = [
+  { id:1, name:'Narozeniny Martiny', occasion:'Narozeniny', name_en:"Martina's Birthday", occasion_en:'Birthday', collected:1440, goal:2000, mush:'pravak', contributors:8, occasion_date:'18. 6. 2026', description:'', photo:'',
+    contributions:[{date:'24.4.',name:'Tomáš K.',amount:200},{date:'26.4.',name:'Anonymní',amount:150},{date:'28.4.',name:'Petra N.',amount:500},{date:'1.5.',name:'Martin S.',amount:100},{date:'5.5.',name:'Lucie V.',amount:200},{date:'9.5.',name:'Anonymní',amount:120},{date:'14.5.',name:'Jana H.',amount:100},{date:'20.5.',name:'Ondřej P.',amount:70}] },
+  { id:2, name:'Rozlučka Jana', occasion:'Rozlučka', name_en:"Jan's Bachelor Party", occasion_en:'Bachelor Party', collected:3500, goal:3500, mush:'vaclavky', contributors:12, occasion_date:'25. 5. 2026', description:'', photo:'',
+    contributions:[{date:'2.4.',name:'Markéta S.',amount:500},{date:'5.4.',name:'Tomáš V.',amount:300},{date:'10.4.',name:'Anonymní',amount:200},{date:'14.4.',name:'Petra K.',amount:400},{date:'18.4.',name:'Jan H.',amount:250},{date:'22.4.',name:'Lucie N.',amount:350},{date:'25.4.',name:'Anonymní',amount:300},{date:'28.4.',name:'Martin D.',amount:200},{date:'2.5.',name:'Eva R.',amount:300},{date:'6.5.',name:'Ondřej L.',amount:200},{date:'10.5.',name:'Jana P.',amount:200},{date:'15.5.',name:'Anonymní',amount:300}] },
+  { id:3, name:'Dovolená Kuba', occasion:'Dovolená', name_en:'Cuba Trip', occasion_en:'Holiday', collected:1200, goal:4000, mush:'bedla', contributors:6, occasion_date:'1. 8. 2026', description:'', photo:'',
+    contributions:[{date:'5.4.',name:'Kuba M.',amount:500},{date:'15.4.',name:'Anonymní',amount:200},{date:'1.5.',name:'Jana M.',amount:300},{date:'10.5.',name:'Petr M.',amount:100},{date:'16.5.',name:'Anonymní',amount:50},{date:'20.5.',name:'Tomáš M.',amount:50}] },
+];
+
+// ── CONSTELLATION ──
+const cvs = document.getElementById('constellation');
+const cctx = cvs.getContext('2d');
+function resizeCvs(){ cvs.width=cvs.offsetWidth; cvs.height=cvs.offsetHeight; }
+resizeCvs(); window.addEventListener('resize', resizeCvs);
+
+const constellations = [
+  { stars:[{x:.08,y:.3},{x:.11,y:.55},{x:.09,y:.75},{x:.14,y:.65},{x:.15,y:.35}], lines:[[0,1],[1,2],[1,3],[0,4]] },
+  { stars:[{x:.28,y:.2},{x:.32,y:.6},{x:.37,y:.28}], lines:[[0,1],[1,2],[2,0]] },
+  { stars:[{x:.5,y:.15},{x:.54,y:.35},{x:.58,y:.5},{x:.63,y:.42},{x:.66,y:.2},{x:.62,y:.08}], lines:[[0,1],[1,2],[2,3],[3,4],[4,5]] },
+  { stars:[{x:.78,y:.18},{x:.78,y:.5},{x:.78,y:.82},{x:.68,y:.5},{x:.88,y:.5}], lines:[[0,1],[1,2],[3,4]] },
+  { stars:[{x:.42,y:.7},{x:.46,y:.52},{x:.5,y:.72},{x:.44,y:.85}], lines:[[0,1],[1,2],[2,3]] },
+];
+const starObjs = [];
+constellations.forEach(c => c.stars.forEach(s => starObjs.push({...s,phase:Math.random()*Math.PI*2,speed:0.008+Math.random()*0.018,size:1.5+Math.random()*1.5,maxAlpha:0.15+Math.random()*0.2,cRef:c})));
+let tick=0;
+function animC(){
+  const W=cvs.width,H=cvs.height;
+  cctx.clearRect(0,0,W,H);
+  constellations.forEach(c=>{
+    c.lines.forEach(([a,b])=>{
+      const sa=c.stars[a],sb=c.stars[b];
+      const oa=starObjs.find(s=>s.x===sa.x&&s.y===sa.y);
+      const ob=starObjs.find(s=>s.x===sb.x&&s.y===sb.y);
+      if(!oa||!ob) return;
+      const aa=oa.maxAlpha*((Math.sin(tick*oa.speed+oa.phase)+1)/2);
+      const ab=ob.maxAlpha*((Math.sin(tick*ob.speed+ob.phase)+1)/2);
+      cctx.beginPath();cctx.moveTo(sa.x*W,sa.y*H);cctx.lineTo(sb.x*W,sb.y*H);
+      cctx.strokeStyle=`rgba(0,0,0,${Math.min(aa,ab)*0.35})`;cctx.lineWidth=0.5;cctx.stroke();
+    });
+  });
+  starObjs.forEach(s=>{
+    const a=s.maxAlpha*((Math.sin(tick*s.speed+s.phase)+1)/2);
+    cctx.beginPath();cctx.arc(s.x*W,s.y*H,s.size,0,Math.PI*2);
+    cctx.fillStyle=`rgba(0,0,0,${a})`;cctx.fill();
+  });
+  tick++;requestAnimationFrame(animC);
+}
+animC();
+
+// ── RING HELPER ──
+const R_SMALL = 47, CIRC_SMALL = 2*Math.PI*R_SMALL;
+const R_BIG = 74, CIRC_BIG = 2*Math.PI*R_BIG;
+
+function ringHTML(pct, complete) {
+  const offset = CIRC_SMALL * (1 - pct/100);
+  return `
+    <svg width="100" height="100" viewBox="0 0 100 100">
+      <circle class="ring-bg" cx="50" cy="50" r="${R_SMALL}"/>
+      <circle class="ring-fill" cx="50" cy="50" r="${R_SMALL}"
+        stroke-dasharray="${CIRC_SMALL.toFixed(2)}"
+        stroke-dashoffset="${offset.toFixed(2)}"/>
+    </svg>
+    <div class="ring-pct">${pct}%</div>`;
+}
+
+// ── BUILD DASHBOARD ──
+function buildDashboard() {
+  const grid = document.getElementById('pots-grid');
+  grid.innerHTML = '';
+  const complete = POTS.filter(p=>p.collected>=p.goal).length;
+  document.getElementById('dash-meta').textContent = `${POTS.length - complete} ${t('active')} · ${complete} ${t('done')}`;
+  const addEl = document.getElementById('dash-add');
+  if (addEl) addEl.classList.toggle('full', POTS.length === 0);
+
+  POTS.forEach(pot => {
+    const progress = Math.min(pot.collected/pot.goal,1);
+    const pct = Math.round(progress*100);
+    const isComplete = pot.collected >= pot.goal;
+    const card = document.createElement('div');
+    card.className = 'pot-card' + (isComplete?' complete':'');
+    card.innerHTML = `
+      <div class="card-surface">
+      <div class="card-top">
+        <div class="pot-name">${potAvatar(pot)}${tName(pot)}</div>
+        ${isComplete?'<div class="hotovo-tag">'+t('badgeDone')+'</div>':''}${pot.createdAt&&(Date.now()-pot.createdAt<_NEW_MS)&&!isComplete?'<div class="new-tag">'+t('badgeNew')+'</div>':''}
+      </div>
+      <div class="pot-stats-list">
+        <span class="stat-pct-list">${pct}%</span>
+        <span class="stat-amounts-list">${money(pot.collected)} / ${money(pot.goal)}</span>
+        ${isComplete?'<span class="list-badge lb-done">'+t('badgeDone')+'</span>':(pot.createdAt&&(Date.now()-pot.createdAt<_NEW_MS)?'<span class="list-badge lb-new">'+t('badgeNew')+'</span>':'')}
+      </div>
+      <div class="card-visual">
+        <div class="ring-wrap">${ringHTML(pct, isComplete)}</div>
+        <div class="card-amounts">
+          <div class="amount-collected">${money(pot.collected)}</div>
+          <div class="amount-goal">${t('fromGoal')}${money(pot.goal)}</div>
+        </div>
+      </div>
+      </div>`;
+    card.addEventListener('click', ()=>showDetail(pot));
+    grid.appendChild(card);
+    if(isComplete) registerConstellation(card);
+  });
+}
+
+// ── HOTOVÁ KARTA: rostoucí souhvězdí (kořeny) ze středu kolečka ──
+const constCards=[]; let constStarted=false;
+function genBranches(cx,cy,W,H,ringR){
+  const nodes=[], edges=[];
+  function grow(idx,ang,len,depth){
+    if(depth>5||len<7) return;
+    const nx=nodes[idx].x+Math.cos(ang)*len, ny=nodes[idx].y+Math.sin(ang)*len;
+    if(Math.hypot(nx-cx,ny-cy) < ringR) return;       // nikdy dovnitř kružnice (procenta)
+    const ni=nodes.length;
+    nodes.push({x:nx,y:ny,d:nodes[idx].d+len,ph:Math.random()*6.283});
+    edges.push([idx,ni]);
+    if(nx<-12||nx>W+12||ny<-12||ny>H+12) return;       // za hranou už nevětvíme
+    const nbr=1+(Math.random()<0.55?1:0);
+    for(let k=0;k<nbr;k++) grow(ni, ang+(Math.random()-0.5)*0.9, len*(0.72+Math.random()*0.18), depth+1);
+  }
+  const n0=6+(Math.random()*3|0);
+  for(let i=0;i<n0;i++){
+    const ang=(i/n0)*6.283+Math.random()*0.5;
+    nodes.push({x:cx+Math.cos(ang)*(ringR+2), y:cy+Math.sin(ang)*(ringR+2), d:0, ph:Math.random()*6.283}); // start NA okraji kružnice
+    grow(nodes.length-1, ang, 26+Math.random()*16, 1);                                                      // roste radiálně ven
+  }
+  return {nodes,edges};
+}
+function registerConstellation(card){
+  if(card.querySelector('.constellation-overlay')) return;
+  const cv=document.createElement('canvas'); cv.className='constellation-overlay';
+  card.insertBefore(cv, card.firstChild);
+  constCards.push({card, cv, ctx:cv.getContext('2d'), built:false, t0:0});
+  if(!constStarted){ constStarted=true; requestAnimationFrame(constLoop); }
+}
+function constLoop(now){
+  for(let i=constCards.length-1;i>=0;i--){
+    const e=constCards[i];
+    if(!document.body.contains(e.card)){ constCards.splice(i,1); continue; }
+    const W=e.card.clientWidth, H=e.card.clientHeight;
+    if(W<4||H<4||e.cv.offsetParent===null){ continue; }            // skrytá (seznam) → přeskoč
+    const DPR=Math.min(window.devicePixelRatio||1,2);
+    if(e.cv.width!==Math.round(W*DPR)||e.cv.height!==Math.round(H*DPR)){
+      e.cv.width=Math.round(W*DPR); e.cv.height=Math.round(H*DPR);
+      e.cv.style.width=W+'px'; e.cv.style.height=H+'px'; e.ctx.setTransform(DPR,0,0,DPR,0,0); e.built=false;
+    }
+    if(!e.built){
+      const ring=e.card.querySelector('.ring-wrap'); let cx=W*0.5, cy=H*0.5, ringR=26;
+      const rr0=ring?ring.getBoundingClientRect():null;
+      if(ring && rr0.width>4 && ring.offsetParent!==null){ const cr=e.card.getBoundingClientRect(); cx=rr0.left-cr.left+rr0.width/2; cy=rr0.top-cr.top+rr0.height/2; ringR=(rr0.width/2)*0.94; }
+      else { cx=W*0.5; cy=H*0.5; ringR=Math.max(10, Math.min(20, H*0.28)); }
+      e.tree=genBranches(cx,cy,W,H,ringR); e.maxD=Math.max(1,...e.tree.nodes.map(n=>n.d)); e.t0=now; e.built=true;
+    }
+    drawConst(e,(now-e.t0)/1000,W,H);
+  }
+  requestAnimationFrame(constLoop);
+}
+function drawConst(e,t,W,H){
+  const ctx=e.ctx, N=e.tree.nodes, E=e.tree.edges;
+  const reach=Math.min(1,t/3.2)*e.maxD*1.05;                       // růst za ~3,2 s
+  ctx.clearRect(0,0,W,H);
+  ctx.lineWidth=0.7; ctx.lineCap='round';
+  ctx.strokeStyle='rgba(210,218,234,0.11)';
+  for(const [a,b] of E){
+    const na=N[a], nb=N[b]; if(reach<na.d) continue;
+    let bx=nb.x, by=nb.y;
+    if(reach<nb.d){ const f=(reach-na.d)/Math.max(1,nb.d-na.d); bx=na.x+(nb.x-na.x)*f; by=na.y+(nb.y-na.y)*f; }
+    ctx.beginPath(); ctx.moveTo(na.x,na.y); ctx.lineTo(bx,by); ctx.stroke();
+  }
+  for(let i=0;i<N.length;i++){ const n=N[i]; if(reach<n.d) continue;
+    const tw=0.5+0.5*Math.sin(t*1.5+n.ph), a=0.15+0.32*tw, r=n.d===0?1.7:1.1;
+    ctx.fillStyle='rgba(234,240,250,'+a.toFixed(3)+')';
+    ctx.beginPath(); ctx.arc(n.x,n.y,r,0,6.283); ctx.fill();
+    if(tw>0.78){ ctx.fillStyle='rgba(234,240,250,'+(a*0.18).toFixed(3)+')'; ctx.beginPath(); ctx.arc(n.x,n.y,r*2.4,0,6.283); ctx.fill(); }
+  }
+}
+
+// ── SHOW DETAIL ──
+function showDetail(pot) {
+  _currentPot = pot;
+  _footer(false);
+  document.getElementById('item-view').style.display='none';
+  const progress = Math.min(pot.collected/pot.goal,1);
+  const pct = Math.round(progress*100);
+
+  // Hero
+  document.getElementById('d-label').textContent = `Money pot · ${tOcc(pot)}`;
+  document.getElementById('d-title').innerHTML = tName(pot).replace(' ','<br>');
+  document.getElementById('d-occasion').textContent = t('organizes')+` · ${pot.contributors} `+t('contributors');
+  document.getElementById('d-pct').textContent = pct+'%';
+  document.getElementById('d-collected').textContent = money(pot.collected);
+  document.getElementById('d-goal-txt').textContent = t('fromGoal')+money(pot.goal);
+
+  // Big ring
+  const offset = CIRC_BIG*(1-progress);
+  document.getElementById('d-ring').setAttribute('stroke-dashoffset', offset.toFixed(2));
+  document.querySelector('.big-ring-wrap').classList.toggle('complete', pot.collected>=pot.goal);
+
+  // Stats
+  const amounts = pot.contributions.map(c=>c.amount);
+  const hasC = amounts.length>0;
+  const avg = hasC ? Math.round(amounts.reduce((a,b)=>a+b,0)/amounts.length) : 0;
+  const max = hasC ? Math.max(...amounts) : 0;
+  const remaining = Math.max(0, pot.goal-pot.collected);
+  document.getElementById('s-contributors').textContent = pot.contributors;
+  document.getElementById('s-avg').textContent = money(avg);
+  document.getElementById('s-max').textContent = money(max);
+  document.getElementById('s-remaining').textContent = money(remaining);
+  document.getElementById('s-count').textContent = pot.contributions.length+' '+t('totalCount');
+
+  // Prediction
+  const msPerContrib = (30*24*60*60*1000) / (pot.contributions.length||1);
+  const daysLeft = (remaining > 0 && avg > 0) ? Math.round((remaining/avg) * (msPerContrib/86400000)) : 0;
+  const predDate = new Date(Date.now() + daysLeft*86400000);
+  const fmt = predDate.toLocaleDateString('cs-CZ',{day:'numeric',month:'numeric',year:'numeric'});
+  document.getElementById('p-date').textContent = remaining>0 ? (hasC?fmt:'—') : t('doneEx');
+  document.getElementById('p-days').textContent = remaining>0 ? (hasC?daysLeft+' '+t('days'):'—') : '—';
+  document.getElementById('p-note').textContent = pot.occasion_date ? t('term')+`: ${pot.occasion_date}` : '';
+
+  // Chart
+  if(typeof resetChartSort==='function') resetChartSort();
+  setTimeout(() => drawChart(pot), 50);
+
+  // Contributions
+  const list = document.getElementById('contrib-list');
+  list.innerHTML = '';
+  [...pot.contributions].reverse().forEach(c=>{
+    const row = document.createElement('div');
+    row.className = 'contrib-row';
+    const anon = c.name.indexOf('Anonym')===0;
+    row.innerHTML = `
+      <div class="contrib-date">${c.date}</div>
+      <div class="contrib-name ${anon?'contrib-anon':''}">${tAnon(c.name)}</div>
+      <div class="contrib-amount">+ ${money(c.amount)}</div>`;
+    list.appendChild(row);
+  });
+
+  // Switch page
+  document.getElementById('page-dashboard').classList.remove('active');
+  document.getElementById('page-detail').classList.add('active');
+  _pushView();
+  document.getElementById('back-btn').style.display = 'block';
+  document.getElementById('main-new-btn').style.display = 'none';
+  window.scrollTo(0,0);
+}
+
+// ── SHOW DASHBOARD ──
+function showDashboard() {
+  document.getElementById('item-view').style.display='';
+  _footer(true);
+  document.getElementById('page-detail').classList.remove('active'); closeSet();
+  document.getElementById('page-dashboard').classList.add('active');
+  _pushView();
+  document.getElementById('back-btn').style.display = 'none';
+  document.getElementById('main-new-btn').style.display = 'inline-flex';
+  window.scrollTo(0,0);
+}
+
+// ── DRAW CHART ──
+function drawChart(pot) {
+  const canvas = document.getElementById('detail-chart');
+  const canvasW = canvas.offsetWidth || canvas.parentElement.offsetWidth || 800;
+  canvas.width = canvasW * window.devicePixelRatio;
+  canvas.height = 160 * window.devicePixelRatio;
+  canvas.style.height = '160px';
+  const cc = canvas.getContext('2d');
+  cc.scale(window.devicePixelRatio, window.devicePixelRatio);
+  const cw=canvas.offsetWidth||canvas.parentElement.offsetWidth||800, ch=160;
+  const pad={top:16,right:20,bottom:32,left:60};
+  const gw=cw-pad.left-pad.right, gh=ch-pad.top-pad.bottom;
+
+  let cum=0;
+  var _cs=(typeof _chartSort!=='undefined')?_chartSort:'chrono';
+  var _src=pot.contributions.slice();
+  if(_cs==='asc') _src.sort(function(a,b){return a.amount-b.amount;});
+  else if(_cs==='desc') _src.sort(function(a,b){return b.amount-a.amount;});
+  const data = _src.map(c=>{cum+=c.amount;return{...c,cum};});
+  const maxV = pot.goal;
+
+  // Grid
+  [0,Math.round(maxV/4),Math.round(maxV/2),Math.round(maxV*3/4),maxV].forEach(v=>{
+    const y=pad.top+gh-(v/maxV)*gh;
+    cc.strokeStyle='#f0f0f0'; cc.lineWidth=1;
+    cc.beginPath(); cc.moveTo(pad.left,y); cc.lineTo(pad.left+gw,y); cc.stroke();
+    cc.fillStyle='#bbb'; cc.font='10px Outfit'; cc.textAlign='right';
+    if(v>0) cc.fillText(curNum(v), pad.left-6, y+4);
+  });
+
+  // Goal line
+  cc.strokeStyle='#e0e0e0'; cc.setLineDash([4,4]); cc.lineWidth=1;
+  cc.beginPath(); cc.moveTo(pad.left,pad.top); cc.lineTo(pad.left+gw,pad.top); cc.stroke();
+  cc.setLineDash([]);
+  cc.fillStyle='#ccc'; cc.font='10px Outfit'; cc.textAlign='left';
+  cc.fillText(t('chartGoal')+money(pot.goal), pad.left+4, pad.top-3);
+
+  // X labels
+  cc.fillStyle='#bbb'; cc.font='10px Outfit'; cc.textAlign='center';
+  data.forEach((d,i)=>{
+    const x=pad.left+(i/(data.length-1||1))*gw;
+    cc.fillText(d.date, x, ch-6);
+  });
+
+  if(data.length < 2) return;
+
+  // Area
+  cc.beginPath(); cc.moveTo(pad.left, pad.top+gh);
+  data.forEach((d,i)=>{ const x=pad.left+(i/(data.length-1))*gw; const y=pad.top+gh-(d.cum/maxV)*gh; cc.lineTo(x,y); });
+  cc.lineTo(pad.left+gw, pad.top+gh); cc.closePath();
+  cc.fillStyle='rgba(10,10,10,0.04)'; cc.fill();
+
+  // Line
+  cc.beginPath(); cc.strokeStyle='#0a0a0a'; cc.lineWidth=1.5;
+  data.forEach((d,i)=>{ const x=pad.left+(i/(data.length-1))*gw; const y=pad.top+gh-(d.cum/maxV)*gh; i===0?cc.moveTo(x,y):cc.lineTo(x,y); });
+  cc.stroke();
+
+  // Dots
+  data.forEach((d,i)=>{
+    const x=pad.left+(i/(data.length-1))*gw; const y=pad.top+gh-(d.cum/maxV)*gh;
+    cc.beginPath(); cc.arc(x,y,3,0,Math.PI*2); cc.fillStyle='#0a0a0a'; cc.fill();
+    cc.beginPath(); cc.arc(x,y,1.5,0,Math.PI*2); cc.fillStyle='#fafafa'; cc.fill();
+  });
+}
+
+// ── POTY: vytvořit / smazat / archiv ──
+const ARCHIVE = [];
+const _MUSH_KEYS = ['pravak','muchomurka','vaclavky','lisky','holubinka','bedla','kremenac','hliva','shiitake','kuratko'];
+const _NEW_MS = 3*24*60*60*1000;
+function _closeChoice(){ document.getElementById('confirm-modal').classList.remove('show'); }
+function closeConfirm(){ _closeChoice(); }
+function askChoice(msg, buttons){
+  document.getElementById('confirm-q').textContent = msg;
+  var box = document.getElementById('confirm-actions'); box.innerHTML='';
+  buttons.forEach(function(b){ var btn=document.createElement('button'); btn.className=b.primary?'logout-yes':'logout-no'; btn.textContent=b.label; btn.onclick=function(){ _closeChoice(); if(b.cb) b.cb(); }; box.appendChild(btn); });
+  document.getElementById('confirm-modal').classList.add('show');
+}
+function askConfirm(msg, cb){ askChoice(msg, [{label:t('ano'), primary:true, cb:cb}, {label:t('ne')}]); }
+function _footer(show){ var f=document.querySelector('footer, .footer'); if(f) f.style.display=show?'':'none'; }
+function askDeletePot(pot){ askConfirm('Přesunout „'+pot.name+'" do historie?', function(){ archivePot(pot.id); }); }
+function archivePot(id, reason){ const i = POTS.findIndex(p=>p.id===id); if(i<0) return; const p = POTS.splice(i,1)[0]; p.archivedAt = Date.now(); p.archReason = reason||''; ARCHIVE.unshift(p); buildDashboard(); renderHistory(); _pushState(); }
+function restorePot(id){ const i = ARCHIVE.findIndex(p=>p.id===id); if(i<0) return; const p = ARCHIVE.splice(i,1)[0]; delete p.archivedAt; delete p.archReason; POTS.push(p); buildDashboard(); renderHistory(); _pushState(); }
+function purgePot(id){ const i = ARCHIVE.findIndex(p=>p.id===id); if(i>=0) ARCHIVE.splice(i,1); renderHistory(); _pushState(); }
+function potAvatar(pot){
+  if(!pot.photo) return '';
+  const inner = /^(https?:|data:)/.test(pot.photo) ? '<img src="'+pot.photo+'" alt="">' : pot.photo;
+  return '<span class="pot-av">'+inner+'</span>';
+}
+function addDelBtn(card, pot){
+  const del = document.createElement('button'); del.className='pot-del'; del.title='Smazat pot';
+  del.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/></svg>';
+  del.addEventListener('click', function(ev){ ev.stopPropagation(); askDeletePot(pot); });
+  card.appendChild(del);
+}
+function renderHistory(){
+  const el = document.getElementById('history-list'); if(!el) return; el.innerHTML='';
+  if(!ARCHIVE.length){ el.innerHTML = '<div class="hist-empty">'+t('histEmpty')+'</div>'; return; }
+  ARCHIVE.forEach(function(pot){
+    const row = document.createElement('div'); row.className='hist-row';
+    const info = document.createElement('span'); info.className='hist-info';
+    info.textContent = tName(pot)+' · '+money(pot.collected)+' / '+money(pot.goal)+(pot.archReason?' · '+t(pot.archReason):'');
+    const acts = document.createElement('span'); acts.className='hist-acts';
+    const r = document.createElement('button'); r.className='hist-btn'; r.textContent=t('restore'); r.onclick=function(){ restorePot(pot.id); };
+    const d = document.createElement('button'); d.className='hist-btn hist-del'; d.textContent=t('purge'); d.onclick=function(){ askConfirm(t('purgePre')+tName(pot)+t('purgePost'), function(){ purgePot(pot.id); }); };
+    acts.appendChild(r); acts.appendChild(d); row.appendChild(info); row.appendChild(acts); el.appendChild(row);
+  });
+}
+let _currentPot = null;
+function deleteCurrentPot(){
+  if(!_currentPot) return; var pot=_currentPot;
+  if(pot.collected>0 && pot.collected<pot.goal){
+    askChoice(t('potPre')+tName(pot)+t('notReachedMid')+money(pot.collected)+t('whatMoney'), [
+      {label:t('refundBtn'), primary:true, cb:function(){ archivePot(pot.id,'refunded'); showDashboard(); }},
+      {label:t('withdrawBtn'), cb:function(){ archivePot(pot.id,'withdrawn'); showDashboard(); }},
+      {label:t('back')}
+    ]);
+  } else {
+    askChoice(t('delPre')+tName(pot)+t('delPost'), [
+      {label:t('smazatBtn'), primary:true, cb:function(){ archivePot(pot.id, pot.collected>0?'withdrawn':''); showDashboard(); }},
+      {label:t('back')}
+    ]);
+  }
+}
+function createPot(){
+  const nameEl=document.getElementById('np-name'), goalEl=document.getElementById('np-goal');
+  const name=(nameEl.value||'').trim();
+  const goalRaw=(goalEl.value||'').replace(/\s/g,''); var goalNum=parseInt(goalRaw,10); const goal=(APPLANG==='en'&&!isNaN(goalNum))?Math.round(goalNum*RATE):goalNum;
+  const mark=function(el){ (el.closest('.np-amt')||el).classList.add('np-err'); };
+  const clr=function(el){ (el.closest('.np-amt')||el).classList.remove('np-err'); el.classList.remove('np-err'); };
+  clr(nameEl); clr(goalEl); if(window.hideBubble) window.hideBubble();
+  let bad=false;
+  if(!name){ mark(nameEl); bad=true; }
+  if(!goalRaw || isNaN(goal) || goal<=0){ mark(goalEl); bad=true; }
+  if(bad){ (name?goalEl:nameEl).focus(); return; }
+  if(goal<100){ mark(goalEl); goalEl.focus(); if(window.showBubble) window.showBubble(t('bubbleLow')); return; }
+  if(goal>50000){ mark(goalEl); goalEl.focus(); if(window.showBubble) window.showBubble(t('bubbleHigh')); return; }
+  const desc=(document.getElementById('np-desc').value||'').trim();
+  const photo = window.npPhotoData || window.npSelectedIcon || '';
+  if(_editId!=null){
+    var _ep=POTS.find(function(p){return p.id===_editId;});
+    if(!_ep){ _editId=null; closeNp(); return; }
+    askConfirm(t('editConfirmQ'), function(){
+      _ep.name=name; delete _ep.name_en; _ep.description=desc; _ep.goal=goal; _ep.photo=photo;
+      buildDashboard(); _pushState(); closeNp(); showDetail(_ep);
+    });
+    return;
+  }
+  const id = Math.max(0, ...POTS.map(p=>p.id), ...ARCHIVE.map(p=>p.id)) + 1;
+  POTS.push({ id:id, name:name, occasion:'Money pot', collected:0, goal:goal, mush:_MUSH_KEYS[Math.floor(Math.random()*_MUSH_KEYS.length)], contributors:0, occasion_date:'', contributions:[], description:desc, photo:photo, createdAt:Date.now() });
+  buildDashboard();
+  _pushState();
+  if(window.resetNpForm) window.resetNpForm();
+  closeNp();
+}
+// ── ŘAZENÍ GRAFU ──
+var _chartSort='chrono';
+function setChartSort(mode){ _chartSort=mode; var lbl=document.getElementById('chart-sort-label'); if(lbl) lbl.textContent=t(mode==='asc'?'sortAsc':mode==='desc'?'sortDesc':'sortChrono'); var w=document.getElementById('chart-sort-wrap'); if(w) w.classList.remove('open'); document.querySelectorAll('#chart-sort-menu .chart-sort-opt').forEach(function(o){ o.classList.toggle('active', o.dataset.sort===mode); }); if(_currentPot) drawChart(_currentPot); }
+function toggleChartSort(e){ if(e&&e.stopPropagation) e.stopPropagation(); var w=document.getElementById('chart-sort-wrap'); if(w) w.classList.toggle('open'); }
+function resetChartSort(){ _chartSort='chrono'; var lbl=document.getElementById('chart-sort-label'); if(lbl) lbl.textContent=t('sortChrono'); var w=document.getElementById('chart-sort-wrap'); if(w) w.classList.remove('open'); document.querySelectorAll('#chart-sort-menu .chart-sort-opt').forEach(function(o){ o.classList.toggle('active', o.dataset.sort==='chrono'); }); }
+document.addEventListener('click', function(e){ if(!e.target.closest('.chart-sort')){ var w=document.getElementById('chart-sort-wrap'); if(w) w.classList.remove('open'); } });
+
+// ── ÚPRAVA POTU ──
+var _editId=null;
+function _setNpMode(isEdit){ var ttl=document.querySelector('#np-modal .np-title'); var btn=document.querySelector('#np-modal .np-create'); if(ttl) ttl.textContent=t(isEdit?'editPotTitle':'newPot'); if(btn) btn.textContent=t(isEdit?'saveChanges':'createPot'); }
+window._setNpMode=_setNpMode;
+function openEdit(pot){
+  pot = pot || _currentPot; if(!pot) return;
+  _editId = pot.id;
+  if(window.resetNpForm) window.resetNpForm();
+  var nm=document.getElementById('np-name'); if(nm) nm.value = pot.name||'';
+  var ds=document.getElementById('np-desc'); if(ds) ds.value = pot.description||'';
+  var gl=document.getElementById('np-goal'); if(gl) gl.value = (APPLANG==='en') ? Math.round((pot.goal||0)/RATE) : (pot.goal||0);
+  if(pot.photo && window.npFillPhoto) window.npFillPhoto(pot.photo);
+  _setNpMode(true);
+  document.getElementById('np-modal').classList.add('show');
+  setTimeout(function(){ if(nm) nm.focus(); }, 60);
+}
+window.openEdit=openEdit;
+
+// ── SYNC POTŮ napříč tématy (postMessage přes wrapper) ──
+var APPLANG='cs', _langApplying=false;
+function tName(p){ return (APPLANG==='en' && p && p.name_en) ? p.name_en : (p?p.name:''); }
+function tOcc(p){ return (APPLANG==='en' && p && p.occasion_en) ? p.occasion_en : (p?p.occasion:''); }
+function tAnon(n){ return (APPLANG==='en' && /^Anonym/.test(n||'')) ? 'Anonymous' : n; }
+var I18N={
+ cs:{ yourPots:'Vaše money pots', newPotBtn:'+ Nový pot', addPot:'Přidat nový pot', active:'aktivních', done:'hotovo', badgeDone:'Hotovo', badgeNew:'Nový', newPot:'Nový pot', back:'Zpět', name:'Název', desc:'Popis', optional:'(nepovinné)', goal:'Cílová částka', photo:'Fotka', dropTxt:'Přetáhni sem obrázek nebo klikni pro výběr z počítače', orPick:'nebo vyber ikonku', share:'Sdílení', visibleToDonors:'Viditelné pro dárce', createPot:'Vytvořit pot', amountHint:'Min. 100 Kč · max 50 000 Kč', organizes:'Organizuje: Jan Novák', contributors:'přispěvatelů', stContrib:'Přispěvatelů', stAvg:'Průměrný příspěvek', stMax:'Nejvyšší příspěvek', stRemain:'Zbývá vybrat', predDate:'Předpokládané datum', predDays:'Zbývá do cíle', predNote:'Dle tempa příspěvků', contributions:'Příspěvky', deletePot:'Smazat pot', doneEx:'Splněno!', term:'Termín', histEmpty:'Zatím žádné archivované poty.', restore:'Obnovit', purge:'Smazat navždy', refunded:'Vráceno dárcům', withdrawn:'Peníze vybrány', delPre:'Opravdu chcete pot „', delPost:'“ smazat?', purgePre:'Smazat „', purgePost:'“ navždy?', notReachedMid:'“ zatím nedosáhl cíle. Vybráno ', whatMoney:'. Co s penězi?', potPre:'Pot „', refundBtn:'Vrátit dárcům', withdrawBtn:'Vybrat peníze', smazatBtn:'Smazat', logoutQ:'Opravdu se chcete odhlásit?', ano:'Ano', ne:'Ne', settings:'Nastavení', account:'Účet', jmeno:'Jméno', jazyk:'Jazyk', historie:'Historie potů', bubbleLow:'O takový bakšiš si, člověče, řekni svojí tetce. Minimální částka je 100 Kč. :)', bubbleHigh:'To už je trochu moc, člověče. Maximální částka je 50 000 Kč. O větší obnos napiš panu Muskovi. :)' },
+ en:{ yourPots:'Your money pots', newPotBtn:'+ New pot', addPot:'Add new pot', active:'active', done:'done', badgeDone:'Done', badgeNew:'New', newPot:'New pot', back:'Back', name:'Name', desc:'Description', optional:'(optional)', goal:'Target amount', photo:'Photo', dropTxt:'Drag an image here or click to pick from your computer', orPick:'or pick an icon', share:'Sharing', visibleToDonors:'Visible to donors', createPot:'Create pot', amountHint:'Min. 100 Kč · max 50 000 Kč', organizes:'Organized by: Jan Novák', contributors:'contributors', stContrib:'Contributors', stAvg:'Average contribution', stMax:'Largest contribution', stRemain:'Left to collect', predDate:'Estimated date', predDays:'Until goal', predNote:'Based on contribution pace', contributions:'Contributions', deletePot:'Delete pot', doneEx:'Done!', term:'Deadline', histEmpty:'No archived pots yet.', restore:'Restore', purge:'Delete forever', refunded:'Refunded to donors', withdrawn:'Money withdrawn', delPre:'Do you really want to delete pot „', delPost:'“?', purgePre:'Delete „', purgePost:'“ forever?', notReachedMid:"“ hasn't reached its goal yet. Collected ", whatMoney:'. What about the money?', potPre:'Pot „', refundBtn:'Refund donors', withdrawBtn:'Withdraw money', smazatBtn:'Delete', logoutQ:'Do you really want to log out?', ano:'Yes', ne:'No', settings:'Settings', account:'Account', jmeno:'Name', jazyk:'Language', historie:'Pot history', bubbleLow:"That's pocket change, mate — go ask your auntie. Minimum is 100 Kč. :)", bubbleHigh:"That's a bit much, mate. Maximum is 50 000 Kč. For more, email Mr. Musk. :)" }
+};
+function t(k){ var d=I18N[APPLANG]||I18N.cs; return (d&&d[k]!=null)?d[k]:(I18N.cs[k]!=null?I18N.cs[k]:k); }
+function applyStatic(){ document.querySelectorAll('[data-i18n]').forEach(function(el){ el.textContent=t(el.getAttribute('data-i18n')); }); document.querySelectorAll('[data-i18n-ph]').forEach(function(el){ el.placeholder=t(el.getAttribute('data-i18n-ph')); }); document.querySelectorAll('[data-i18n-title]').forEach(function(el){ el.title=t(el.getAttribute('data-i18n-title')); }); }
+Object.assign(I18N.cs, { ttDash:'Tady jsem doma.', ttView:'Co ti víc vyhovuje?', ttTheme:'Jak si to tady vymaluješ?', ttSettings:'Volím si tebe, Charizarde!', ttNewPot:'Vytvoř nový money pot', ttWhatPot:'Co je to money pot?', createNewPot:'+ Vytvoř nový money pot', whatPotTitle:'Co je money pot?', whatPotBody:'Money pot je společná online pokladnička. Založíš ji k nějaké příležitosti — narozeninám, svatbě, dovolené — a sdílíš odkaz s ostatními. Každý může bezpečně přispět libovolnou částkou ze svého a ty pak vidíš, jak se vybraná suma blíží k cíli. Až je vybráno, peníze pošleš obdarovanému nebo je použiješ na společný účel. Žádné obíhání s hotovostí, žádné připomínání — jen jeden odkaz, kam všichni přidají svůj díl.', viewCards:'Karty', viewList:'Seznam', link:'Odkaz', qr:'QR kód', email:'E-mail', viCastka:'Cílová částka', viProgress:'Průběh vybírání', viList:'Seznam přispěvatelů', viIndiv:'Jednotlivé příspěvky' });
+Object.assign(I18N.en, { ttDash:'Home sweet home.', ttView:'What suits you better?', ttTheme:'How will you paint the place?', ttSettings:'I choose you, Charizard!', ttNewPot:'Create a new money pot', ttWhatPot:'What is a money pot?', createNewPot:'+ Create a new money pot', whatPotTitle:'What is a money pot?', whatPotBody:'A money pot is a shared online piggy bank. You set it up for an occasion — a birthday, a wedding, a holiday — and share the link with everyone. Each person can safely chip in any amount they like, and you watch the total grow toward your goal. Once it\'s collected, you send the money to the lucky person or put it toward your shared plan. No chasing cash, no reminders — just one link where everyone adds their part.', viewCards:'Cards', viewList:'List', link:'Link', qr:'QR code', email:'E-mail', viCastka:'Target amount', viProgress:'Collection progress', viList:'List of contributors', viIndiv:'Individual contributions' });
+setTimeout(applyStatic,0);
+var RATE=25.3;
+function money(v){ v=+v||0; if(APPLANG==='en') return '€'+Math.round(v/RATE).toLocaleString('en'); return v.toLocaleString('cs')+' Kč'; }
+function curNum(v){ v=+v||0; return (APPLANG==='en'?Math.round(v/RATE):v).toLocaleString(APPLANG==='en'?'en':'cs'); }
+Object.assign(I18N.cs, { logoutTip:'Odhlásit', namePh:'Např. Dovolená v Chorvatsku', descPh:'Pár slov, na co společně sbíráte…', editBtn:'Upravit', addContrib:'+ Přidat příspěvek', shareBtn:'Sdílet', progressSec:'Průběh výběru', estimateSec:'Odhad dokončení', collectedLbl:'vybráno', days:'dní', predBasis:'Na základě průměrného tempa příspěvků', stMax:'Největší příspěvek', sortChrono:'chronologicky', sortAsc:'od nejnižší', sortDesc:'od nejvyšší', totalCount:'celkem', editPotTitle:'Upravit pot', saveChanges:'Uložit změny', editConfirmQ:'Opravdu chcete pot upravit?', shareTitle:'Sdílet pot', shareSub:'Naskenuj QR nebo sdílej odkaz', shareCopy:'Kopírovat', shareCopied:'Zkopírováno!', shareCopyHint:'Odkaz zkopírován — vlož ho do aplikace', shareVia:'Sdílet přes', shareMsg:'Přispěj do naší sbírky na Sporionu:' });
+Object.assign(I18N.en, { logoutTip:'Log out', namePh:'E.g. Holiday in Croatia', descPh:'A few words on what you are saving for…', editBtn:'Edit', addContrib:'+ Add contribution', shareBtn:'Share', progressSec:'Collection progress', estimateSec:'Completion estimate', collectedLbl:'collected', days:'days', predBasis:'Based on average contribution pace', stMax:'Largest contribution', sortChrono:'chronologically', sortAsc:'lowest first', sortDesc:'highest first', totalCount:'total', editPotTitle:'Edit pot', saveChanges:'Save changes', editConfirmQ:'Do you really want to edit this pot?', shareTitle:'Share pot', shareSub:'Scan the QR or share the link', shareCopy:'Copy', shareCopied:'Copied!', shareCopyHint:'Link copied — paste it in the app', shareVia:'Share via', shareMsg:'Chip in to our Sporion money pot:' });
+Object.assign(I18N.cs, { chartGoal:'Cíl: ', goalPh:'10 000', fromGoal:'z ' });
+Object.assign(I18N.en, { chartGoal:'Goal: ', goalPh:'400', fromGoal:'of ', amountHint:'Min. €4 · max €1,976', bubbleLow:"That's pocket change, mate — go ask your auntie. Minimum is €4. :)", bubbleHigh:"That's a bit much, mate. Maximum is €1,976. For more, email Mr. Musk. :)" });
+function setLang(lang){
+  APPLANG = (lang==='en')?'en':'cs';
+  document.querySelectorAll('.lang-opt-flag').forEach(function(b){ b.classList.toggle('active', b.dataset.lang===APPLANG); });
+  applyStatic();
+  if(window._imgsReady!==false) buildDashboard();
+  renderHistory();
+  if(_currentPot){ var pd=document.getElementById('page-detail'); if(pd&&pd.classList.contains('active')) showDetail(_findPot(_currentPot.id)||_currentPot); }
+  if(!_langApplying && window.parent && window.parent!==window) window.parent.postMessage({sporion:'lang',lang:APPLANG},'*');
+}
+function _applyState(st){
+  if(!st) return;
+  if(Array.isArray(st.pots)){ POTS.length=0; st.pots.forEach(function(p){ POTS.push(p); }); }
+  ARCHIVE.length=0; if(Array.isArray(st.archive)) st.archive.forEach(function(p){ ARCHIVE.push(p); });
+  if(window._imgsReady!==false) buildDashboard();
+  renderHistory();
+  if(_currentPot && !POTS.some(function(p){ return p.id===_currentPot.id; })){
+    var pd=document.getElementById('page-detail'); if(pd && pd.classList.contains('active')) showDashboard();
+  }
+}
+function _pushState(){ if(window.parent && window.parent!==window){ window.parent.postMessage({ sporion:'sync', pots:POTS, archive:ARCHIVE }, '*'); } }
+var _applyingView=false;
+function _curView(){ var d=document.getElementById('page-detail'); var view='dashboard', pid=null; if(d&&d.classList.contains('active')){ view='detail'; pid=(_currentPot?_currentPot.id:null); } return {view:view, potId:pid, mode:currentView}; }
+function _pushView(){ if(_applyingView) return; if(window.parent && window.parent!==window){ var v=_curView(); window.parent.postMessage({ sporion:'view', view:v.view, potId:v.potId, mode:v.mode }, '*'); } }
+function _findPot(id){ for(var i=0;i<POTS.length;i++){ if(POTS[i].id===id) return POTS[i]; } return null; }
+function _applyView(m){ _applyingView=true; try{ if(m.mode && typeof setView==='function' && m.mode!==currentView) setView(m.mode); if(m.view==='detail'){ var p=_findPot(m.potId); if(p) showDetail(p); else showDashboard(); } else { showDashboard(); } } finally { _applyingView=false; } }
+function _redrawShown(){ var d=document.getElementById('page-detail'); if(d&&d.classList.contains('active')&&_currentPot){ var p=_findPot(_currentPot.id)||_currentPot; _applyingView=true; try{ showDetail(p); } finally { _applyingView=false; } } }
+window.addEventListener('message', function(e){ if(!e.data) return; if(e.data.sporion==='state') _applyState(e.data); else if(e.data.sporion==='view') _applyView(e.data); else if(e.data.sporion==='shown') _redrawShown(); else if(e.data.sporion==='lang'){ _langApplying=true; try{ setLang(e.data.lang); } finally{ _langApplying=false; } } });
+if(window.parent && window.parent!==window){ window.parent.postMessage({ sporion:'hello', pots:POTS, archive:ARCHIVE }, '*'); }
+
+buildDashboard();
+
+// ── SIDEBAR + VIEW ──
+function toggleSubmenu(id) {
+  const el = document.getElementById(id);
+  const isOpen = el.style.display === 'block';
+  document.querySelectorAll('.submenu').forEach(s => s.style.display = 'none');
+  document.querySelectorAll('.icon-item, .sidebar-item').forEach(s => s.classList.remove('open'));
+  if (!isOpen) { el.style.display = 'block'; el.closest('.icon-item, .sidebar-item') && el.closest('.icon-item, .sidebar-item').classList.add('open'); }
+}
+function minCloseMenus(){
+  document.querySelectorAll('.submenu').forEach(s => s.style.display = 'none');
+  document.querySelectorAll('.icon-item, .sidebar-item').forEach(s => s.classList.remove('open'));
+}
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.icon-item') && !e.target.closest('.sidebar-item')) minCloseMenus();
+});
+document.querySelectorAll('.icon-item').forEach(it => it.addEventListener('mouseleave', minCloseMenus));  // odjedeš kurzorem → zavře
+document.addEventListener('click', function(e){ if(e.target.closest('.theme-opt')) minCloseMenus(); });    // výběr tématu → zavře
+let currentView = 'grid';
+function setView(v) {
+  currentView = v;
+  document.querySelectorAll('.submenu').forEach(s => s.style.display = 'none');
+  document.querySelectorAll('.sidebar-item, .icon-item').forEach(s => s.classList.remove('open'));
+  document.querySelectorAll('[data-view]').forEach(el => el.classList.toggle('view-active', el.dataset.view === v));
+  const grid = document.getElementById('pots-grid');
+  if (!grid) return;
+  // Reset all inline positioning before any view switch
+  grid.querySelectorAll('.pot-card').forEach(c => {
+    c.style.left = ''; c.style.top = '';
+    c.style.transform = ''; c.style.zIndex = '';
+    c.classList.remove('rev-front');
+    c.onmouseenter = null;
+  });
+  if (v === 'list') grid.className = 'pots-list';
+  else grid.className = 'pots-grid';
+  _pushView();
+}
+function layoutRevolver() {
+  const grid = document.getElementById('pots-grid');
+  const cards = grid.querySelectorAll('.pot-card');
+  const n = cards.length;
+  const radius = 240;
+  cards.forEach((card, i) => {
+    const angle = (i / n) * Math.PI * 2 - Math.PI / 2;
+    const x = Math.cos(angle) * radius;
+    const y = Math.sin(angle) * radius * 0.55;
+    card.style.left = `calc(50% + ${x}px - 130px)`;
+    card.style.top = `calc(50% + ${y}px - 110px)`;
+    card.classList.toggle('rev-front', i === 0);
+    card.onmouseenter = () => {
+      cards.forEach(c => c.classList.remove('rev-front'));
+      card.classList.add('rev-front');
+    };
+  });
+}
+function closeSet(){ var m=document.getElementById('set-modal'); if(m) m.classList.remove('show'); }
+(function(){ var m=document.getElementById('set-modal'); if(m) m.addEventListener('click',function(e){ if(e.target===m) closeSet(); }); document.addEventListener('keydown',function(e){ if(e.key==='Escape') closeSet(); }); })();
+function showSettings() {
+  document.querySelectorAll('.submenu, .submenu-noir, .submenu-px').forEach(function(s){ s.style.display = 'none'; });
+  renderHistory();
+  document.getElementById('set-modal').classList.add('show');
+}
+
+// Patch showDashboard to update sidebar
+const _origShowDash = showDashboard;
+showDashboard = function() {
+  _origShowDash();
+  document.getElementById('sb-home').classList.add('active');
+};
+
+</script>
+</body>
+</html>
