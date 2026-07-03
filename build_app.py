@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Sestaví 7r22b03ja1ol8zsy.html ze tří zdrojových témat.
+"""Sestaví sporion_7r22b03ja1ol8zsy.html ze tří zdrojových témat.
 Každý zdroj se zakóduje base64 a vloží jako data-URL do <iframe>.
 Spuštění:  python3 build_app.py
 """
@@ -60,8 +60,8 @@ window.addEventListener('message',function(e){{
 </html>
 """.format(iframes=iframes)
 
-out = os.path.join(HERE, "7r22b03ja1ol8zsy.html")
+out = os.path.join(HERE, "sporion_7r22b03ja1ol8zsy.html")
 with open(out, "w", encoding="utf-8") as f:
     f.write(html)
 
-print("OK -> 7r22b03ja1ol8zsy.html ({:,} bytes)".format(os.path.getsize(out)))
+print("OK -> sporion_7r22b03ja1ol8zsy.html ({:,} bytes)".format(os.path.getsize(out)))
