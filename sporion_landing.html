@@ -170,6 +170,15 @@ body.warp #warp-flash { animation:warpFlash 2.1s ease-in forwards; }
 @keyframes warpFlash { 0%{ opacity:0; } 55%{ opacity:0; } 86%{ opacity:0.88; } 100%{ opacity:0.5; } }
 
 @media (prefers-reduced-motion: reduce) { body::before { animation:none; } .word.glitching { animation:none; } #app-frame, #crt-backdrop, body.warp #sky, body.warp .stage, body.warp #warp-flash { animation:none; transition:none; } }
+
+/* ── MOBIL (smartphone) ── */
+@media (max-width:640px) {
+  html, body { overflow-x:hidden; }
+  body { overflow-y:auto; }                        /* malé displeje: karta nesmí zůstat uříznutá */
+  .stage { gap:4.5vh; padding:5vh 16px 7vh; }
+  .auth-card { max-width:100%; }
+  .lang-switch { top:12px; right:12px; }
+}
 </style>
 </head>
 <body>
