@@ -12,18 +12,18 @@ ZDROJOVÉ soubory (zde se edituje) — každý je samostatné, plně funkční t
 - `sporion_noir3.html`        — téma "Neon Noir" (font Comfortaa, tmavé pozadí, modrá #00cfff + žlutá #ffe600, banner s kapkami na skle + bleskem, hvězda jako progress)
 
 VÝSLEDNÝ soubor (build artefakt, needitovat ručně):
-- `sporion_app.html` — tenký wrapper, který vkládá tři zdrojové soubory jako
+- `7r22b03ja1ol8zsy.html` — tenký wrapper, který vkládá tři zdrojové soubory jako
   base64 data-URL do tří <iframe>. Přepínání témat přes window.postMessage({theme:...}).
 
 ## Build krok (DŮLEŽITÉ)
 
-Po JAKÉKOLIV změně ve zdrojovém souboru je nutné přegenerovat `sporion_app.html`.
+Po JAKÉKOLIV změně ve zdrojovém souboru je nutné přegenerovat `7r22b03ja1ol8zsy.html`.
 Postup: každý zdroj se přečte jako bytes, zakóduje base64 a vloží do wrapperu jako
 `src="data:text/html;base64,..."`. Wrapper poslouchá `message` event a přepíná
 `.active` třídu na iframech. Tři ID: frame-minimal, frame-pixel, frame-noir.
 
 Hotový build skript: **`python3 build_app.py`** (přečte tři zdroje, base64, vloží do šablony
-wrapperu a zapíše `sporion_app.html`). Po každé změně zdroje spustit.
+wrapperu a zapíše `7r22b03ja1ol8zsy.html`). Po každé změně zdroje spustit.
 
 ## Společná architektura všech tří témat
 
@@ -63,7 +63,7 @@ wrapperu a zapíše `sporion_app.html`). Po každé změně zdroje spustit.
 
 ## Čeho se vyvarovat
 
-- Needitovat `sporion_app.html` ručně — vždy přegenerovat ze zdrojů.
+- Needitovat `7r22b03ja1ol8zsy.html` ručně — vždy přegenerovat ze zdrojů.
 - Neměnit fonty (Outfit / Silkscreen / Comfortaa jsou záměrná identita každého tématu).
 - Nepřidávat reklamy (monetizace = transakční poplatky 3–5 % + prémiové funkce).
 - Nezavádět build nástroje/frameworky — záměrně čisté HTML/CSS/JS v jednom souboru na téma.
