@@ -583,8 +583,11 @@ html, body { overflow-x:hidden; max-width:100vw; }
   .contrib-row { padding:12px 10px; }
   footer { padding:16px 14px; flex-direction:column; gap:6px; text-align:center; }
   /* modaly: roluje celá vrstva → tlačítko dole je vždy dosažitelné */
-  .np-modal { align-items:flex-start; padding:10px; overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; }
-  .np-box { max-height:none; }
+  html, body { overflow-x:hidden; }
+  .np-modal { align-items:flex-start; padding:12px; overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; }
+  .np-box { max-height:none; box-shadow:none; }        /* menší okno, symetrický okraj → žádný posun do stran */
+  .np-body { padding:18px 16px; }
+  .logout-box { box-shadow:none; max-width:100%; }
 }
 </style>
 </head>

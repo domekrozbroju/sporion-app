@@ -329,8 +329,11 @@
     .stats-grid { grid-template-columns:1fr 1fr; }
     .footer { padding:12px 10px; }
     /* modaly: roluje cela vrstva -> tlacitko dole je vzdy dosazitelne */
-    .np-modal { align-items:flex-start; padding:8px; overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; }
-    .np-box { max-height:none; }
+    html, body { overflow-x:hidden; }
+    .np-modal { align-items:flex-start; padding:10px; overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; }
+    .np-box { max-height:none; box-shadow:none; }        /* mensi okno, bez odsazeneho stinu -> zadny posun do stran */
+    .np-body { padding:16px 14px; }
+    .logout-box { box-shadow:none; max-width:100%; }
   }
 </style>
 </head>

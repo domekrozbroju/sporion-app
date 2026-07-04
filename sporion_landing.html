@@ -176,7 +176,14 @@ body.warp #warp-flash { animation:warpFlash 2.1s ease-in forwards; }
   html, body { overflow-x:hidden; }
   body { overflow-y:auto; }                        /* malé displeje: karta nesmí zůstat uříznutá */
   .stage { gap:4.5vh; padding:5vh 16px 7vh; }
-  .auth-card { max-width:100%; }
+  #game { display:none; }                          /* telefon: žádná lítající/střílená plavidla */
+  .word { font-size:clamp(50px, 12.7vw, 150px); justify-content:center; text-align:center; }  /* SPORION ~+30 %, na střed */
+  .hero { align-items:center; width:100%; }
+  .auth-card { max-width:238px; padding:16px; }    /* přihlašovací okno ~30 % menší */
+  .auth-card .tabs { margin-bottom:14px; }
+  .auth-card .field { margin-bottom:9px; }
+  .auth-card .field input { padding:11px 12px; }
+  .auth-card .cta { padding:12px; }
   .lang-switch { top:12px; right:12px; }
 }
 </style>
@@ -511,6 +518,7 @@ function toast(t){ const el=document.getElementById('toast'); el.textContent=t; 
   }
 
   function onShoot(e){
+    if(window.matchMedia('(max-width:640px)').matches) return;   // telefon: nestřílíme
     if(document.body.classList.contains('warp')) return;    // appka je vepředu
     const gx=e.clientX, gy=e.clientY;
     for(let k=vehicles.length-1;k>=0;k--){
@@ -525,7 +533,7 @@ function toast(t){ const el=document.getElementById('toast'); el.textContent=t; 
   // Zaměřovátko (zelené) při najetí kurzoru na letící těleso
   var RETICLE="url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"30\" height=\"30\" viewBox=\"0 0 30 30\"><g fill=\"none\" stroke=\"%2300ff66\" stroke-width=\"2\"><circle cx=\"15\" cy=\"15\" r=\"10\"/><line x1=\"15\" y1=\"2\" x2=\"15\" y2=\"8\"/><line x1=\"15\" y1=\"22\" x2=\"15\" y2=\"28\"/><line x1=\"2\" y1=\"15\" x2=\"8\" y2=\"15\"/><line x1=\"22\" y1=\"15\" x2=\"28\" y2=\"15\"/></g><circle cx=\"15\" cy=\"15\" r=\"1.6\" fill=\"%2300ff66\"/></svg>') 15 15, crosshair";
   function overVehicle(gx,gy){ for(let k=0;k<vehicles.length;k++){ const v=vehicles[k], sp=SPR[v.type]; const sz=Math.max(sp.rows.length, sp.rows[0].length); const hr=Math.max(13, v.cs*5.5*sz*0.6*0.5); const dx=gx-v.cx, dy=gy-v.cy; if(dx*dx+dy*dy<=hr*hr) return true; } return false; }
-  function onHover(e){ if(document.body.classList.contains('warp')){ document.body.style.cursor=''; return; } document.body.style.cursor = overVehicle(e.clientX,e.clientY) ? RETICLE : ''; }
+  function onHover(e){ if(window.matchMedia('(max-width:640px)').matches){ document.body.style.cursor=''; return; } if(document.body.classList.contains('warp')){ document.body.style.cursor=''; return; } document.body.style.cursor = overVehicle(e.clientX,e.clientY) ? RETICLE : ''; }
   window.addEventListener('pointermove', onHover);
 
   function render(time){
@@ -616,6 +624,7 @@ function toast(t){ const el=document.getElementById('toast'); el.textContent=t; 
   function gameStep(time){
     let dt=time-lastT; lastT=time; if(dt<0||dt>0.05) dt=0.016;
     gctx.clearRect(0,0,gW,gH);
+    if(window.matchMedia('(max-width:640px)').matches){ vehicles.length=0; particles.length=0; return; }   // telefon: žádná lítající plavidla
     if(document.body.classList.contains('warp')){ particles.length=0; return; }   // appka vepředu = pauza
     if(((frameN++)&31)===0) refreshFields();
     if(time>=nextSpawn && vehicles.length<7){ var burst=1+(Math.random()<0.45?(1+(Math.random()*2|0)):0); for(var bb=0;bb<burst && vehicles.length<7;bb++) spawnVehicle(time); nextSpawn=time+3.5+Math.random()*4.5; }
