@@ -26,8 +26,8 @@ body { background:var(--bg); color:var(--white); font-family:'Comfortaa',sans-se
   background:linear-gradient(180deg,#05060c 0%,#08090f 100%);
   border-bottom:1px solid var(--dim);
   height:110px;
-  display:flex; align-items:center; justify-content:flex-start;
-  padding-left:32px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  padding:0 32px; cursor:pointer;
 }
 canvas#rain { position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:1; }
 
@@ -584,10 +584,11 @@ html, body { overflow-x:hidden; max-width:100vw; }
   footer { padding:16px 14px; flex-direction:column; gap:6px; text-align:center; }
   /* modaly: roluje celá vrstva → tlačítko dole je vždy dosažitelné */
   html, body { overflow-x:hidden; }
-  .np-modal { align-items:flex-start; padding:12px; overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; }
-  .np-box { max-height:none; box-shadow:none; }        /* menší okno, symetrický okraj → žádný posun do stran */
+  .np-modal { align-items:center; padding:16px; }
+  .np-box { max-height:86vh; overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; box-shadow:none; }   /* scroll uvnitř okna, ne přes celou obrazovku */
+  html:has(.np-modal.show), html:has(.logout-modal.show) { overflow:hidden; }   /* zámek scrollu pozadí za modalem */
   .np-body { padding:18px 16px; }
-  .logout-box { box-shadow:none; max-width:100%; }
+  .logout-box { box-shadow:none; max-width:90%; }
 }
 </style>
 </head>
@@ -1451,7 +1452,7 @@ function createPot(){
     return;
   }
   const id = Math.max(0, ...POTS.map(p=>p.id), ...ARCHIVE.map(p=>p.id)) + 1;
-  POTS.push({ id:id, name:name, occasion:'Money pot', collected:0, goal:goal, mush:_MUSH_KEYS[Math.floor(Math.random()*_MUSH_KEYS.length)], contributors:0, occasion_date:'', contributions:[], description:desc, photo:photo, createdAt:Date.now() });
+  POTS.unshift({ id:id, name:name, occasion:'Money pot', collected:0, goal:goal, mush:_MUSH_KEYS[Math.floor(Math.random()*_MUSH_KEYS.length)], contributors:0, occasion_date:'', contributions:[], description:desc, photo:photo, createdAt:Date.now() });
   buildDashboard();
   _pushState();
   if(window.resetNpForm) window.resetNpForm();
