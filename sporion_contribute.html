@@ -172,24 +172,78 @@ body.warp #warp-flash { animation:warpFlash 2.1s ease-in forwards; }
 
 @media (prefers-reduced-motion: reduce) { body::before { animation:none; } .word.glitching { animation:none; } #app-frame, #crt-backdrop, body.warp #sky, body.warp .stage, body.warp #warp-flash { animation:none; transition:none; } }
 
-/* ── MOBIL (smartphone) ── */
-@media (max-width:640px) {
-  html, body { overflow-x:hidden; }
-  body { overflow-y:auto; }                        /* malé displeje: karta nesmí zůstat uříznutá */
-  .stage { gap:4.5vh; padding:5vh 16px 7vh; }
-  #game { display:none; }                          /* telefon: žádná lítající/střílená plavidla */
-  .word { font-size:clamp(50px, 12.7vw, 150px); justify-content:center; text-align:center; }  /* SPORION ~+30 %, na střed */
-  .hero { align-items:center; width:100%; }
-  .auth-card { max-width:274px; padding:18px; }    /* ~-30 % vs desktop, pak +15 % zpět (méně smrsknuté) */
-  .auth-card .tabs { margin-bottom:16px; }
-  .auth-card .field { margin-bottom:11px; }
-  .auth-card .field input { padding:12px 13px; }
-  .auth-card .cta { padding:13px; }
-  .lang-switch { top:12px; right:12px; }
+/* ===== INVERTOVANÁ SCÉNA (pozadí, hvězdy, planeta, plavidla) ===== */
+html, body { height:auto !important; min-height:100%; overflow-x:hidden; overflow-y:auto !important; }
+body { background: radial-gradient(135% 95% at 50% 30%, #ffffff 0%, #f3f5f7 72%) !important; color:#0a0b0e; }
+body::before, body::after { display:none !important; }   /* pryč šum i scanline čáry přes celou obrazovku */
+#sky { filter: invert(1) brightness(0.98) !important; }
+#game { filter: invert(1); }
+/* SPORION ztmavený přímo barvou; podnadpis (název potu) řešíme přímou zářivou barvou */
+.word, .word .gl { color:#474c55 !important; }   /* SPORION mírně ztlumen, ať podnadpis vynikne */
+.tagline {
+  animation:none !important; opacity:1 !important; font-weight:800 !important;
+  font-size:clamp(15px, 2.7vw, 27px) !important; letter-spacing:0.05em !important;
+  background:none !important; color:#0a0b0e !important; -webkit-text-fill-color:#0a0b0e;
+  filter:none !important; text-shadow:0 1px 1px rgba(255,255,255,0.55);
 }
+/* jazykový přepínač – světlý (vlaječky zůstávají barevné, nejsou pod filtrem) */
+.lang-toggle { width:25px; height:25px; padding:0; gap:0; border-radius:50%; overflow:hidden; justify-content:center; background:rgba(255,255,255,0.85); border:1px solid rgba(0,0,0,0.16); color:#1a1c22; box-shadow:0 3px 10px rgba(0,0,0,0.12); }
+.lang-toggle:hover { border-color:rgba(0,0,0,0.4); }
+.lang-toggle > svg { display:none; }                 /* skryj glóbus, necháme jen vlaječku */
+.lang-toggle .lang-cur { width:100%; height:100%; display:block; }
+.lang-toggle .lang-cur .flag { width:100%; height:100%; border-radius:0; box-shadow:none; display:block; }
+.lang-menu { background:rgba(250,249,246,0.96); border-color:rgba(0,0,0,0.14); }
+.lang-opt { color:#1a1c22; }
+.lang-opt:hover { background:rgba(0,0,0,0.06); }
+.lang-opt.active { background:rgba(0,0,0,0.09); }
+.toast { background:#0a0b0e !important; color:#f5f4f1 !important; box-shadow:0 12px 40px rgba(0,0,0,0.25) !important; }
+#crt-backdrop, #warp-flash, #app-frame, #crt-flash { display:none !important; }
+
+/* ===== KARTA PŘÍSPĚVKU ===== */
+.contrib-card { position:relative; z-index:7; width:100%; max-width:380px; margin:0; background:rgba(255,255,255,0.82); -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px); border:1px solid rgba(0,0,0,0.12); border-radius:16px; padding:24px; box-shadow:0 18px 50px rgba(0,0,0,0.13); color:#16181d; }
+.cc-title { font-family:'Outfit',sans-serif; font-weight:700; font-size:14px; letter-spacing:0.12em; text-transform:uppercase; text-align:center; margin-bottom:18px; color:#0a0b0e; }
+.cc-field { margin-bottom:14px; }
+.cc-label { display:block; font-family:'Outfit',sans-serif; font-size:10px; font-weight:500; letter-spacing:0.14em; text-transform:uppercase; color:#6c757d; margin-bottom:7px; }
+.cc-amount { display:flex; align-items:center; border:1px solid rgba(0,0,0,0.18); border-radius:10px; background:rgba(255,255,255,0.6); overflow:hidden; }
+.cc-amount input { flex:1; min-width:0; font-family:'Outfit',sans-serif; font-size:20px; font-weight:600; color:#0a0b0e; background:none; border:none; padding:13px 14px; outline:none; }
+.cc-amount input::placeholder { color:#aab1b8; }
+.cc-amount input::-webkit-outer-spin-button, .cc-amount input::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
+.cc-cur { padding:0 16px; font-size:13px; letter-spacing:0.1em; color:#6c757d; }
+.cc-input { width:100%; font-family:'Outfit',sans-serif; font-size:13px; color:#0a0b0e; background:rgba(255,255,255,0.6); border:1px solid rgba(0,0,0,0.18); border-radius:10px; padding:12px 13px; outline:none; transition:border-color 0.2s, opacity 0.2s; }
+.cc-input::placeholder { color:#aab1b8; }
+.cc-input:focus { border-color:rgba(0,0,0,0.45); }
+.cc-input:disabled { opacity:0.35; }
+.cc-check { display:flex; align-items:center; gap:9px; margin-top:10px; font-family:'Outfit',sans-serif; font-size:11px; letter-spacing:0.06em; text-transform:uppercase; color:#3a3f45; cursor:pointer; -webkit-user-select:none; user-select:none; }
+.cc-check input { width:16px; height:16px; accent-color:#0a0b0e; cursor:pointer; }
+.cc-submit { width:100%; margin-top:6px; font-family:'Outfit',sans-serif; font-size:12px; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:#f5f4f1; background:#0a0b0e; border:none; border-radius:10px; padding:15px; cursor:pointer; transition:opacity 0.2s, transform 0.05s; }
+.cc-submit:hover { opacity:0.85; } .cc-submit:active { transform:translateY(1px); }
+.cc-info { margin-top:20px; padding-top:18px; border-top:1px solid rgba(0,0,0,0.1); display:flex; flex-direction:column; gap:16px; }
+.cc-info-block { display:none; }
+.cc-info-block.on { display:block; }
+.cc-info-hd { font-family:'Outfit',sans-serif; font-size:9px; font-weight:600; letter-spacing:0.18em; text-transform:uppercase; color:#9aa0a6; margin-bottom:8px; }
+.cc-prog-top { display:flex; justify-content:space-between; align-items:baseline; font-family:'Outfit',sans-serif; }
+.cc-prog-amt { font-size:14px; font-weight:600; color:#0a0b0e; }
+.cc-prog-amt small { color:#9aa0a6; font-weight:400; }
+.cc-prog-pct { font-size:13px; font-weight:700; color:#0a0b0e; }
+.cc-bar { height:7px; border-radius:100px; background:rgba(0,0,0,0.1); overflow:hidden; margin-top:9px; }
+.cc-bar > i { display:block; height:100%; width:0; background:#0a0b0e; border-radius:100px; transition:width 0.7s ease; }
+.cc-donors { display:flex; flex-direction:column; gap:8px; }
+.cc-donor { display:flex; justify-content:space-between; font-family:'Outfit',sans-serif; font-size:12px; color:#3a3f45; }
+.cc-donor b { font-weight:600; color:#0a0b0e; }
+.cc-donor.anon span:first-child { color:#9aa0a6; font-style:italic; }
 </style>
 </head>
 <body>
+
+<style>
+.contrib-back { position:fixed; top:18px; left:18px; z-index:12; width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.85); border:1px solid rgba(0,0,0,0.16); color:#1a1c22; cursor:pointer; box-shadow:0 3px 10px rgba(0,0,0,0.12); transition:border-color 0.2s, transform 0.05s; }
+.contrib-back:hover { border-color:rgba(0,0,0,0.4); }
+.contrib-back:active { transform:translateY(1px); }
+.contrib-back svg { width:20px; height:20px; }
+</style>
+<button class="contrib-back" id="contrib-back" onclick="contribBack()" title="Zpět / Back" aria-label="Zpět">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+</button>
 
 <canvas id="sky"></canvas>
 <canvas id="game"></canvas>
@@ -207,32 +261,35 @@ body.warp #warp-flash { animation:warpFlash 2.1s ease-in forwards; }
 <div class="stage">
   <div class="hero">
     <div class="word" id="word" aria-label="SPORION"></div>
-    <div class="tagline" id="tagline">Místo, kde se vaše peníze hromadí</div>
+    <div class="tagline" id="tagline">Narozeniny Martiny</div>
   </div>
 
-  <div class="auth-card">
-  <div class="tabs">
-    <button class="tab active" id="tab-login" onclick="setMode('login')">Přihlášení</button>
-    <button class="tab" id="tab-register" onclick="setMode('register')">Registrace</button>
-  </div>
-  <div class="field row-register" id="row-name">
-    <input type="text" id="name" placeholder="Jméno" autocomplete="name">
-  </div>
-  <div class="field"><input type="email" id="email" placeholder="E-mail" autocomplete="email"></div>
-  <div class="field"><input type="password" id="password" placeholder="Heslo" autocomplete="current-password"></div>
-  <button class="cta" id="cta" onclick="submitAuth()">Vstoupit</button>
-  <div class="divider">nebo</div>
-  <div class="social">
-    <button class="social-btn" onclick="enterApp('Google')">
-      <svg width="15" height="15" viewBox="0 0 18 18" fill="#fff"><path d="M17.6 9.2c0-.6-.1-1.2-.2-1.7H9v3.3h4.8a4.1 4.1 0 01-1.8 2.7v2.2h2.9c1.7-1.6 2.7-3.9 2.7-6.5z" opacity=".95"/><path d="M9 18c2.4 0 4.5-.8 6-2.2l-2.9-2.2c-.8.5-1.8.9-3.1.9-2.4 0-4.4-1.6-5.1-3.8H.9v2.3A9 9 0 009 18z" opacity=".75"/><path d="M3.9 10.7a5.4 5.4 0 010-3.4V5H.9a9 9 0 000 8l3-2.3z" opacity=".55"/><path d="M9 3.6c1.3 0 2.5.5 3.4 1.3l2.6-2.6A9 9 0 00.9 5l3 2.3C4.6 5.2 6.6 3.6 9 3.6z" opacity=".85"/></svg>
-      <span class="sb-txt" id="sb-google">Pokračovat přes Google</span>
-    </button>
-    <button class="social-btn" onclick="enterApp('Apple')">
-      <svg width="15" height="15" viewBox="0 0 18 18" fill="#fff"><path d="M12.4 9.5c0-1.8 1.5-2.7 1.6-2.7-.9-1.3-2.2-1.5-2.7-1.5-1.1-.1-2.2.7-2.8.7-.6 0-1.5-.7-2.4-.6-1.2 0-2.4.7-3 1.8-1.3 2.2-.3 5.5.9 7.3.6.9 1.3 1.9 2.2 1.8.9 0 1.2-.6 2.3-.6 1.1 0 1.3.6 2.3.6 1 0 1.6-.9 2.2-1.8.7-1 1-2 1-2-.1 0-1.9-.7-1.9-2.8zM10.7 4c.5-.6.8-1.4.7-2.3-.7 0-1.6.5-2.1 1.1-.5.5-.9 1.4-.8 2.2.8.1 1.6-.4 2.2-1z"/></svg>
-      <span class="sb-txt" id="sb-apple">Pokračovat přes Apple</span>
-    </button>
-  </div>
-  <div class="alt" id="alt">Nemáte účet?<button onclick="setMode('register')">Registrovat</button></div>
+  <div class="contrib-card">
+    <div class="cc-title" id="cc-title">Přidat příspěvek</div>
+    <div class="cc-field">
+      <label class="cc-label" id="cc-amount-l" for="cc-amount">Vaše částka</label>
+      <div class="cc-amount"><input id="cc-amount" type="number" min="1" inputmode="numeric" placeholder="500"><span class="cc-cur" id="cc-cur">Kč</span></div>
+    </div>
+    <div class="cc-field">
+      <label class="cc-label" id="cc-name-l" for="cc-name">Podpis</label>
+      <input class="cc-input" id="cc-name" type="text" placeholder="Vaše jméno">
+      <label class="cc-check"><input type="checkbox" id="cc-anon"><span id="cc-anon-l">Přispět anonymně</span></label>
+    </div>
+    <button class="cc-submit" id="cc-submit" onclick="submitContribution()">Přispět</button>
+    <div class="cc-info" id="cc-info">
+      <div class="cc-info-block on" id="cc-block-progress" data-vis="progress">
+        <div class="cc-info-hd" id="cc-progress-hd">Průběh výběru</div>
+        <div class="cc-prog-top">
+          <span class="cc-prog-amt"><b id="cc-collected"></b> <small id="cc-of">z</small> <small id="cc-goal"></small></span>
+          <span class="cc-prog-pct" id="cc-pct"></span>
+        </div>
+        <div class="cc-bar"><i id="cc-bar-fill"></i></div>
+      </div>
+      <div class="cc-info-block on" id="cc-block-donors" data-vis="donors">
+        <div class="cc-info-hd" id="cc-donors-hd">Přispěvatelé</div>
+        <div class="cc-donors" id="cc-donors"></div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -240,20 +297,6 @@ body.warp #warp-flash { animation:warpFlash 2.1s ease-in forwards; }
 <div id="warp-flash"></div>
 <iframe id="app-frame" title="Sporion aplikace"></iframe>
 <div id="crt-flash"></div>
-
-<!-- ── DÁRCOVSKÁ STRÁNKA (příspěvek) – překryv nad aplikací ── -->
-<style>
-#contrib-frame { position:fixed; inset:0; width:100%; height:100%; border:none; z-index:60; background:#fff; opacity:0; pointer-events:none; transition:opacity 0.28s ease; }
-#contrib-frame.show { opacity:1; pointer-events:auto; }
-#contrib-grain { position:fixed; inset:0; z-index:75; pointer-events:none; opacity:0; transition:opacity 0.34s ease;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  background-size:200px 200px; background-color:#0a0b0e; }
-#contrib-grain.on { opacity:0.94; transition:opacity 0.12s linear; animation:cgrain 0.24s steps(3) infinite; }
-@keyframes cgrain { 0%{background-position:0 0;} 33%{background-position:-46px 34px;} 66%{background-position:30px -40px;} 100%{background-position:-18px 16px;} }
-@media (prefers-reduced-motion: reduce) { #contrib-frame { transition:none; } #contrib-grain { transition:none; } #contrib-grain.on { animation:none; } }
-</style>
-<iframe id="contrib-frame" title="Přispět do potu"></iframe>
-<div id="contrib-grain"></div>
 
 <div class="toast" id="toast"></div>
 
@@ -316,22 +359,23 @@ if (!reduced) setTimeout(cycle, 1400);
 let mode='login';
 let LANG='cs';
 const LL={
-  cs:{ tagline:'Místo, kde se vaše peníze hromadí', login:'Přihlášení', register:'Registrace', name:'Jméno', email:'E-mail', password:'Heslo', enter:'Vstoupit', create:'Vytvořit účet', or:'nebo', google:'Pokračovat přes Google', apple:'Pokračovat přes Apple', noAcc:'Nemáte účet?', regBtn:'Registrovat', hasAcc:'Už máte účet?', loginBtn:'Přihlásit', langTip:'Abychom si rozuměli.', flag:'<svg class="flag" viewBox="0 0 36 24" preserveAspectRatio="none"><rect width="36" height="12" fill="#fff"/><rect y="12" width="36" height="12" fill="#d7141a"/><path d="M0 0 L18 12 L0 24 Z" fill="#11457e"/></svg>' },
-  en:{ tagline:'Where your money piles up', login:'Sign in', register:'Sign up', name:'Name', email:'E-mail', password:'Password', enter:'Enter', create:'Create account', or:'or', google:'Continue with Google', apple:'Continue with Apple', noAcc:"Don't have an account?", regBtn:'Sign up', hasAcc:'Already have an account?', loginBtn:'Sign in', langTip:'So we understand each other.', flag:'<svg class="flag" viewBox="0 0 36 24" preserveAspectRatio="none"><rect width="36" height="24" fill="#012169"/><path d="M0,0 36,24 M36,0 0,24" stroke="#fff" stroke-width="5"/><path d="M0,0 36,24 M36,0 0,24" stroke="#C8102E" stroke-width="3"/><path d="M18,0 V24 M0,12 H36" stroke="#fff" stroke-width="8"/><path d="M18,0 V24 M0,12 H36" stroke="#C8102E" stroke-width="4.5"/></svg>' }
+  cs:{ tagline:'Místo, kde se vaše peníze hromadí', login:'Přihlášení', register:'Registrace', name:'Jméno', email:'E-mail', password:'Heslo', enter:'Vstoupit', create:'Vytvořit účet', or:'nebo', google:'Pokračovat přes Google', apple:'Pokračovat přes Apple', noAcc:'Nemáte účet?', regBtn:'Registrovat', hasAcc:'Už máte účet?', loginBtn:'Přihlásit', langTip:'Abychom si rozuměli.', ccTitle:'Přidat příspěvek', ccAmount:'Vaše částka', ccSign:'Podpis', ccNamePh:'Vaše jméno', ccAnon:'Přispět anonymně', ccSubmit:'Přispět', ccProgressHd:'Průběh výběru', ccDonorsHd:'Přispěvatelé', ccOf:'z', ccThanks:'Děkujeme za příspěvek!', ccAnonName:'Anonymní', ccCur:'Kč', flag:'<svg class="flag" viewBox="0 0 36 24" preserveAspectRatio="none"><rect width="36" height="12" fill="#fff"/><rect y="12" width="36" height="12" fill="#d7141a"/><path d="M0 0 L18 12 L0 24 Z" fill="#11457e"/></svg>' },
+  en:{ tagline:'Where your money piles up', login:'Sign in', register:'Sign up', name:'Name', email:'E-mail', password:'Password', enter:'Enter', create:'Create account', or:'or', google:'Continue with Google', apple:'Continue with Apple', noAcc:"Don't have an account?", regBtn:'Sign up', hasAcc:'Already have an account?', loginBtn:'Sign in', langTip:'So we understand each other.', ccTitle:'Add contribution', ccAmount:'Your amount', ccSign:'Signature', ccNamePh:'Your name', ccAnon:'Contribute anonymously', ccSubmit:'Contribute', ccProgressHd:'Collection progress', ccDonorsHd:'Contributors', ccOf:'of', ccThanks:'Thank you for your contribution!', ccAnonName:'Anonymous', ccCur:'€', flag:'<svg class="flag" viewBox="0 0 36 24" preserveAspectRatio="none"><rect width="36" height="24" fill="#012169"/><path d="M0,0 36,24 M36,0 0,24" stroke="#fff" stroke-width="5"/><path d="M0,0 36,24 M36,0 0,24" stroke="#C8102E" stroke-width="3"/><path d="M18,0 V24 M0,12 H36" stroke="#fff" stroke-width="8"/><path d="M18,0 V24 M0,12 H36" stroke="#C8102E" stroke-width="4.5"/></svg>' }
 };
 function applyLang(lang){
   if(lang!=='cs'&&lang!=='en') return;
   LANG=lang; const d=LL[lang];
   var set=function(id,t){ var el=document.getElementById(id); if(el) el.textContent=t; };
-  set('tagline',d.tagline); set('tab-login',d.login); set('tab-register',d.register);
-  set('sb-google',d.google); set('sb-apple',d.apple); var _lc=document.getElementById('lang-cur'); if(_lc) _lc.innerHTML=d.flag;
-  var n=document.getElementById('name'); if(n) n.placeholder=d.name;
-  var em=document.getElementById('email'); if(em) em.placeholder=d.email;
-  var pw=document.getElementById('password'); if(pw) pw.placeholder=d.password;
-  var dv=document.querySelector('.divider'); if(dv) dv.textContent=d.or;
+  // podnadpis = NÁZEV POTU → nepřekládá se (zůstává)
+  set('cc-title',d.ccTitle); set('cc-amount-l',d.ccAmount); set('cc-name-l',d.ccSign);
+  set('cc-anon-l',d.ccAnon); set('cc-submit',d.ccSubmit); set('cc-cur',d.ccCur);
+  set('cc-progress-hd',d.ccProgressHd); set('cc-donors-hd',d.ccDonorsHd); set('cc-of',d.ccOf);
+  var nm=document.getElementById('cc-name'); if(nm) nm.placeholder=d.ccNamePh;
+  var _lc=document.getElementById('lang-cur'); if(_lc) _lc.innerHTML=d.flag;
   document.querySelectorAll('.lang-opt').forEach(function(o){ o.classList.toggle('active', o.dataset.lang===lang); });
   var _lt=document.getElementById('lang-toggle'); if(_lt) _lt.title=d.langTip;
-  setMode(mode);
+  if(typeof renderContribState==='function') renderContribState();
+  if(typeof fitTagline==='function') setTimeout(fitTagline,0);
 }
 function setMode(m){
   mode=m; const isLogin=m==='login'; const d=LL[LANG];
@@ -356,7 +400,7 @@ function setMode(m){
 const appFrame=document.getElementById('app-frame');
 const crtBackdrop=document.getElementById('crt-backdrop');
 const crtFlash=document.getElementById('crt-flash');
-appFrame.src='sporion_7r22b03ja1ol8zsy.html';
+// samostatné okno příspěvku – aplikaci na pozadí nenačítáme
 
 let entering=false;
 function puf(){ crtFlash.classList.remove('puf'); void crtFlash.offsetWidth; crtFlash.classList.add('puf'); }
@@ -395,35 +439,7 @@ window.addEventListener('message', function(e){
   if(!e.data) return;
   if(e.data.sporion==='logout') exitTransition();
   else if(e.data.sporion==='lang') applyLang(e.data.lang);
-  else if(e.data.sporion==='openContrib') openContribute(e.data.pot);
-  else if(e.data.sporion==='closeContrib') closeContribute();
 });
-
-// ── DÁRCOVSKÁ STRÁNKA: příchod z detailu potu (zrnění přes celou obrazovku → stránka) ──
-var _contribLoaded=false, _contribPot=null;
-function openContribute(pot){
-  _contribPot=pot||_contribPot;
-  var f=document.getElementById('contrib-frame'), g=document.getElementById('contrib-grain');
-  if(!f||!g) return;
-  g.classList.add('on');                          // zrnění naskočí přes celou obrazovku
-  var reveal=function(){
-    if(f.contentWindow){
-      f.contentWindow.postMessage({sporion:'contribPot', pot:_contribPot},'*');
-      f.contentWindow.postMessage({sporion:'lang', lang:LANG},'*');
-    }
-    f.classList.add('show');                       // dárcovská stránka pod zrněním
-    setTimeout(function(){ g.classList.remove('on'); }, 240);   // zrnění zmizí, stránka zůstane
-  };
-  if(_contribLoaded){ reveal(); }
-  else { f.onload=function(){ _contribLoaded=true; setTimeout(reveal, 60); }; f.src='sporion_contribute.html'; }
-}
-function closeContribute(){
-  var f=document.getElementById('contrib-frame'), g=document.getElementById('contrib-grain');
-  if(!f||!g) return;
-  g.classList.add('on');
-  setTimeout(function(){ f.classList.remove('show'); }, 180);
-  setTimeout(function(){ g.classList.remove('on'); }, 460);
-}
 let toastTimer;
 function toast(t){ const el=document.getElementById('toast'); el.textContent=t; el.classList.add('show'); clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.remove('show'),2300); }
 
@@ -553,7 +569,7 @@ function toast(t){ const el=document.getElementById('toast'); el.textContent=t; 
 
   function updateScore(){
     if(!scoreEl){ scoreEl=document.createElement('div');
-      scoreEl.style.cssText="position:fixed;left:22px;bottom:20px;z-index:9;font-family:'Press Start 2P',monospace;font-size:14px;color:var(--cream);opacity:0;transition:opacity .3s,transform .15s;";
+      scoreEl.style.cssText="position:fixed;left:22px;bottom:20px;z-index:9;font-family:'Press Start 2P',monospace;font-size:14px;color:#16181d;text-shadow:0 1px 2px rgba(255,255,255,0.6);opacity:0;transition:opacity .3s,transform .15s;";
       document.body.appendChild(scoreEl); }
     scoreEl.textContent=score;
     scoreEl.style.opacity='1'; scoreEl.style.transform='scale(1.3)';
@@ -561,7 +577,6 @@ function toast(t){ const el=document.getElementById('toast'); el.textContent=t; 
   }
 
   function onShoot(e){
-    if(window.matchMedia('(max-width:640px)').matches) return;   // telefon: nestřílíme
     if(document.body.classList.contains('warp')) return;    // appka je vepředu
     const gx=e.clientX, gy=e.clientY;
     for(let k=vehicles.length-1;k>=0;k--){
@@ -576,7 +591,7 @@ function toast(t){ const el=document.getElementById('toast'); el.textContent=t; 
   // Zaměřovátko (zelené) při najetí kurzoru na letící těleso
   var RETICLE="url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"30\" height=\"30\" viewBox=\"0 0 30 30\"><g fill=\"none\" stroke=\"%2300ff66\" stroke-width=\"2\"><circle cx=\"15\" cy=\"15\" r=\"10\"/><line x1=\"15\" y1=\"2\" x2=\"15\" y2=\"8\"/><line x1=\"15\" y1=\"22\" x2=\"15\" y2=\"28\"/><line x1=\"2\" y1=\"15\" x2=\"8\" y2=\"15\"/><line x1=\"22\" y1=\"15\" x2=\"28\" y2=\"15\"/></g><circle cx=\"15\" cy=\"15\" r=\"1.6\" fill=\"%2300ff66\"/></svg>') 15 15, crosshair";
   function overVehicle(gx,gy){ for(let k=0;k<vehicles.length;k++){ const v=vehicles[k], sp=SPR[v.type]; const sz=Math.max(sp.rows.length, sp.rows[0].length); const hr=Math.max(13, v.cs*5.5*sz*0.6*0.5); const dx=gx-v.cx, dy=gy-v.cy; if(dx*dx+dy*dy<=hr*hr) return true; } return false; }
-  function onHover(e){ if(window.matchMedia('(max-width:640px)').matches){ document.body.style.cursor=''; return; } if(document.body.classList.contains('warp')){ document.body.style.cursor=''; return; } document.body.style.cursor = overVehicle(e.clientX,e.clientY) ? RETICLE : ''; }
+  function onHover(e){ if(document.body.classList.contains('warp')){ document.body.style.cursor=''; return; } document.body.style.cursor = overVehicle(e.clientX,e.clientY) ? RETICLE : ''; }
   window.addEventListener('pointermove', onHover);
 
   function render(time){
@@ -667,7 +682,6 @@ function toast(t){ const el=document.getElementById('toast'); el.textContent=t; 
   function gameStep(time){
     let dt=time-lastT; lastT=time; if(dt<0||dt>0.05) dt=0.016;
     gctx.clearRect(0,0,gW,gH);
-    if(window.matchMedia('(max-width:640px)').matches){ vehicles.length=0; particles.length=0; return; }   // telefon: žádná lítající plavidla
     if(document.body.classList.contains('warp')){ particles.length=0; return; }   // appka vepředu = pauza
     if(((frameN++)&31)===0) refreshFields();
     if(time>=nextSpawn && vehicles.length<7){ var burst=1+(Math.random()<0.45?(1+(Math.random()*2|0)):0); for(var bb=0;bb<burst && vehicles.length<7;bb++) spawnVehicle(time); nextSpawn=time+3.5+Math.random()*4.5; }
@@ -678,10 +692,9 @@ function toast(t){ const el=document.getElementById('toast'); el.textContent=t; 
       const a= age<0.6 ? age/0.6 : (age>v.life-1.8 ? Math.max(0,(v.life-age)/1.8) : 1);
       v.dir += (Math.random()-0.5)*2.6*dt;                                          // chaotické kličkování
       let nx=v.x+Math.cos(v.dir)*v.speed*dt, ny=v.y+Math.sin(v.dir)*v.speed*dt;
-      // žádný odraz od okrajů — plavidla smí volně vyletět z obrazovky;
-      // když jsou moc daleko za okrajem, uvolní místo dalšímu
-      const far=180;
-      if(nx<-far || nx>gW+far || ny<-far || ny>gH+far){ vehicles.splice(k,1); continue; }
+      const m=6;
+      if(nx<m){ nx=m; v.dir=Math.PI-v.dir; } else if(nx>gW-m){ nx=gW-m; v.dir=Math.PI-v.dir; }
+      if(ny<m){ ny=m; v.dir=-v.dir; } else if(ny>gH-m){ ny=gH-m; v.dir=-v.dir; }
       for(let f=0;f<fieldRects.length;f++){ const fr=fieldRects[f];                  // nikdy přes pole
         if(nx>fr.x0&&nx<fr.x1&&ny>fr.y0&&ny<fr.y1){
           v.dir=Math.atan2(v.y-(fr.y0+fr.y1)/2, v.x-(fr.x0+fr.x1)/2);
@@ -724,6 +737,92 @@ function toast(t){ const el=document.getElementById('toast'); el.textContent=t; 
   window.addEventListener('pointerdown', onShoot);   // sestřel klikem / dotykem
   size();
   if(reduced) frame(0); else requestAnimationFrame(frame);
+})();
+</script>
+
+<script>
+// ───────── PŘÍSPĚVEK (samostatné okno; stav se po propojení nahradí reálným potem) ─────────
+var RATE=25.3;
+function ccMoney(v){ v=+v||0; return (LANG==='en') ? '€'+Math.round(v/RATE).toLocaleString('en') : v.toLocaleString('cs')+' Kč'; }
+// ukázkový stav – odpovídá potu „Narozeniny Martiny"
+var CONTRIB = {
+  name:'Narozeniny Martiny',
+  collected:1440, goal:2000,
+  donors:[
+    {name:'Tomáš K.', amount:200, anon:false},
+    {name:'Petra N.', amount:500, anon:false},
+    {name:'Anonymní', amount:150, anon:true},
+    {name:'Lucie V.', amount:200, anon:false},
+    {name:'Martin S.', amount:100, anon:false}
+  ],
+  // co zadavatel zpřístupnil dárcům (4 přepínače z formuláře potu)
+  //  amount = cílová částka · progress = průběh výběru · donors = seznam přispěvatelů · individual = jednotlivé příspěvky
+  visibility:{ amount:true, progress:true, donors:true, individual:true }
+};
+function renderContribState(){
+  var c=CONTRIB, d=LL[LANG]||LL.cs; var v=c.visibility||{};
+  var showAmount   = (v.amount!=null)     ? !!v.amount     : true;
+  var showProgress = (v.progress!=null)   ? !!v.progress   : true;
+  var showDonors   = (v.donors!=null)     ? !!v.donors     : true;
+  var showIndiv    = (v.individual!=null) ? !!v.individual : true;
+  var pct=Math.min(100, Math.round(c.collected/c.goal*100));
+  // ── blok "Průběh / Cílová částka" ──
+  var bp=document.getElementById('cc-block-progress'); if(bp) bp.classList.toggle('on', showProgress || showAmount);
+  var hd=document.getElementById('cc-progress-hd');
+  if(hd) hd.textContent = showProgress ? d.ccProgressHd : (LANG==='en'?'Target amount':'Cílová částka');
+  var col=document.getElementById('cc-collected'), of=document.getElementById('cc-of'), goal=document.getElementById('cc-goal'), pctEl=document.getElementById('cc-pct');
+  if(col){ col.textContent = showProgress ? ccMoney(c.collected) : ''; col.style.display = showProgress ? '' : 'none'; }
+  if(goal){ goal.textContent = ccMoney(c.goal); goal.style.display = showAmount ? '' : 'none'; }
+  if(of){ of.style.display = (showAmount && showProgress) ? '' : 'none'; }   // "z" jen když je vidět částka i průběh
+  if(pctEl){ pctEl.textContent = pct+'%'; pctEl.style.display = (showProgress && showAmount) ? '' : 'none'; }
+  var barWrap=document.querySelector('#cc-block-progress .cc-bar'); if(barWrap) barWrap.style.display = (showProgress && showAmount) ? '' : 'none';
+  var bar=document.getElementById('cc-bar-fill'); if(bar) bar.style.width=pct+'%';
+  // ── blok "Přispěvatelé" ──
+  var bd=document.getElementById('cc-block-donors'); if(bd) bd.classList.toggle('on', showDonors);
+  var box=document.getElementById('cc-donors'); if(box){ box.innerHTML='';
+    c.donors.slice().reverse().forEach(function(dn){
+      var row=document.createElement('div'); row.className='cc-donor'+(dn.anon?' anon':'');
+      var nm=dn.anon? d.ccAnonName : dn.name;
+      row.innerHTML='<span>'+nm+'</span>'+(showIndiv ? '<b>+ '+ccMoney(dn.amount)+'</b>' : '');   // částky jen když "jednotlivé příspěvky"
+      box.appendChild(row);
+    });
+  }
+  // podnadpis = název potu
+  var tg=document.getElementById('tagline'); if(tg && tg.textContent!==c.name){ tg.textContent=c.name; if(typeof fitTagline==='function') setTimeout(fitTagline,0); }
+}
+// návrat do aplikace (landing skryje překryv)
+function contribBack(){ try{ if(window.parent && window.parent!==window) window.parent.postMessage({sporion:'closeContrib'},'*'); }catch(e){} }
+function submitContribution(){
+  var amtEl=document.getElementById('cc-amount'); var anon=document.getElementById('cc-anon').checked;
+  var nameEl=document.getElementById('cc-name');
+  var amt=parseInt((amtEl.value||'').replace(/\s/g,''),10);
+  if(LANG==='en' && !isNaN(amt)) amt=Math.round(amt*RATE);   // v EN se zadává v €, ukládáme v Kč
+  if(!amt || amt<=0){ amtEl.focus(); return; }
+  var nm=anon? 'Anonymní' : ((nameEl.value||'').trim() || 'Anonymní');
+  CONTRIB.donors.push({ name:nm, amount:amt, anon:anon||nm==='Anonymní' });
+  CONTRIB.collected += amt;
+  renderContribState();
+  amtEl.value=''; nameEl.value='';
+  toast((LL[LANG]||LL.cs).ccThanks);
+}
+// integrace: hlavní projekt zavolá setContribPot(potObj) přes postMessage / přímo
+window.setContribPot=function(pot){
+  if(!pot) return;
+  CONTRIB.name = pot.name || CONTRIB.name;
+  if(pot.collected!=null) CONTRIB.collected = pot.collected;
+  if(pot.goal!=null) CONTRIB.goal = pot.goal;
+  if(Array.isArray(pot.donors)) CONTRIB.donors = pot.donors;
+  else if(Array.isArray(pot.contributions)) CONTRIB.donors = pot.contributions.map(function(x){ var a=/^Anonym/.test(x.name||''); return {name:x.name, amount:x.amount, anon:a}; });
+  if(pot.visibility) CONTRIB.visibility = pot.visibility;
+  renderContribState();
+};
+window.addEventListener('message', function(e){ if(e.data && e.data.sporion==='contribPot') window.setContribPot(e.data.pot); });
+(function(){
+  var anon=document.getElementById('cc-anon'), nameEl=document.getElementById('cc-name'), amtEl=document.getElementById('cc-amount');
+  if(anon) anon.addEventListener('change', function(){ if(nameEl){ nameEl.disabled=anon.checked; if(anon.checked) nameEl.value=''; } });
+  [amtEl,nameEl].forEach(function(el){ if(el) el.addEventListener('keydown', function(ev){ if(ev.key==='Enter'){ ev.preventDefault(); submitContribution(); } }); });
+  applyLang('cs');
+  renderContribState();
 })();
 </script>
 </body>

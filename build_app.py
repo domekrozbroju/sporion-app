@@ -53,6 +53,7 @@ window.addEventListener('message',function(e){{
   if(d.sporion==='hello'){{ if(!_master) _master={{pots:d.pots||[],archive:d.archive||[]}}; _postState(e.source); return; }}
   if(d.sporion==='sync'){{ _master={{pots:d.pots||[],archive:d.archive||[]}}; _broadcast(e.source); return; }}
   if(d.sporion==='view'){{ document.querySelectorAll('iframe').forEach(function(f){{ if(f.contentWindow&&f.contentWindow!==e.source) f.contentWindow.postMessage(d,'*'); }}); return; }}
+  if(d.sporion==='openContrib'){{ if(window.parent && window.parent!==window) window.parent.postMessage(d,'*'); return; }}
   if(d.sporion==='lang'){{ document.querySelectorAll('iframe').forEach(function(f){{ if(f.contentWindow&&f.contentWindow!==e.source) f.contentWindow.postMessage(d,'*'); }}); if(window.parent && window.parent!==window && e.source!==window.parent) window.parent.postMessage(d,'*'); return; }}
 }});
 </script>

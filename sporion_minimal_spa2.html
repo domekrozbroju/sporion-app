@@ -582,16 +582,19 @@ html, body { overflow-x:hidden; max-width:100vw; }
     {n:'Jednotlivé příspěvky',k:'viIndiv',on:false,lock:false}
   ];
   var vis=document.getElementById('np-vis');
+  var _visBtns={};
   ITEMS.forEach(function(it){
     var row=document.createElement('div'); row.className='np-vrow';
     var nm=document.createElement('span'); nm.className='np-vname'; nm.textContent=it.n; nm.setAttribute('data-i18n', it.k);
-    var btn=document.createElement('button'); btn.type='button';
+    var btn=document.createElement('button'); btn.type='button'; _visBtns[it.k]=btn;
     btn.className='np-eye'+(it.on?' on':'')+(it.lock?' locked':'');
     btn.innerHTML=EYE_OPEN+EYE_SHUT;
     if(it.lock){ btn.title='Povinné — vždy viditelné'; btn.setAttribute('aria-disabled','true'); }
     else { btn.addEventListener('click',function(){ btn.classList.toggle('on'); }); }
     row.appendChild(nm); row.appendChild(btn); vis.appendChild(row);
   });
+  window._readNpVis=function(){ var o={}; ITEMS.forEach(function(it){ var b=_visBtns[it.k]; o[it.k]=b?b.classList.contains('on'):!!it.on; }); return o; };
+  window._setNpVis=function(v){ v=v||{}; ITEMS.forEach(function(it){ var b=_visBtns[it.k]; if(b){ var on=(v[it.k]!=null)?!!v[it.k]:!!it.on; b.classList.toggle('on', on); } }); };
   var _selIco='';
   document.querySelectorAll('#np-icons .np-ico').forEach(function(b){
     b.addEventListener('click',function(){
@@ -628,7 +631,7 @@ html, body { overflow-x:hidden; max-width:100vw; }
     document.querySelectorAll('#np-icons .np-ico').forEach(function(x){x.classList.remove('sel');});
     window.npSelectedIcon=''; _selIco=''; _clearPhoto(); if(window.hideBubble) window.hideBubble();
   };
-  function openNp(){ _editId=null; if(window.resetNpForm) window.resetNpForm(); if(window._setNpMode) window._setNpMode(false); document.getElementById('np-modal').classList.add('show'); }
+  function openNp(){ _editId=null; if(window.resetNpForm) window.resetNpForm(); if(window._setNpVis) window._setNpVis({}); if(window._setNpMode) window._setNpMode(false); document.getElementById('np-modal').classList.add('show'); }
   function closeNp(){ document.getElementById('np-modal').classList.remove('show'); _editId=null; if(window.resetNpForm) window.resetNpForm(); if(window._setNpMode) window._setNpMode(false); }
   window.openNp=openNp; window.closeNp=closeNp;
   document.getElementById('main-new-btn').addEventListener('click',openNp);
@@ -675,7 +678,7 @@ html, body { overflow-x:hidden; max-width:100vw; }
         <h1 class="pot-title" id="d-title"></h1>
         <div class="pot-occasion" id="d-occasion"></div>
         <div class="pot-actions">
-          <button class="btn-primary" data-i18n="addContrib">+ Přidat příspěvek</button>
+          <button class="btn-primary" onclick="openContribute()" data-i18n="addContrib">+ Přidat příspěvek</button>
           <button class="btn-secondary" onclick="openShare()" data-i18n="shareBtn">Sdílet</button>
           <button class="btn-secondary" onclick="openEdit()" data-i18n="editBtn">Upravit</button>
         </div>
@@ -1211,6 +1214,7 @@ function drawChart(pot) {
 }
 
 // ── POTY: vytvořit / smazat / archiv ──
+POTS.forEach(function(p,i){ if(!p.visibility) p.visibility={viCastka:true,viProgress:true,viList:(i!==2),viIndiv:(i===0)}; });
 const ARCHIVE = [];
 const _MUSH_KEYS = ['pravak','muchomurka','vaclavky','lisky','holubinka','bedla','kremenac','hliva','shiitake','kuratko'];
 const _NEW_MS = 3*24*60*60*1000;
@@ -1287,13 +1291,13 @@ function createPot(){
     var _ep=POTS.find(function(p){return p.id===_editId;});
     if(!_ep){ _editId=null; closeNp(); return; }
     askConfirm(t('editConfirmQ'), function(){
-      _ep.name=name; delete _ep.name_en; _ep.description=desc; _ep.goal=goal; _ep.photo=photo;
+      _ep.name=name; delete _ep.name_en; _ep.description=desc; _ep.goal=goal; _ep.photo=photo; if(window._readNpVis) _ep.visibility=window._readNpVis();
       buildDashboard(); _pushState(); closeNp(); showDetail(_ep);
     });
     return;
   }
   const id = Math.max(0, ...POTS.map(p=>p.id), ...ARCHIVE.map(p=>p.id)) + 1;
-  POTS.unshift({ id:id, name:name, occasion:'Money pot', collected:0, goal:goal, mush:_MUSH_KEYS[Math.floor(Math.random()*_MUSH_KEYS.length)], contributors:0, occasion_date:'', contributions:[], description:desc, photo:photo, createdAt:Date.now() });
+  POTS.unshift({ id:id, name:name, occasion:'Money pot', collected:0, goal:goal, mush:_MUSH_KEYS[Math.floor(Math.random()*_MUSH_KEYS.length)], contributors:0, occasion_date:'', contributions:[], description:desc, photo:photo, createdAt:Date.now(), visibility:(window._readNpVis?window._readNpVis():{viCastka:true,viProgress:true,viList:false,viIndiv:false}) });
   buildDashboard();
   _pushState();
   if(window.resetNpForm) window.resetNpForm();
@@ -1318,11 +1322,21 @@ function openEdit(pot){
   var ds=document.getElementById('np-desc'); if(ds) ds.value = pot.description||'';
   var gl=document.getElementById('np-goal'); if(gl) gl.value = (APPLANG==='en') ? Math.round((pot.goal||0)/RATE) : (pot.goal||0);
   if(pot.photo && window.npFillPhoto) window.npFillPhoto(pot.photo);
+  if(window._setNpVis) window._setNpVis(pot.visibility);
   _setNpMode(true);
   document.getElementById('np-modal').classList.add('show');
   setTimeout(function(){ if(nm) nm.focus(); }, 60);
 }
 window.openEdit=openEdit;
+// ── PŘISPĚT: otevře dárcovskou stránku (přes wrapper → landing) s daty tohoto potu ──
+function openContribute(){
+  var p=_currentPot; if(!p) return;
+  var v=p.visibility||{viCastka:true,viProgress:true,viList:false,viIndiv:false};
+  var payload={ name:tName(p), collected:p.collected, goal:p.goal, contributions:(p.contributions||[]),
+    visibility:{ amount:!!v.viCastka, progress:!!v.viProgress, donors:!!v.viList, individual:!!v.viIndiv } };
+  try{ if(window.parent && window.parent!==window) window.parent.postMessage({sporion:'openContrib', pot:payload}, '*'); }catch(e){}
+}
+window.openContribute=openContribute;
 
 // ── SYNC POTŮ napříč tématy (postMessage přes wrapper) ──
 var APPLANG='cs', _langApplying=false;
