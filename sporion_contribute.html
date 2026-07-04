@@ -300,6 +300,35 @@ body::before, body::after { display:none !important; }   /* pryč šum i scanlin
 
 <div class="toast" id="toast"></div>
 
+<!-- ── OSLAVNÉ MINI-OKNO PO ODESLÁNÍ PŘÍSPĚVKU ── -->
+<style>
+#cc-confetti { position:fixed; inset:0; z-index:90; pointer-events:none; opacity:0; transition:opacity 0.3s; }
+#cc-confetti.on { opacity:1; }
+#cc-celebrate { position:fixed; inset:0; z-index:95; display:flex; align-items:center; justify-content:center; padding:24px;
+  background:rgba(10,11,14,0.34); -webkit-backdrop-filter:blur(7px); backdrop-filter:blur(7px);
+  opacity:0; pointer-events:none; transition:opacity 0.28s ease; }
+#cc-celebrate.show { opacity:1; pointer-events:auto; }
+.cc-celebrate-box { position:relative; width:100%; max-width:380px; background:rgba(255,255,255,0.94); border:1px solid rgba(0,0,0,0.12);
+  border-radius:18px; padding:30px 26px 26px; box-shadow:0 24px 70px rgba(0,0,0,0.28); text-align:center;
+  transform:translateY(10px) scale(0.96); transition:transform 0.3s cubic-bezier(0.2,0.8,0.3,1.2); }
+#cc-celebrate.show .cc-celebrate-box { transform:translateY(0) scale(1); }
+.cc-celebrate-emoji { font-size:40px; line-height:1; margin-bottom:12px; }
+.cc-celebrate-msg { font-family:'Outfit',sans-serif; font-size:17px; font-weight:400; line-height:1.4; color:#16181d; margin-bottom:22px; }
+.cc-celebrate-msg b { font-weight:700; }
+.cc-celebrate-btn { width:100%; font-family:'Outfit',sans-serif; font-size:12px; font-weight:700; letter-spacing:0.14em; text-transform:uppercase;
+  color:#f5f4f1; background:#0a0b0e; border:none; border-radius:10px; padding:15px; cursor:pointer; transition:opacity 0.2s, transform 0.05s; }
+.cc-celebrate-btn:hover { opacity:0.85; } .cc-celebrate-btn:active { transform:translateY(1px); }
+@media (prefers-reduced-motion: reduce) { #cc-celebrate, .cc-celebrate-box { transition:none; } }
+</style>
+<canvas id="cc-confetti"></canvas>
+<div id="cc-celebrate">
+  <div class="cc-celebrate-box">
+    <div class="cc-celebrate-emoji" id="cc-celebrate-emoji">🎉</div>
+    <div class="cc-celebrate-msg" id="cc-celebrate-msg"></div>
+    <button class="cc-celebrate-btn" id="cc-celebrate-btn" onclick="celebrateDone()">Hotovo</button>
+  </div>
+</div>
+
 <script>
 // ───────── WORDMARK ─────────
 const WORD='SPORION';
@@ -362,6 +391,38 @@ const LL={
   cs:{ tagline:'Místo, kde se vaše peníze hromadí', login:'Přihlášení', register:'Registrace', name:'Jméno', email:'E-mail', password:'Heslo', enter:'Vstoupit', create:'Vytvořit účet', or:'nebo', google:'Pokračovat přes Google', apple:'Pokračovat přes Apple', noAcc:'Nemáte účet?', regBtn:'Registrovat', hasAcc:'Už máte účet?', loginBtn:'Přihlásit', langTip:'Abychom si rozuměli.', ccTitle:'Přidat příspěvek', ccAmount:'Vaše částka', ccSign:'Podpis', ccNamePh:'Vaše jméno', ccAnon:'Přispět anonymně', ccSubmit:'Přispět', ccProgressHd:'Průběh výběru', ccDonorsHd:'Přispěvatelé', ccOf:'z', ccThanks:'Děkujeme za příspěvek!', ccAnonName:'Anonymní', ccCur:'Kč', flag:'<svg class="flag" viewBox="0 0 36 24" preserveAspectRatio="none"><rect width="36" height="12" fill="#fff"/><rect y="12" width="36" height="12" fill="#d7141a"/><path d="M0 0 L18 12 L0 24 Z" fill="#11457e"/></svg>' },
   en:{ tagline:'Where your money piles up', login:'Sign in', register:'Sign up', name:'Name', email:'E-mail', password:'Password', enter:'Enter', create:'Create account', or:'or', google:'Continue with Google', apple:'Continue with Apple', noAcc:"Don't have an account?", regBtn:'Sign up', hasAcc:'Already have an account?', loginBtn:'Sign in', langTip:'So we understand each other.', ccTitle:'Add contribution', ccAmount:'Your amount', ccSign:'Signature', ccNamePh:'Your name', ccAnon:'Contribute anonymously', ccSubmit:'Contribute', ccProgressHd:'Collection progress', ccDonorsHd:'Contributors', ccOf:'of', ccThanks:'Thank you for your contribution!', ccAnonName:'Anonymous', ccCur:'€', flag:'<svg class="flag" viewBox="0 0 36 24" preserveAspectRatio="none"><rect width="36" height="24" fill="#012169"/><path d="M0,0 36,24 M36,0 0,24" stroke="#fff" stroke-width="5"/><path d="M0,0 36,24 M36,0 0,24" stroke="#C8102E" stroke-width="3"/><path d="M18,0 V24 M0,12 H36" stroke="#fff" stroke-width="8"/><path d="M18,0 V24 M0,12 H36" stroke="#C8102E" stroke-width="4.5"/></svg>' }
 };
+// oslavné hlášky po odeslání příspěvku ({amount} = částka, {pot} = název potu) + tlačítko
+LL.cs.ccDoneBtn='Hotovo'; LL.en.ccDoneBtn='Done';
+LL.cs.ccWinMsgs=[
+  'Paráda! {amount} právě putuje na {pot}.',
+  'Hotovo! Tvůj příspěvek {amount} dorazil na {pot}.',
+  'Bomba! {amount} je připsáno na {pot}.',
+  'Díky moc! {amount} míří do sbírky {pot}.',
+  'Trefa! {amount} přistálo v potu {pot}.',
+  'Nádhera! {amount} přibylo na {pot}.',
+  'Skvělá práce! {amount} je zas o kus blíž cíli {pot}.',
+  'A je to! {amount} máš připsáno v {pot}.'
+];
+LL.cs.ccDoneMsgs=[
+  'Cíl je doma! {amount} dorazilo a {pot} je kompletní!',
+  'A dost — vybráno! {amount} dovršilo {pot}.',
+  'Sto procent! {amount} zaklaplo {pot}. Hotovo!'
+];
+LL.en.ccWinMsgs=[
+  'Boom! {amount} is on its way to {pot}.',
+  'Done! Your {amount} just landed in {pot}.',
+  'Amazing! {amount} added to {pot}.',
+  'Thank you! {amount} is heading to {pot}.',
+  'Nice shot! {amount} dropped into {pot}.',
+  'Sweet! {amount} joined {pot}.',
+  'Great job! {amount} is a step closer to {pot}.',
+  'There we go! {amount} is in {pot}.'
+];
+LL.en.ccDoneMsgs=[
+  'Goal reached! {amount} came in and {pot} is complete!',
+  "That's a wrap! {amount} filled up {pot}.",
+  'A hundred percent! {amount} sealed {pot}. Done!'
+];
 function applyLang(lang){
   if(lang!=='cs'&&lang!=='en') return;
   LANG=lang; const d=LL[lang];
@@ -692,9 +753,9 @@ function toast(t){ const el=document.getElementById('toast'); el.textContent=t; 
       const a= age<0.6 ? age/0.6 : (age>v.life-1.8 ? Math.max(0,(v.life-age)/1.8) : 1);
       v.dir += (Math.random()-0.5)*2.6*dt;                                          // chaotické kličkování
       let nx=v.x+Math.cos(v.dir)*v.speed*dt, ny=v.y+Math.sin(v.dir)*v.speed*dt;
-      const m=6;
-      if(nx<m){ nx=m; v.dir=Math.PI-v.dir; } else if(nx>gW-m){ nx=gW-m; v.dir=Math.PI-v.dir; }
-      if(ny<m){ ny=m; v.dir=-v.dir; } else if(ny>gH-m){ ny=gH-m; v.dir=-v.dir; }
+      // žádný odraz od okrajů — plavidla smí volně vyletět z obrazovky (sjednoceno s landingem)
+      const far=180;
+      if(nx<-far || nx>gW+far || ny<-far || ny>gH+far){ vehicles.splice(k,1); continue; }
       for(let f=0;f<fieldRects.length;f++){ const fr=fieldRects[f];                  // nikdy přes pole
         if(nx>fr.x0&&nx<fr.x1&&ny>fr.y0&&ny<fr.y1){
           v.dir=Math.atan2(v.y-(fr.y0+fr.y1)/2, v.x-(fr.x0+fr.x1)/2);
@@ -746,6 +807,7 @@ var RATE=25.3;
 function ccMoney(v){ v=+v||0; return (LANG==='en') ? '€'+Math.round(v/RATE).toLocaleString('en') : v.toLocaleString('cs')+' Kč'; }
 // ukázkový stav – odpovídá potu „Narozeniny Martiny"
 var CONTRIB = {
+  id:null,
   name:'Narozeniny Martiny',
   collected:1440, goal:2000,
   donors:[
@@ -792,22 +854,84 @@ function renderContribState(){
 }
 // návrat do aplikace (landing skryje překryv)
 function contribBack(){ try{ if(window.parent && window.parent!==window) window.parent.postMessage({sporion:'closeContrib'},'*'); }catch(e){} }
+var _pendingContrib=null, _celebrateTimer=null;
 function submitContribution(){
   var amtEl=document.getElementById('cc-amount'); var anon=document.getElementById('cc-anon').checked;
   var nameEl=document.getElementById('cc-name');
   var amt=parseInt((amtEl.value||'').replace(/\s/g,''),10);
   if(LANG==='en' && !isNaN(amt)) amt=Math.round(amt*RATE);   // v EN se zadává v €, ukládáme v Kč
   if(!amt || amt<=0){ amtEl.focus(); return; }
-  var nm=anon? 'Anonymní' : ((nameEl.value||'').trim() || 'Anonymní');
-  CONTRIB.donors.push({ name:nm, amount:amt, anon:anon||nm==='Anonymní' });
+  var nameRaw=(nameEl.value||'').trim();
+  var isAnon = anon || !nameRaw;
+  var nm = isAnon ? 'Anonymní' : nameRaw;
+  var willComplete = (CONTRIB.collected < CONTRIB.goal) && (CONTRIB.collected + amt >= CONTRIB.goal);
+  // lokální náhled (kdyby dárce zůstal); do appky se zapíše přes contribApply
+  CONTRIB.donors.push({ name:nm, amount:amt, anon:isAnon });
   CONTRIB.collected += amt;
   renderContribState();
   amtEl.value=''; nameEl.value='';
-  toast((LL[LANG]||LL.cs).ccThanks);
+  _pendingContrib = { id:CONTRIB.id, amount:amt, name:(isAnon?'':nameRaw), anon:isAnon };
+  showCelebrate(amt, CONTRIB.name, willComplete);
+}
+// oslavné mini-okno + konfety, pak návrat na obrazovku s poty
+function showCelebrate(amtKc, potName, complete){
+  var d=LL[LANG]||LL.cs;
+  var pool = complete ? d.ccDoneMsgs : d.ccWinMsgs;
+  var msg = pool[(Math.random()*pool.length)|0];
+  msg = msg.split('{amount}').join('<b>'+ccMoney(amtKc)+'</b>').split('{pot}').join('<b>'+(potName||'')+'</b>');
+  var emo=document.getElementById('cc-celebrate-emoji'); if(emo) emo.textContent = complete ? '🏆' : '🎉';
+  var mEl=document.getElementById('cc-celebrate-msg'); if(mEl) mEl.innerHTML = msg;
+  var bEl=document.getElementById('cc-celebrate-btn'); if(bEl) bEl.textContent = d.ccDoneBtn;
+  document.getElementById('cc-celebrate').classList.add('show');
+  startConfetti(complete);
+  clearTimeout(_celebrateTimer); _celebrateTimer=setTimeout(celebrateDone, 4600);   // auto-návrat
+}
+function celebrateDone(){
+  clearTimeout(_celebrateTimer);
+  document.getElementById('cc-celebrate').classList.remove('show');
+  stopConfetti();
+  if(_pendingContrib){
+    try{ if(window.parent && window.parent!==window) window.parent.postMessage(Object.assign({sporion:'contribApply'}, _pendingContrib),'*'); }catch(e){}
+    _pendingContrib=null;   // landing appce zapíše příspěvek a zavře překryv → zpět na poty
+  }
+}
+// ── KONFETY (canvas) ──
+var _confRAF=null, _confParts=[];
+function startConfetti(big){
+  var cv=document.getElementById('cc-confetti'); if(!cv) return;
+  var reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  cv.width=innerWidth; cv.height=innerHeight; cv.classList.add('on');
+  if(reduced){ return; }
+  var ctx=cv.getContext('2d');
+  var cols=['#ff5a5f','#ffd166','#06d6a0','#4cc9f0','#b388ff','#f8f9fa','#ff9f1c'];
+  _confParts=[]; var N=big?200:130;
+  for(var i=0;i<N;i++){ _confParts.push({ x:Math.random()*cv.width, y:-20-Math.random()*cv.height*0.5,
+    vx:(Math.random()-0.5)*3, vy:2+Math.random()*4, s:5+Math.random()*7, rot:Math.random()*6.28,
+    vr:(Math.random()-0.5)*0.3, col:cols[(Math.random()*cols.length)|0], sh:Math.random()<0.5 }); }
+  var t0=performance.now();
+  function step(now){
+    ctx.clearRect(0,0,cv.width,cv.height);
+    var alive=false;
+    for(var i=0;i<_confParts.length;i++){ var p=_confParts[i];
+      p.vy+=0.06; p.x+=p.vx; p.y+=p.vy; p.rot+=p.vr;
+      if(p.y<cv.height+30) alive=true;
+      ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot); ctx.fillStyle=p.col;
+      if(p.sh) ctx.fillRect(-p.s/2,-p.s/2,p.s,p.s*0.6); else { ctx.beginPath(); ctx.arc(0,0,p.s*0.5,0,6.28); ctx.fill(); }
+      ctx.restore();
+    }
+    if(alive && now-t0<5200){ _confRAF=requestAnimationFrame(step); } else { _confRAF=null; }
+  }
+  _confRAF=requestAnimationFrame(step);
+}
+function stopConfetti(){
+  var cv=document.getElementById('cc-confetti');
+  if(_confRAF){ cancelAnimationFrame(_confRAF); _confRAF=null; }
+  if(cv){ cv.classList.remove('on'); var ctx=cv.getContext('2d'); if(ctx) ctx.clearRect(0,0,cv.width,cv.height); }
 }
 // integrace: hlavní projekt zavolá setContribPot(potObj) přes postMessage / přímo
 window.setContribPot=function(pot){
   if(!pot) return;
+  if(pot.id!=null) CONTRIB.id = pot.id;
   CONTRIB.name = pot.name || CONTRIB.name;
   if(pot.collected!=null) CONTRIB.collected = pot.collected;
   if(pot.goal!=null) CONTRIB.goal = pot.goal;

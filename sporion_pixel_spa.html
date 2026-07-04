@@ -10,7 +10,8 @@
   body { background:#ebd9b2; font-family:'Silkscreen',monospace; }
 
   /* ── BANNER ── */
-  .banner { width:100%; background:#000; position:relative; overflow:hidden; height:110px; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0 24px; }
+  .banner { width:100%; background:#000; position:relative; overflow:hidden; height:110px; cursor:pointer; display:flex; align-items:center; padding:0 24px; }
+  @media (hover:none) and (pointer:coarse){ .banner{ justify-content:center; } }   /* dotyk: SPORION na střed */
   canvas#bgCanvas { position:absolute; top:0; left:0; width:100%; height:100%; image-rendering:pixelated; }
   .logo-wrap { position:relative; z-index:10; display:flex; align-items:center; user-select:none; }
   .logo-wrap span { font-family:'Silkscreen',monospace; font-weight:700; font-size:42px; line-height:1; display:inline-block; margin-right:-1px; transform:scaleY(1.3); transform-origin:center; color:#fff; letter-spacing:-2px; text-shadow:3px 3px 0 #1e6e1e; }
@@ -1055,11 +1056,23 @@ window.openEdit=openEdit;
 function openContribute(){
   var p=_currentPot; if(!p) return;
   var v=p.visibility||{viCastka:true,viProgress:true,viList:false,viIndiv:false};
-  var payload={ name:tName(p), collected:p.collected, goal:p.goal, contributions:(p.contributions||[]),
+  var payload={ id:p.id, name:tName(p), collected:p.collected, goal:p.goal, contributions:(p.contributions||[]),
     visibility:{ amount:!!v.viCastka, progress:!!v.viProgress, donors:!!v.viList, individual:!!v.viIndiv } };
   try{ if(window.parent && window.parent!==window) window.parent.postMessage({sporion:'openContrib', pot:payload}, '*'); }catch(e){}
 }
 window.openContribute=openContribute;
+// prichozi prispevek z darcovske stranky → zapis do potu, synchronizuj, zpet na dashboard
+function applyContribution(d){
+  if(!d) return; var p=_findPot(d.id); if(!p) return;
+  var amt=parseInt(d.amount,10); if(!amt||amt<=0) return;
+  var dt=new Date(); var ds=dt.getDate()+'.'+(dt.getMonth()+1)+'.';
+  var anon = d.anon || !((d.name||'').trim());
+  p.contributions.push({ date:ds, name:(anon?'Anonymní':(d.name||'').trim()), amount:amt });
+  p.collected = (p.collected||0) + amt;
+  p.contributors = (p.contributors||0) + 1;
+  buildDashboard(); _pushState(); showDashboard();
+}
+window.applyContribution=applyContribution;
 
 // ── SYNC POTŮ napříč tématy (postMessage přes wrapper) ──
 var APPLANG='cs', _langApplying=false;
@@ -1108,7 +1121,7 @@ function _pushView(){ if(_applyingView) return; if(window.parent && window.paren
 function _findPot(id){ for(var i=0;i<POTS.length;i++){ if(POTS[i].id===id) return POTS[i]; } return null; }
 function _applyView(m){ _applyingView=true; try{ if(m.mode && typeof setView==='function' && m.mode!==currentView) setView(m.mode); if(m.view==='detail'){ var p=_findPot(m.potId); if(p) showDetail(p); else showDashboard(); } else { showDashboard(); } } finally { _applyingView=false; } }
 function _redrawShown(){ var d=document.getElementById('page-detail'); if(d&&d.classList.contains('active')&&_currentPot){ var p=_findPot(_currentPot.id)||_currentPot; _applyingView=true; try{ showDetail(p); } finally { _applyingView=false; } } }
-window.addEventListener('message', function(e){ if(!e.data) return; if(e.data.sporion==='state') _applyState(e.data); else if(e.data.sporion==='view') _applyView(e.data); else if(e.data.sporion==='shown') _redrawShown(); else if(e.data.sporion==='lang'){ _langApplying=true; try{ setLang(e.data.lang); } finally{ _langApplying=false; } } });
+window.addEventListener('message', function(e){ if(!e.data) return; if(e.data.sporion==='state') _applyState(e.data); else if(e.data.sporion==='view') _applyView(e.data); else if(e.data.sporion==='shown') _redrawShown(); else if(e.data.sporion==='lang'){ _langApplying=true; try{ setLang(e.data.lang); } finally{ _langApplying=false; } } else if(e.data.sporion==='contribApply'){ applyContribution(e.data); } });
 if(window.parent && window.parent!==window){ window.parent.postMessage({ sporion:'hello', pots:POTS, archive:ARCHIVE }, '*'); }
 
 function buildDashboard(){

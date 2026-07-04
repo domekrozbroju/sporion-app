@@ -18,7 +18,7 @@ html, body { height:100%; }
 body {
   background: radial-gradient(130% 90% at 50% 32%, #11141a 0%, var(--bg) 60%);
   color: var(--cream); font-family:'Outfit',sans-serif;
-  overflow:hidden; position:relative;
+  overflow-x:hidden; overflow-y:auto; position:relative;   /* desktop i mobil: nezamykat svislé rolování (appka v iframu se musí dát scrollovat) */
 }
 body::before {
   content:''; position:fixed; inset:0; z-index:1; pointer-events:none;
@@ -173,9 +173,9 @@ body.warp #warp-flash { animation:warpFlash 2.1s ease-in forwards; }
 @media (prefers-reduced-motion: reduce) { body::before { animation:none; } .word.glitching { animation:none; } #app-frame, #crt-backdrop, body.warp #sky, body.warp .stage, body.warp #warp-flash { animation:none; transition:none; } }
 
 /* ── MOBIL (smartphone) ── */
-@media (max-width:640px) {
+@media (hover:none) and (pointer:coarse) {
   html, body { overflow-x:hidden; }
-  body { overflow-y:auto; }                        /* malé displeje: karta nesmí zůstat uříznutá */
+  body { overflow-y:auto; }                        /* dotyk: karta nesmí zůstat uříznutá */
   .stage { gap:4.5vh; padding:5vh 16px 7vh; }
   #game { display:none; }                          /* telefon: žádná lítající/střílená plavidla */
   .word { font-size:clamp(50px, 12.7vw, 150px); justify-content:center; text-align:center; }  /* SPORION ~+30 %, na střed */
@@ -245,15 +245,14 @@ body.warp #warp-flash { animation:warpFlash 2.1s ease-in forwards; }
 <style>
 #contrib-frame { position:fixed; inset:0; width:100%; height:100%; border:none; z-index:60; background:#fff; opacity:0; pointer-events:none; transition:opacity 0.28s ease; }
 #contrib-frame.show { opacity:1; pointer-events:auto; }
+/* zrnění „stará televize" — velké pixely (canvas kreslený nízkorozlišeně a roztažený pixelovaně) */
 #contrib-grain { position:fixed; inset:0; z-index:75; pointer-events:none; opacity:0; transition:opacity 0.34s ease;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  background-size:200px 200px; background-color:#0a0b0e; }
-#contrib-grain.on { opacity:0.94; transition:opacity 0.12s linear; animation:cgrain 0.24s steps(3) infinite; }
-@keyframes cgrain { 0%{background-position:0 0;} 33%{background-position:-46px 34px;} 66%{background-position:30px -40px;} 100%{background-position:-18px 16px;} }
-@media (prefers-reduced-motion: reduce) { #contrib-frame { transition:none; } #contrib-grain { transition:none; } #contrib-grain.on { animation:none; } }
+  image-rendering:pixelated; image-rendering:crisp-edges; background:#0a0b0e; }
+#contrib-grain.on { opacity:0.97; transition:opacity 0.1s linear; }
+@media (prefers-reduced-motion: reduce) { #contrib-frame { transition:none; } #contrib-grain { transition:none; } }
 </style>
 <iframe id="contrib-frame" title="Přispět do potu"></iframe>
-<div id="contrib-grain"></div>
+<canvas id="contrib-grain"></canvas>
 
 <div class="toast" id="toast"></div>
 
@@ -397,7 +396,28 @@ window.addEventListener('message', function(e){
   else if(e.data.sporion==='lang') applyLang(e.data.lang);
   else if(e.data.sporion==='openContrib') openContribute(e.data.pot);
   else if(e.data.sporion==='closeContrib') closeContribute();
+  else if(e.data.sporion==='contribApply'){                         // dárce odeslal → zapiš do potu a zavři
+    var af=document.getElementById('app-frame');
+    if(af&&af.contentWindow) af.contentWindow.postMessage(e.data,'*');
+    closeContribute();
+  }
 });
+
+// ── ZRNĚNÍ „stará televize" (velké pixely) — canvas kreslený nízkorozlišeně, roztažený pixelovaně ──
+var _grainRAF=null;
+(function(){
+  var gc=document.getElementById('contrib-grain'); if(!gc) return;
+  var g=gc.getContext('2d'); var PXG=8;                 // velikost jednoho „pixelu" statiky
+  function sizeGrain(){ gc.width=Math.max(2,Math.ceil(innerWidth/PXG)); gc.height=Math.max(2,Math.ceil(innerHeight/PXG)); gc.style.width=innerWidth+'px'; gc.style.height=innerHeight+'px'; g.imageSmoothingEnabled=false; }
+  window.addEventListener('resize', function(){ if(_grainRAF) sizeGrain(); });
+  function frame(){
+    var w=gc.width, h=gc.height, img=g.createImageData(w,h), dta=img.data;
+    for(var i=0;i<dta.length;i+=4){ var v=(Math.random()*255)|0; dta[i]=dta[i+1]=dta[i+2]=v; dta[i+3]=255; }
+    g.putImageData(img,0,0); _grainRAF=requestAnimationFrame(frame);
+  }
+  window._grainStart=function(){ sizeGrain(); if(!_grainRAF) frame(); };
+  window._grainStop=function(){ if(_grainRAF){ cancelAnimationFrame(_grainRAF); _grainRAF=null; } };
+})();
 
 // ── DÁRCOVSKÁ STRÁNKA: příchod z detailu potu (zrnění přes celou obrazovku → stránka) ──
 var _contribLoaded=false, _contribPot=null;
@@ -405,6 +425,7 @@ function openContribute(pot){
   _contribPot=pot||_contribPot;
   var f=document.getElementById('contrib-frame'), g=document.getElementById('contrib-grain');
   if(!f||!g) return;
+  if(window._grainStart) window._grainStart();
   g.classList.add('on');                          // zrnění naskočí přes celou obrazovku
   var reveal=function(){
     if(f.contentWindow){
@@ -412,7 +433,7 @@ function openContribute(pot){
       f.contentWindow.postMessage({sporion:'lang', lang:LANG},'*');
     }
     f.classList.add('show');                       // dárcovská stránka pod zrněním
-    setTimeout(function(){ g.classList.remove('on'); }, 240);   // zrnění zmizí, stránka zůstane
+    setTimeout(function(){ g.classList.remove('on'); setTimeout(function(){ if(window._grainStop) window._grainStop(); },360); }, 240);
   };
   if(_contribLoaded){ reveal(); }
   else { f.onload=function(){ _contribLoaded=true; setTimeout(reveal, 60); }; f.src='sporion_contribute.html'; }
@@ -420,9 +441,10 @@ function openContribute(pot){
 function closeContribute(){
   var f=document.getElementById('contrib-frame'), g=document.getElementById('contrib-grain');
   if(!f||!g) return;
+  if(window._grainStart) window._grainStart();
   g.classList.add('on');
   setTimeout(function(){ f.classList.remove('show'); }, 180);
-  setTimeout(function(){ g.classList.remove('on'); }, 460);
+  setTimeout(function(){ g.classList.remove('on'); setTimeout(function(){ if(window._grainStop) window._grainStop(); },360); }, 460);
 }
 let toastTimer;
 function toast(t){ const el=document.getElementById('toast'); el.textContent=t; el.classList.add('show'); clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.remove('show'),2300); }
@@ -561,7 +583,7 @@ function toast(t){ const el=document.getElementById('toast'); el.textContent=t; 
   }
 
   function onShoot(e){
-    if(window.matchMedia('(max-width:640px)').matches) return;   // telefon: nestřílíme
+    if(window.matchMedia('(hover:none) and (pointer:coarse)').matches) return;   // telefon: nestřílíme
     if(document.body.classList.contains('warp')) return;    // appka je vepředu
     const gx=e.clientX, gy=e.clientY;
     for(let k=vehicles.length-1;k>=0;k--){
@@ -576,7 +598,7 @@ function toast(t){ const el=document.getElementById('toast'); el.textContent=t; 
   // Zaměřovátko (zelené) při najetí kurzoru na letící těleso
   var RETICLE="url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"30\" height=\"30\" viewBox=\"0 0 30 30\"><g fill=\"none\" stroke=\"%2300ff66\" stroke-width=\"2\"><circle cx=\"15\" cy=\"15\" r=\"10\"/><line x1=\"15\" y1=\"2\" x2=\"15\" y2=\"8\"/><line x1=\"15\" y1=\"22\" x2=\"15\" y2=\"28\"/><line x1=\"2\" y1=\"15\" x2=\"8\" y2=\"15\"/><line x1=\"22\" y1=\"15\" x2=\"28\" y2=\"15\"/></g><circle cx=\"15\" cy=\"15\" r=\"1.6\" fill=\"%2300ff66\"/></svg>') 15 15, crosshair";
   function overVehicle(gx,gy){ for(let k=0;k<vehicles.length;k++){ const v=vehicles[k], sp=SPR[v.type]; const sz=Math.max(sp.rows.length, sp.rows[0].length); const hr=Math.max(13, v.cs*5.5*sz*0.6*0.5); const dx=gx-v.cx, dy=gy-v.cy; if(dx*dx+dy*dy<=hr*hr) return true; } return false; }
-  function onHover(e){ if(window.matchMedia('(max-width:640px)').matches){ document.body.style.cursor=''; return; } if(document.body.classList.contains('warp')){ document.body.style.cursor=''; return; } document.body.style.cursor = overVehicle(e.clientX,e.clientY) ? RETICLE : ''; }
+  function onHover(e){ if(window.matchMedia('(hover:none) and (pointer:coarse)').matches){ document.body.style.cursor=''; return; } if(document.body.classList.contains('warp')){ document.body.style.cursor=''; return; } document.body.style.cursor = overVehicle(e.clientX,e.clientY) ? RETICLE : ''; }
   window.addEventListener('pointermove', onHover);
 
   function render(time){
@@ -667,7 +689,7 @@ function toast(t){ const el=document.getElementById('toast'); el.textContent=t; 
   function gameStep(time){
     let dt=time-lastT; lastT=time; if(dt<0||dt>0.05) dt=0.016;
     gctx.clearRect(0,0,gW,gH);
-    if(window.matchMedia('(max-width:640px)').matches){ vehicles.length=0; particles.length=0; return; }   // telefon: žádná lítající plavidla
+    if(window.matchMedia('(hover:none) and (pointer:coarse)').matches){ vehicles.length=0; particles.length=0; return; }   // telefon: žádná lítající plavidla
     if(document.body.classList.contains('warp')){ particles.length=0; return; }   // appka vepředu = pauza
     if(((frameN++)&31)===0) refreshFields();
     if(time>=nextSpawn && vehicles.length<7){ var burst=1+(Math.random()<0.45?(1+(Math.random()*2|0)):0); for(var bb=0;bb<burst && vehicles.length<7;bb++) spawnVehicle(time); nextSpawn=time+3.5+Math.random()*4.5; }
