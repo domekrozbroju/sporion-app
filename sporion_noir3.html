@@ -559,7 +559,9 @@ footer {
 
 /* ── MOBIL (smartphone) ── */
 html { -webkit-text-size-adjust:100%; }
-html, body { overflow-x:hidden; max-width:100vw; }
+html, body { max-width:100vw; }
+/* horizontální zámek jen pro dotyk (telefon/tablet); na desktopu by overflow-x na <html> udělal ze stránky scroll-kontejner a rozbil rolování kolečkem/touchpadem ve vnořeném data-URL iframu */
+@media (hover:none) and (pointer:coarse){ html, body { overflow-x:hidden; } }
 @media (max-width:640px) {
   main, .detail-wrap { padding:22px 14px; }
   header { padding:6px 10px; }
@@ -585,7 +587,7 @@ html, body { overflow-x:hidden; max-width:100vw; }
   .contrib-row { padding:12px 10px; }
   footer { padding:16px 14px; flex-direction:column; gap:6px; text-align:center; }
   /* modaly: roluje celá vrstva → tlačítko dole je vždy dosažitelné */
-  html, body { overflow-x:hidden; }
+  /* overflow-x lock je nově jen pro dotyk (viz @media hover:none) – desktop v úzkém okně už scroll nezamyká */
   .np-modal { align-items:center; padding:16px; }
   .np-box { max-height:86vh; overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; box-shadow:none; }   /* scroll uvnitř okna, ne přes celou obrazovku */
   html:has(.np-modal.show), html:has(.logout-modal.show) { overflow:hidden; }   /* zámek scrollu pozadí za modalem */

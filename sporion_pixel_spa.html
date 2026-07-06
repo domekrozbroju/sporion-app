@@ -309,7 +309,9 @@
 
   /* ── MOBIL (smartphone) ── */
   html { -webkit-text-size-adjust:100%; }
-  html, body { overflow-x:hidden; max-width:100vw; }
+  html, body { max-width:100vw; }
+  /* horizontalni zamek jen pro dotyk (telefon/tablet); na desktopu by overflow-x na <html> udelal ze stranky scroll-kontejner a rozbil rolovani koleckem/touchpadem ve vnorenem data-URL iframu */
+  @media (hover:none) and (pointer:coarse){ html, body { overflow-x:hidden; } }
   @media (max-width:640px) {
     .page-wrap, .detail-wrap { padding:14px 12px; }
     .topnav { padding:0 8px; }
@@ -331,7 +333,7 @@
     .stats-grid { grid-template-columns:1fr 1fr; }
     .footer { padding:12px 10px; }
     /* modaly: roluje cela vrstva -> tlacitko dole je vzdy dosazitelne */
-    html, body { overflow-x:hidden; }
+    /* overflow-x lock je nove jen pro dotyk (viz @media hover:none) - desktop v uzkem okne uz scroll nezamyka */
     .np-modal { align-items:center; padding:14px; }
     .np-box { max-height:86vh; overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; box-shadow:none; }   /* scroll uvnitr okna, ne pres celou obrazovku */
     html:has(.np-modal.show), html:has(.logout-modal.show) { overflow:hidden; }   /* zamek scrollu pozadi za modalem */
