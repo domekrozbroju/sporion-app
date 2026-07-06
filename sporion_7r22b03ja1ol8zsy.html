@@ -1494,38 +1494,38 @@ showDashboard = function() {
 
 </script>
 <script>
-/* Scroll-rescue: v hlubokém vnoření (landing → fixní #app-frame → wrapper → toto téma jako
-   cross-origin iframe) prohlížeč nedoručí nativní kolečko/dotyk do scrollu tématu (o úroveň
-   mělčeji funguje – proto wrapper napřímo roluje). Programový scroll funguje vždy, tak gesto
-   převedeme na scrollTop ručně. Desktop = wheel, mobil = touch. */
+/* Scroll ve vnořené appce (landing → fixní #app-frame → wrapper → téma).
+   Když nativní kolečko/dotyk funguje, NEcháme ho (plynulé). Když ne (hluboké vnoření),
+   rolujeme programově s dojezdem. window.__sporionScrollBy volají i rodičovské rámce
+   (wrapper/landing), kdyby gesto dorazilo jen k nim. Cíl: otevřené mini-okno má přednost. */
 (function(){
-  var sc=document.scrollingElement||document.documentElement;
-  function innerScrollable(el){
-    while(el &amp;&amp; el.nodeType===1 &amp;&amp; el!==document.body &amp;&amp; el!==document.documentElement){
-      var s=getComputedStyle(el);
-      if((s.overflowY==='auto'||s.overflowY==='scroll') &amp;&amp; el.scrollHeight>el.clientHeight+1) return true;
-      el=el.parentElement;
-    }
-    return false;
+  var docSc=document.scrollingElement||document.documentElement;
+  function target(){
+    var m=document.querySelector('.np-modal.show, .logout-modal.show');
+    if(m){ var box=m.querySelector('.np-box, .logout-box, .set-box'); return (box &amp;&amp; box.scrollHeight>box.clientHeight+1) ? box : null; }
+    return (docSc.scrollHeight>docSc.clientHeight+1) ? docSc : null;
   }
-  function modalOpen(){ return !!document.querySelector('.np-modal.show, .logout-modal.show'); }
+  window.__sporionScrollBy=function(dy){ var t=target(); if(!t) return false; var b=t.scrollTop; t.scrollTop+=dy; return t.scrollTop!==b; };
+  function wheelDy(e){ var dy=e.deltaY; if(e.deltaMode===1) dy*=16; else if(e.deltaMode===2) dy*=(target()||docSc).clientHeight; return dy; }
+  var wMode=null;   // null=neznámo, false=nativní kolečko funguje (nezasahuj), true=ručně
   addEventListener('wheel', function(e){
-    if(modalOpen() || innerScrollable(e.target)) return;
-    if(sc.scrollHeight<=sc.clientHeight) return;
-    var dy=e.deltaY; if(e.deltaMode===1) dy*=16; else if(e.deltaMode===2) dy*=sc.clientHeight;
-    var before=sc.scrollTop; sc.scrollTop += dy;
-    if(sc.scrollTop!==before) e.preventDefault();
+    var t=target(); if(!t) return;
+    if(wMode===false) return;
+    if(wMode===null){ var bt=t.scrollTop; requestAnimationFrame(function(){ if(wMode===null) wMode=(t.scrollTop===bt); }); return; }
+    if(window.__sporionScrollBy(wheelDy(e))) e.preventDefault();
   }, {passive:false});
-  var _ly=null;
-  addEventListener('touchstart', function(e){ _ly=(e.touches.length===1)?e.touches[0].clientY:null; }, {passive:true});
+  var ly=null, vy=0, lt=0, raf=0, tMode=null;
+  addEventListener('touchstart', function(e){ if(raf) cancelAnimationFrame(raf); ly=(e.touches.length===1)?e.touches[0].clientY:null; vy=0; lt=performance.now(); }, {passive:true});
   addEventListener('touchmove', function(e){
-    if(_ly==null || e.touches.length!==1) return;
-    if(modalOpen() || innerScrollable(e.target)){ _ly=e.touches[0].clientY; return; }
-    if(sc.scrollHeight<=sc.clientHeight) return;
-    var y=e.touches[0].clientY, dy=_ly-y; _ly=y;
-    var before=sc.scrollTop; sc.scrollTop += dy;
-    if(sc.scrollTop!==before) e.preventDefault();
+    if(ly==null || e.touches.length!==1) return;
+    var t=target(); if(!t){ ly=e.touches[0].clientY; return; }
+    var y=e.touches[0].clientY, dy=ly-y; ly=y;
+    if(tMode===false) return;
+    if(tMode===null){ var bt=t.scrollTop; requestAnimationFrame(function(){ if(tMode===null) tMode=(t.scrollTop===bt); }); return; }
+    var now=performance.now(), dt=now-lt; lt=now; if(dt>0) vy=dy/dt*16;
+    if(window.__sporionScrollBy(dy)) e.preventDefault();
   }, {passive:false});
+  addEventListener('touchend', function(){ if(tMode!==true || Math.abs(vy)<0.6) return; var v=vy; (function fling(){ if(Math.abs(v)<0.4) return; if(!window.__sporionScrollBy(v)) return; v*=0.94; raf=requestAnimationFrame(fling); })(); }, {passive:true});
 })();
 </script>
 </body>
@@ -3000,38 +3000,38 @@ showDashboard = function() { _origSD(); document.getElementById('sb-home').class
 
 </script>
 <script>
-/* Scroll-rescue: v hlubokem vnoreni (landing -> fixni #app-frame -> wrapper -> toto tema jako
-   cross-origin iframe) prohlizec nedoruci nativni kolecko/dotyk do scrollu tematu (o uroven
-   melceji funguje - proto wrapper naprimo roluje). Programovy scroll funguje vzdy, tak gesto
-   prevedeme na scrollTop rucne. Desktop = wheel, mobil = touch. */
+/* Scroll ve vnorene appce (landing -> fixni #app-frame -> wrapper -> tema).
+   Kdyz nativni kolecko/dotyk funguje, NEchame ho (plynule). Kdyz ne (hluboke vnoreni),
+   rolujeme programove s dojezdem. window.__sporionScrollBy volaji i rodicovske ramce
+   (wrapper/landing), kdyby gesto dorazilo jen k nim. Cil: otevrene mini-okno ma prednost. */
 (function(){
-  var sc=document.scrollingElement||document.documentElement;
-  function innerScrollable(el){
-    while(el &amp;&amp; el.nodeType===1 &amp;&amp; el!==document.body &amp;&amp; el!==document.documentElement){
-      var s=getComputedStyle(el);
-      if((s.overflowY==='auto'||s.overflowY==='scroll') &amp;&amp; el.scrollHeight>el.clientHeight+1) return true;
-      el=el.parentElement;
-    }
-    return false;
+  var docSc=document.scrollingElement||document.documentElement;
+  function target(){
+    var m=document.querySelector('.np-modal.show, .logout-modal.show');
+    if(m){ var box=m.querySelector('.np-box, .logout-box, .set-box'); return (box &amp;&amp; box.scrollHeight>box.clientHeight+1) ? box : null; }
+    return (docSc.scrollHeight>docSc.clientHeight+1) ? docSc : null;
   }
-  function modalOpen(){ return !!document.querySelector('.np-modal.show, .logout-modal.show'); }
+  window.__sporionScrollBy=function(dy){ var t=target(); if(!t) return false; var b=t.scrollTop; t.scrollTop+=dy; return t.scrollTop!==b; };
+  function wheelDy(e){ var dy=e.deltaY; if(e.deltaMode===1) dy*=16; else if(e.deltaMode===2) dy*=(target()||docSc).clientHeight; return dy; }
+  var wMode=null;   // null=neznamo, false=nativni kolecko funguje (nezasahuj), true=rucne
   addEventListener('wheel', function(e){
-    if(modalOpen() || innerScrollable(e.target)) return;
-    if(sc.scrollHeight<=sc.clientHeight) return;
-    var dy=e.deltaY; if(e.deltaMode===1) dy*=16; else if(e.deltaMode===2) dy*=sc.clientHeight;
-    var before=sc.scrollTop; sc.scrollTop += dy;
-    if(sc.scrollTop!==before) e.preventDefault();
+    var t=target(); if(!t) return;
+    if(wMode===false) return;
+    if(wMode===null){ var bt=t.scrollTop; requestAnimationFrame(function(){ if(wMode===null) wMode=(t.scrollTop===bt); }); return; }
+    if(window.__sporionScrollBy(wheelDy(e))) e.preventDefault();
   }, {passive:false});
-  var _ly=null;
-  addEventListener('touchstart', function(e){ _ly=(e.touches.length===1)?e.touches[0].clientY:null; }, {passive:true});
+  var ly=null, vy=0, lt=0, raf=0, tMode=null;
+  addEventListener('touchstart', function(e){ if(raf) cancelAnimationFrame(raf); ly=(e.touches.length===1)?e.touches[0].clientY:null; vy=0; lt=performance.now(); }, {passive:true});
   addEventListener('touchmove', function(e){
-    if(_ly==null || e.touches.length!==1) return;
-    if(modalOpen() || innerScrollable(e.target)){ _ly=e.touches[0].clientY; return; }
-    if(sc.scrollHeight<=sc.clientHeight) return;
-    var y=e.touches[0].clientY, dy=_ly-y; _ly=y;
-    var before=sc.scrollTop; sc.scrollTop += dy;
-    if(sc.scrollTop!==before) e.preventDefault();
+    if(ly==null || e.touches.length!==1) return;
+    var t=target(); if(!t){ ly=e.touches[0].clientY; return; }
+    var y=e.touches[0].clientY, dy=ly-y; ly=y;
+    if(tMode===false) return;
+    if(tMode===null){ var bt=t.scrollTop; requestAnimationFrame(function(){ if(tMode===null) tMode=(t.scrollTop===bt); }); return; }
+    var now=performance.now(), dt=now-lt; lt=now; if(dt>0) vy=dy/dt*16;
+    if(window.__sporionScrollBy(dy)) e.preventDefault();
   }, {passive:false});
+  addEventListener('touchend', function(){ if(tMode!==true || Math.abs(vy)<0.6) return; var v=vy; (function fling(){ if(Math.abs(v)<0.4) return; if(!window.__sporionScrollBy(v)) return; v*=0.94; raf=requestAnimationFrame(fling); })(); }, {passive:true});
 })();
 </script>
 </body>
@@ -4672,38 +4672,38 @@ showDashboard = function() { _origSD(); document.getElementById('sb-home').class
 
 </script>
 <script>
-/* Scroll-rescue: v hlubokém vnoření (landing → fixní #app-frame → wrapper → toto téma jako
-   cross-origin iframe) prohlížeč nedoručí nativní kolečko/dotyk do scrollu tématu (o úroveň
-   mělčeji funguje – proto wrapper napřímo roluje). Programový scroll funguje vždy, tak gesto
-   převedeme na scrollTop ručně. Desktop = wheel, mobil = touch. */
+/* Scroll ve vnořené appce (landing → fixní #app-frame → wrapper → téma).
+   Když nativní kolečko/dotyk funguje, NEcháme ho (plynulé). Když ne (hluboké vnoření),
+   rolujeme programově s dojezdem. window.__sporionScrollBy volají i rodičovské rámce
+   (wrapper/landing), kdyby gesto dorazilo jen k nim. Cíl: otevřené mini-okno má přednost. */
 (function(){
-  var sc=document.scrollingElement||document.documentElement;
-  function innerScrollable(el){
-    while(el &amp;&amp; el.nodeType===1 &amp;&amp; el!==document.body &amp;&amp; el!==document.documentElement){
-      var s=getComputedStyle(el);
-      if((s.overflowY==='auto'||s.overflowY==='scroll') &amp;&amp; el.scrollHeight>el.clientHeight+1) return true;
-      el=el.parentElement;
-    }
-    return false;
+  var docSc=document.scrollingElement||document.documentElement;
+  function target(){
+    var m=document.querySelector('.np-modal.show, .logout-modal.show');
+    if(m){ var box=m.querySelector('.np-box, .logout-box, .set-box'); return (box &amp;&amp; box.scrollHeight>box.clientHeight+1) ? box : null; }
+    return (docSc.scrollHeight>docSc.clientHeight+1) ? docSc : null;
   }
-  function modalOpen(){ return !!document.querySelector('.np-modal.show, .logout-modal.show'); }
+  window.__sporionScrollBy=function(dy){ var t=target(); if(!t) return false; var b=t.scrollTop; t.scrollTop+=dy; return t.scrollTop!==b; };
+  function wheelDy(e){ var dy=e.deltaY; if(e.deltaMode===1) dy*=16; else if(e.deltaMode===2) dy*=(target()||docSc).clientHeight; return dy; }
+  var wMode=null;   // null=neznámo, false=nativní kolečko funguje (nezasahuj), true=ručně
   addEventListener('wheel', function(e){
-    if(modalOpen() || innerScrollable(e.target)) return;
-    if(sc.scrollHeight<=sc.clientHeight) return;
-    var dy=e.deltaY; if(e.deltaMode===1) dy*=16; else if(e.deltaMode===2) dy*=sc.clientHeight;
-    var before=sc.scrollTop; sc.scrollTop += dy;
-    if(sc.scrollTop!==before) e.preventDefault();
+    var t=target(); if(!t) return;
+    if(wMode===false) return;
+    if(wMode===null){ var bt=t.scrollTop; requestAnimationFrame(function(){ if(wMode===null) wMode=(t.scrollTop===bt); }); return; }
+    if(window.__sporionScrollBy(wheelDy(e))) e.preventDefault();
   }, {passive:false});
-  var _ly=null;
-  addEventListener('touchstart', function(e){ _ly=(e.touches.length===1)?e.touches[0].clientY:null; }, {passive:true});
+  var ly=null, vy=0, lt=0, raf=0, tMode=null;
+  addEventListener('touchstart', function(e){ if(raf) cancelAnimationFrame(raf); ly=(e.touches.length===1)?e.touches[0].clientY:null; vy=0; lt=performance.now(); }, {passive:true});
   addEventListener('touchmove', function(e){
-    if(_ly==null || e.touches.length!==1) return;
-    if(modalOpen() || innerScrollable(e.target)){ _ly=e.touches[0].clientY; return; }
-    if(sc.scrollHeight<=sc.clientHeight) return;
-    var y=e.touches[0].clientY, dy=_ly-y; _ly=y;
-    var before=sc.scrollTop; sc.scrollTop += dy;
-    if(sc.scrollTop!==before) e.preventDefault();
+    if(ly==null || e.touches.length!==1) return;
+    var t=target(); if(!t){ ly=e.touches[0].clientY; return; }
+    var y=e.touches[0].clientY, dy=ly-y; ly=y;
+    if(tMode===false) return;
+    if(tMode===null){ var bt=t.scrollTop; requestAnimationFrame(function(){ if(tMode===null) tMode=(t.scrollTop===bt); }); return; }
+    var now=performance.now(), dt=now-lt; lt=now; if(dt>0) vy=dy/dt*16;
+    if(window.__sporionScrollBy(dy)) e.preventDefault();
   }, {passive:false});
+  addEventListener('touchend', function(){ if(tMode!==true || Math.abs(vy)<0.6) return; var v=vy; (function fling(){ if(Math.abs(v)<0.4) return; if(!window.__sporionScrollBy(v)) return; v*=0.94; raf=requestAnimationFrame(fling); })(); }, {passive:true});
 })();
 </script>
 </body>
@@ -4725,6 +4725,24 @@ window.addEventListener('message',function(e){
   if(d.sporion==='contribApply'){ var _af=document.querySelector('iframe.active'); if(_af&&_af.contentWindow) _af.contentWindow.postMessage(d,'*'); return; }
   if(d.sporion==='lang'){ document.querySelectorAll('iframe').forEach(function(f){ if(f.contentWindow&&f.contentWindow!==e.source) f.contentWindow.postMessage(d,'*'); }); if(window.parent && window.parent!==window && e.source!==window.parent) window.parent.postMessage(d,'*'); return; }
 });
+// Kolečko/dotyk nad appkou → naroluj aktivní téma napřímo (same-origin srcdoc). Pojistka pro
+// desktop, kde se ve vnoření pod fixním landing #app-frame nedoručí gesto až do tématu.
+(function(){
+  function tw(){ var f=document.querySelector('iframe.active'); return f && f.contentWindow; }
+  addEventListener('wheel', function(e){
+    var w=tw(); if(!w||!w.__sporionScrollBy) return;
+    var dy=e.deltaY; if(e.deltaMode===1) dy*=16; else if(e.deltaMode===2) dy*=(w.innerHeight||600);
+    if(w.__sporionScrollBy(dy)) e.preventDefault();
+  }, {passive:false});
+  var ly=null;
+  addEventListener('touchstart', function(e){ ly=(e.touches.length===1)?e.touches[0].clientY:null; }, {passive:true});
+  addEventListener('touchmove', function(e){
+    if(ly==null||e.touches.length!==1) return;
+    var w=tw(); if(!w||!w.__sporionScrollBy) return;
+    var y=e.touches[0].clientY, dy=ly-y; ly=y;
+    if(w.__sporionScrollBy(dy)) e.preventDefault();
+  }, {passive:false});
+})();
 </script>
 </body>
 </html>

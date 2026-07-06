@@ -1480,38 +1480,38 @@ showDashboard = function() {
 
 </script>
 <script>
-/* Scroll-rescue: v hlubokém vnoření (landing → fixní #app-frame → wrapper → toto téma jako
-   cross-origin iframe) prohlížeč nedoručí nativní kolečko/dotyk do scrollu tématu (o úroveň
-   mělčeji funguje – proto wrapper napřímo roluje). Programový scroll funguje vždy, tak gesto
-   převedeme na scrollTop ručně. Desktop = wheel, mobil = touch. */
+/* Scroll ve vnořené appce (landing → fixní #app-frame → wrapper → téma).
+   Když nativní kolečko/dotyk funguje, NEcháme ho (plynulé). Když ne (hluboké vnoření),
+   rolujeme programově s dojezdem. window.__sporionScrollBy volají i rodičovské rámce
+   (wrapper/landing), kdyby gesto dorazilo jen k nim. Cíl: otevřené mini-okno má přednost. */
 (function(){
-  var sc=document.scrollingElement||document.documentElement;
-  function innerScrollable(el){
-    while(el && el.nodeType===1 && el!==document.body && el!==document.documentElement){
-      var s=getComputedStyle(el);
-      if((s.overflowY==='auto'||s.overflowY==='scroll') && el.scrollHeight>el.clientHeight+1) return true;
-      el=el.parentElement;
-    }
-    return false;
+  var docSc=document.scrollingElement||document.documentElement;
+  function target(){
+    var m=document.querySelector('.np-modal.show, .logout-modal.show');
+    if(m){ var box=m.querySelector('.np-box, .logout-box, .set-box'); return (box && box.scrollHeight>box.clientHeight+1) ? box : null; }
+    return (docSc.scrollHeight>docSc.clientHeight+1) ? docSc : null;
   }
-  function modalOpen(){ return !!document.querySelector('.np-modal.show, .logout-modal.show'); }
+  window.__sporionScrollBy=function(dy){ var t=target(); if(!t) return false; var b=t.scrollTop; t.scrollTop+=dy; return t.scrollTop!==b; };
+  function wheelDy(e){ var dy=e.deltaY; if(e.deltaMode===1) dy*=16; else if(e.deltaMode===2) dy*=(target()||docSc).clientHeight; return dy; }
+  var wMode=null;   // null=neznámo, false=nativní kolečko funguje (nezasahuj), true=ručně
   addEventListener('wheel', function(e){
-    if(modalOpen() || innerScrollable(e.target)) return;
-    if(sc.scrollHeight<=sc.clientHeight) return;
-    var dy=e.deltaY; if(e.deltaMode===1) dy*=16; else if(e.deltaMode===2) dy*=sc.clientHeight;
-    var before=sc.scrollTop; sc.scrollTop += dy;
-    if(sc.scrollTop!==before) e.preventDefault();
+    var t=target(); if(!t) return;
+    if(wMode===false) return;
+    if(wMode===null){ var bt=t.scrollTop; requestAnimationFrame(function(){ if(wMode===null) wMode=(t.scrollTop===bt); }); return; }
+    if(window.__sporionScrollBy(wheelDy(e))) e.preventDefault();
   }, {passive:false});
-  var _ly=null;
-  addEventListener('touchstart', function(e){ _ly=(e.touches.length===1)?e.touches[0].clientY:null; }, {passive:true});
+  var ly=null, vy=0, lt=0, raf=0, tMode=null;
+  addEventListener('touchstart', function(e){ if(raf) cancelAnimationFrame(raf); ly=(e.touches.length===1)?e.touches[0].clientY:null; vy=0; lt=performance.now(); }, {passive:true});
   addEventListener('touchmove', function(e){
-    if(_ly==null || e.touches.length!==1) return;
-    if(modalOpen() || innerScrollable(e.target)){ _ly=e.touches[0].clientY; return; }
-    if(sc.scrollHeight<=sc.clientHeight) return;
-    var y=e.touches[0].clientY, dy=_ly-y; _ly=y;
-    var before=sc.scrollTop; sc.scrollTop += dy;
-    if(sc.scrollTop!==before) e.preventDefault();
+    if(ly==null || e.touches.length!==1) return;
+    var t=target(); if(!t){ ly=e.touches[0].clientY; return; }
+    var y=e.touches[0].clientY, dy=ly-y; ly=y;
+    if(tMode===false) return;
+    if(tMode===null){ var bt=t.scrollTop; requestAnimationFrame(function(){ if(tMode===null) tMode=(t.scrollTop===bt); }); return; }
+    var now=performance.now(), dt=now-lt; lt=now; if(dt>0) vy=dy/dt*16;
+    if(window.__sporionScrollBy(dy)) e.preventDefault();
   }, {passive:false});
+  addEventListener('touchend', function(){ if(tMode!==true || Math.abs(vy)<0.6) return; var v=vy; (function fling(){ if(Math.abs(v)<0.4) return; if(!window.__sporionScrollBy(v)) return; v*=0.94; raf=requestAnimationFrame(fling); })(); }, {passive:true});
 })();
 </script>
 </body>

@@ -360,6 +360,25 @@ const crtBackdrop=document.getElementById('crt-backdrop');
 const crtFlash=document.getElementById('crt-flash');
 appFrame.src='sporion_7r22b03ja1ol8zsy.html';
 
+// Kolečko/dotyk nad appkou → naroluj aktivní téma napřímo (vše same-origin). Pojistka pro desktop,
+// kde se gesto ve vnoření pod fixním #app-frame nemusí dostat až do tématu.
+(function(){
+  function themeWin(){ try{ var wd=appFrame.contentDocument; var f=wd&&wd.querySelector('iframe.active'); return f&&f.contentWindow; }catch(e){ return null; } }
+  function live(){ return document.body.classList.contains('app-live'); }
+  addEventListener('wheel', function(e){
+    if(!live()) return; var w=themeWin(); if(!w||!w.__sporionScrollBy) return;
+    var dy=e.deltaY; if(e.deltaMode===1) dy*=16; else if(e.deltaMode===2) dy*=(w.innerHeight||600);
+    if(w.__sporionScrollBy(dy)) e.preventDefault();
+  }, {passive:false});
+  var _sly=null;
+  addEventListener('touchstart', function(e){ _sly=(live()&&e.touches.length===1)?e.touches[0].clientY:null; }, {passive:true});
+  addEventListener('touchmove', function(e){
+    if(_sly==null||e.touches.length!==1) return; var w=themeWin(); if(!w||!w.__sporionScrollBy) return;
+    var y=e.touches[0].clientY, dy=_sly-y; _sly=y;
+    if(w.__sporionScrollBy(dy)) e.preventDefault();
+  }, {passive:false});
+})();
+
 let entering=false;
 function puf(){ crtFlash.classList.remove('puf'); void crtFlash.offsetWidth; crtFlash.classList.add('puf'); }
 

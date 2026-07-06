@@ -64,6 +64,24 @@ window.addEventListener('message',function(e){{
   if(d.sporion==='contribApply'){{ var _af=document.querySelector('iframe.active'); if(_af&&_af.contentWindow) _af.contentWindow.postMessage(d,'*'); return; }}
   if(d.sporion==='lang'){{ document.querySelectorAll('iframe').forEach(function(f){{ if(f.contentWindow&&f.contentWindow!==e.source) f.contentWindow.postMessage(d,'*'); }}); if(window.parent && window.parent!==window && e.source!==window.parent) window.parent.postMessage(d,'*'); return; }}
 }});
+// Kolečko/dotyk nad appkou → naroluj aktivní téma napřímo (same-origin srcdoc). Pojistka pro
+// desktop, kde se ve vnoření pod fixním landing #app-frame nedoručí gesto až do tématu.
+(function(){{
+  function tw(){{ var f=document.querySelector('iframe.active'); return f && f.contentWindow; }}
+  addEventListener('wheel', function(e){{
+    var w=tw(); if(!w||!w.__sporionScrollBy) return;
+    var dy=e.deltaY; if(e.deltaMode===1) dy*=16; else if(e.deltaMode===2) dy*=(w.innerHeight||600);
+    if(w.__sporionScrollBy(dy)) e.preventDefault();
+  }}, {{passive:false}});
+  var ly=null;
+  addEventListener('touchstart', function(e){{ ly=(e.touches.length===1)?e.touches[0].clientY:null; }}, {{passive:true}});
+  addEventListener('touchmove', function(e){{
+    if(ly==null||e.touches.length!==1) return;
+    var w=tw(); if(!w||!w.__sporionScrollBy) return;
+    var y=e.touches[0].clientY, dy=ly-y; ly=y;
+    if(w.__sporionScrollBy(dy)) e.preventDefault();
+  }}, {{passive:false}});
+}})();
 </script>
 </body>
 </html>
