@@ -18,8 +18,11 @@ html, body { height:100%; }
 body {
   background: radial-gradient(130% 90% at 50% 32%, #11141a 0%, var(--bg) 60%);
   color: var(--cream); font-family:'Outfit',sans-serif;
-  overflow-x:hidden; overflow-y:auto; position:relative;   /* desktop i mobil: nezamykat svislé rolování (appka v iframu se musí dát scrollovat) */
+  overflow-x:hidden; overflow-y:auto; position:relative;   /* auth landing: povolit svislé rolování (přihlašovací karta na malých displejích) */
 }
+/* appka zobrazená → zamknout rolování landingu, aby wheel/dotyk šel do #app-frame
+   (když je body scroll-region, „spolkne" scroll a appka v iframu se nedá odrolovat) */
+body.app-live { overflow:hidden; }
 body::before {
   content:''; position:fixed; inset:0; z-index:1; pointer-events:none;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
@@ -363,6 +366,7 @@ function puf(){ crtFlash.classList.remove('puf'); void crtFlash.offsetWidth; crt
 // VSTOUPIT → "přistání": zoom do pixelové planety, pak naskočí aplikace
 function enterTransition(){
   if(entering) return; entering=true;
+  document.body.classList.add('app-live');       // appka převzala obrazovku → landing zamkne rolování (scroll patří appce)
   if(reduced){ appFrame.style.opacity='1'; appFrame.style.pointerEvents='auto'; return; }
   document.body.classList.add('warp');           // planeta se přiblíží, menu odletí
   if(appFrame.contentWindow) appFrame.contentWindow.postMessage({sporion:'lang',lang:LANG},'*');  // appce řekni aktuální jazyk
@@ -374,6 +378,7 @@ function enterApp(prov){ enterTransition(); }
 
 // odhlášení → "vypnutí televize": smrštění do linky → bod → puf, zpět na landing
 function exitTransition(){
+  document.body.classList.remove('app-live');    // zpět na landing → povolit rolování přihlašovací karty
   if(reduced){
     appFrame.classList.remove('on','land'); appFrame.style.opacity='0'; appFrame.style.pointerEvents='none';
     document.body.classList.remove('warp'); if(window.resetWarpZoom) window.resetWarpZoom(); crtBackdrop.classList.remove('show'); entering=false; return;
