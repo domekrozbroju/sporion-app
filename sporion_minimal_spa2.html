@@ -17,7 +17,11 @@
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: var(--white); color: var(--black); font-family: 'Outfit', sans-serif; font-weight: 300; min-height: 100vh; }
+/* Aplikace roluje přes vlastní scroll-kontejner (body), ne přes dokument –
+   explicitní overflow:auto spolehlivě rolује kolečkem i dotykem i ve vnořeném
+   data-URL iframu (jinak detail potu na desktopu ani mobilu nešel odrolovat). */
+html { height: 100%; overflow: hidden; }
+body { background: var(--white); color: var(--black); font-family: 'Outfit', sans-serif; font-weight: 300; height: 100%; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
 
 /* ── BANNER ── */
 .sporion-banner {
@@ -341,6 +345,8 @@ footer .f-copy { font-family:'Outfit',sans-serif; font-size:11px; font-weight:30
 /* ── NEW POT MODAL ── */
 .np-modal { display:none; position:fixed; inset:0; z-index:600; align-items:center; justify-content:center; background:rgba(10,10,10,0.28); backdrop-filter:blur(7px); -webkit-backdrop-filter:blur(7px); padding:24px; }
 .np-modal.show { display:flex; }
+/* mini-okno otevřené → hlavní obrazovka se nesmí rolovat (roluje jen okno samo, pokud potřebuje) */
+body:has(.np-modal.show), body:has(.logout-modal.show) { overflow:hidden; }
 .np-box { background:var(--white); border:var(--border); box-shadow:12px 12px 0 rgba(0,0,0,0.08); width:100%; max-width:620px; max-height:88vh; overflow-y:auto; }
 .np-head { display:flex; align-items:center; justify-content:space-between; padding:20px 24px 14px; border-bottom:var(--border); position:sticky; top:0; background:var(--white); z-index:2; }
 .np-title { font-size:15px; letter-spacing:0.18em; text-transform:uppercase; font-weight:400; }
@@ -430,8 +436,6 @@ footer .f-copy { font-family:'Outfit',sans-serif; font-size:11px; font-weight:30
 /* ── MOBIL (smartphone) ── */
 html { -webkit-text-size-adjust:100%; }
 html, body { max-width:100vw; }
-/* horizontální zámek jen pro dotyk (telefon/tablet); na desktopu by overflow-x na <html> udělal ze stránky scroll-kontejner a rozbil rolování kolečkem/touchpadem ve vnořeném data-URL iframu */
-@media (hover:none) and (pointer:coarse){ html, body { overflow-x:hidden; } }
 @media (max-width:640px) {
   main, .detail-main { padding:26px 14px; }
   header { padding:6px 10px; }
@@ -947,7 +951,7 @@ const R_SMALL = 47, CIRC_SMALL = 2*Math.PI*R_SMALL;
 const R_BIG = 74, CIRC_BIG = 2*Math.PI*R_BIG;
 
 function ringHTML(pct, complete) {
-  const offset = CIRC_SMALL * (1 - pct/100);
+  const offset = CIRC_SMALL * (1 - Math.min(pct,100)/100);   // kroužek se plní max. na 100 %, i když číslo je vyšší
   return `
     <svg width="100" height="100" viewBox="0 0 100 100">
       <circle class="ring-bg" cx="50" cy="50" r="${R_SMALL}"/>
@@ -969,7 +973,7 @@ function buildDashboard() {
 
   POTS.forEach(pot => {
     const progress = Math.min(pot.collected/pot.goal,1);
-    const pct = Math.round(progress*100);
+    const pct = Math.round(pot.collected/pot.goal*100);   // číslo smí přesáhnout 100 % (přestřelení cíle); kroužek zůstává max. 100 %
     const isComplete = pot.collected >= pot.goal;
     const card = document.createElement('div');
     card.className = 'pot-card' + (isComplete?' complete':'');
@@ -1074,9 +1078,10 @@ function drawConst(e,t,W,H){
 function showDetail(pot) {
   _currentPot = pot;
   _footer(false);
-  document.getElementById('item-view').style.display='none';
+  /* přepínač zobrazení necháváme i na detailu, aby se ikonky nav (štětec/ozubené kolo) neposouvaly – gear zůstává na svém místě */
+  document.getElementById('item-view').style.display='';
   const progress = Math.min(pot.collected/pot.goal,1);
-  const pct = Math.round(progress*100);
+  const pct = Math.round(pot.collected/pot.goal*100);   // číslo smí přesáhnout 100 % (přestřelení cíle); kroužek zůstává max. 100 %
 
   // Hero
   document.getElementById('d-label').textContent = `Money pot · ${tOcc(pot)}`;

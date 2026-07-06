@@ -19,7 +19,11 @@
 }
 
 * { box-sizing:border-box; margin:0; padding:0; }
-body { background:var(--bg); color:var(--white); font-family:'Comfortaa',sans-serif; font-weight:300; min-height:100vh; }
+/* Aplikace roluje přes vlastní scroll-kontejner (body), ne přes dokument –
+   explicitní overflow:auto spolehlivě roluje kolečkem i dotykem i ve vnořeném
+   data-URL iframu (jinak detail potu na desktopu ani mobilu nešel odrolovat). */
+html { height:100%; overflow:hidden; }
+body { background:var(--bg); color:var(--white); font-family:'Comfortaa',sans-serif; font-weight:300; height:100%; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; }
 
 /* ── BANNER ── */
 .banner {
@@ -468,6 +472,8 @@ footer {
 /* ── NEW POT MODAL NOIR ── */
 .np-modal { display:none; position:fixed; inset:0; z-index:600; align-items:center; justify-content:center; background:rgba(0,0,0,0.5); backdrop-filter:blur(7px); -webkit-backdrop-filter:blur(7px); padding:24px; }
 .np-modal.show { display:flex; }
+/* mini-okno otevřené → hlavní obrazovka se nesmí rolovat (roluje jen okno samo, pokud potřebuje) */
+body:has(.np-modal.show), body:has(.logout-modal.show) { overflow:hidden; }
 .np-box { background:var(--bg2); border:1px solid var(--blue); box-shadow:0 0 36px rgba(0,207,255,0.32); width:100%; max-width:620px; max-height:88vh; overflow-y:auto; font-family:'Comfortaa',sans-serif; }
 .np-head { display:flex; align-items:center; justify-content:space-between; padding:20px 24px 14px; border-bottom:1px solid rgba(0,207,255,0.25); position:sticky; top:0; background:var(--bg2); z-index:2; }
 .np-title { font-size:14px; letter-spacing:0.14em; text-transform:uppercase; font-weight:700; color:var(--blue); text-shadow:0 0 10px rgba(0,207,255,0.5); }
@@ -560,8 +566,6 @@ footer {
 /* ── MOBIL (smartphone) ── */
 html { -webkit-text-size-adjust:100%; }
 html, body { max-width:100vw; }
-/* horizontální zámek jen pro dotyk (telefon/tablet); na desktopu by overflow-x na <html> udělal ze stránky scroll-kontejner a rozbil rolování kolečkem/touchpadem ve vnořeném data-URL iframu */
-@media (hover:none) and (pointer:coarse){ html, body { overflow-x:hidden; } }
 @media (max-width:640px) {
   main, .detail-wrap { padding:22px 14px; }
   header { padding:6px 10px; }
@@ -1222,7 +1226,7 @@ function buildDashboard() {
 
   POTS.forEach(pot => {
     const progress = Math.min(pot.collected / pot.goal, 1);
-    const pct = Math.round(progress * 100);
+    const pct = Math.round(pot.collected / pot.goal * 100);   // číslo smí přesáhnout 100 % (přestřelení cíle); hvězda zůstává max. 100 %
     const isComplete = pot.collected >= pot.goal;
     const starId = `star-${pot.id}`;
 
@@ -1258,9 +1262,10 @@ function buildDashboard() {
 function showDetail(pot) {
   _currentPot = pot;
   _footer(false);
-  document.getElementById('item-view').style.display='none';
+  /* přepínač zobrazení necháváme i na detailu, aby se ikonky nav (štětec/ozubené kolo) neposouvaly – gear zůstává na svém místě */
+  document.getElementById('item-view').style.display='';
   const progress = Math.min(pot.collected / pot.goal, 1);
-  const pct = Math.round(progress * 100);
+  const pct = Math.round(pot.collected / pot.goal * 100);   // číslo smí přesáhnout 100 % (přestřelení cíle); hvězda zůstává max. 100 %
   const isComplete = pot.collected >= pot.goal;
 
   document.getElementById('d-badge').textContent = `▸ money pot · ${tOcc(pot)}`;
