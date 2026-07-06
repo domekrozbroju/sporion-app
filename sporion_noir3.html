@@ -1633,5 +1633,40 @@ const _origSD = showDashboard;
 showDashboard = function() { _origSD(); document.getElementById('sb-home').classList.add('active'); };
 
 </script>
+<script>
+/* Scroll-rescue: v hlubokém vnoření (landing → fixní #app-frame → wrapper → toto téma jako
+   cross-origin iframe) prohlížeč nedoručí nativní kolečko/dotyk do scrollu tématu (o úroveň
+   mělčeji funguje – proto wrapper napřímo roluje). Programový scroll funguje vždy, tak gesto
+   převedeme na scrollTop ručně. Desktop = wheel, mobil = touch. */
+(function(){
+  var sc=document.scrollingElement||document.documentElement;
+  function innerScrollable(el){
+    while(el && el.nodeType===1 && el!==document.body && el!==document.documentElement){
+      var s=getComputedStyle(el);
+      if((s.overflowY==='auto'||s.overflowY==='scroll') && el.scrollHeight>el.clientHeight+1) return true;
+      el=el.parentElement;
+    }
+    return false;
+  }
+  function modalOpen(){ return !!document.querySelector('.np-modal.show, .logout-modal.show'); }
+  addEventListener('wheel', function(e){
+    if(modalOpen() || innerScrollable(e.target)) return;
+    if(sc.scrollHeight<=sc.clientHeight) return;
+    var dy=e.deltaY; if(e.deltaMode===1) dy*=16; else if(e.deltaMode===2) dy*=sc.clientHeight;
+    var before=sc.scrollTop; sc.scrollTop += dy;
+    if(sc.scrollTop!==before) e.preventDefault();
+  }, {passive:false});
+  var _ly=null;
+  addEventListener('touchstart', function(e){ _ly=(e.touches.length===1)?e.touches[0].clientY:null; }, {passive:true});
+  addEventListener('touchmove', function(e){
+    if(_ly==null || e.touches.length!==1) return;
+    if(modalOpen() || innerScrollable(e.target)){ _ly=e.touches[0].clientY; return; }
+    if(sc.scrollHeight<=sc.clientHeight) return;
+    var y=e.touches[0].clientY, dy=_ly-y; _ly=y;
+    var before=sc.scrollTop; sc.scrollTop += dy;
+    if(sc.scrollTop!==before) e.preventDefault();
+  }, {passive:false});
+})();
+</script>
 </body>
 </html>
