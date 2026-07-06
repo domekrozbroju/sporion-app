@@ -366,8 +366,9 @@ var _curTheme='minimal';
 var _master=null;        // {pots, archive} – přežívá přepnutí tématu
 var _masterView=null;    // {view, potId, mode}
 function _syncTheme(w){ if(!w) return; if(_master) w.postMessage({sporion:'state', pots:_master.pots, archive:_master.archive},'*'); w.postMessage({sporion:'lang', lang:LANG},'*'); if(_masterView) w.postMessage(Object.assign({sporion:'view'}, _masterView),'*'); }
-function switchAppTheme(t){ if(!THEME_FILES[t] || t===_curTheme) return; _curTheme=t; appFrame.src=THEME_FILES[t]; }   // reload → téma pošle 'hello' → dosync přes _syncTheme
-appFrame.src=THEME_FILES[_curTheme];
+function _themeSrc(t){ return THEME_FILES[t] + '?v=' + Date.now(); }   // cache-busting: file:// i Pages jinak drží staré téma v cache (i po hard-reloadu landingu)
+function switchAppTheme(t){ if(!THEME_FILES[t] || t===_curTheme) return; _curTheme=t; appFrame.src=_themeSrc(t); }   // reload → téma pošle 'hello' → dosync přes _syncTheme
+appFrame.src=_themeSrc(_curTheme);
 
 let entering=false;
 function puf(){ crtFlash.classList.remove('puf'); void crtFlash.offsetWidth; crtFlash.classList.add('puf'); }
@@ -456,7 +457,7 @@ function openContribute(pot){
     setTimeout(function(){ g.classList.remove('on'); setTimeout(function(){ if(window._grainStop) window._grainStop(); },360); }, 240);
   };
   if(_contribLoaded){ reveal(); }
-  else { f.onload=function(){ _contribLoaded=true; setTimeout(reveal, 60); }; f.src='sporion_contribute.html'; }
+  else { f.onload=function(){ _contribLoaded=true; setTimeout(reveal, 60); }; f.src='sporion_contribute.html?v='+Date.now(); }
 }
 function closeContribute(){
   var f=document.getElementById('contrib-frame'), g=document.getElementById('contrib-grain');

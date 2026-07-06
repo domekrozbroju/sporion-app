@@ -1479,5 +1479,29 @@ showDashboard = function() {
 };
 
 </script>
+<script>
+/* Scroll appky (programově, protože nativní kolečko/dotyk se do appky ve fixním iframu
+   nemusí dostat). Cíl: otevřené mini-okno (.np-box) má přednost, jinak dokument. */
+(function(){
+  var docSc=document.scrollingElement||document.documentElement;
+  function target(){
+    var m=document.querySelector('.np-modal.show, .logout-modal.show');
+    if(m){ var box=m.querySelector('.np-box, .logout-box, .set-box'); return (box && box.scrollHeight>box.clientHeight+1) ? box : null; }
+    return (docSc.scrollHeight>docSc.clientHeight+1) ? docSc : null;
+  }
+  window.__sporionScrollBy=function(dy){ var t=target(); if(!t) return false; var b=t.scrollTop; t.scrollTop+=dy; return t.scrollTop!==b; };
+  function wheelDy(e){ var dy=e.deltaY; if(e.deltaMode===1) dy*=16; else if(e.deltaMode===2) dy*=(target()||docSc).clientHeight; return dy; }
+  addEventListener('wheel', function(e){ if(window.__sporionScrollBy(wheelDy(e))) e.preventDefault(); }, {passive:false});
+  var ly=null, vy=0, lt=0, raf=0;
+  addEventListener('touchstart', function(e){ if(raf) cancelAnimationFrame(raf); ly=(e.touches.length===1)?e.touches[0].clientY:null; vy=0; lt=performance.now(); }, {passive:true});
+  addEventListener('touchmove', function(e){
+    if(ly==null || e.touches.length!==1) return;
+    var y=e.touches[0].clientY, dy=ly-y; ly=y;
+    var now=performance.now(), dt=now-lt; lt=now; if(dt>0) vy=dy/dt*16;
+    if(window.__sporionScrollBy(dy)) e.preventDefault();
+  }, {passive:false});
+  addEventListener('touchend', function(){ if(Math.abs(vy)<0.6) return; var v=vy; (function fling(){ if(Math.abs(v)<0.4) return; if(!window.__sporionScrollBy(v)) return; v*=0.94; raf=requestAnimationFrame(fling); })(); }, {passive:true});
+})();
+</script>
 </body>
 </html>
