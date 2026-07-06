@@ -358,12 +358,21 @@ function setMode(m){
 const appFrame=document.getElementById('app-frame');
 const crtBackdrop=document.getElementById('crt-backdrop');
 const crtFlash=document.getElementById('crt-flash');
-appFrame.src='sporion_7r22b03ja1ol8zsy.html';
+// Appka: téma se načítá PŘÍMO do #app-frame (jen 1 úroveň vnoření – jako dárcovská stránka,
+// aby fungovalo rolování kolečkem). Landing je zároveň sync-hub: drží stav potů, jazyk i zobrazení
+// a po přepnutí tématu (reload iframu) je pošle novému tématu.
+var THEME_FILES={ minimal:'sporion_minimal_spa2.html', pixel:'sporion_pixel_spa.html', noir:'sporion_noir3.html' };
+var _curTheme='minimal';
+var _master=null;        // {pots, archive} – přežívá přepnutí tématu
+var _masterView=null;    // {view, potId, mode}
+function _syncTheme(w){ if(!w) return; if(_master) w.postMessage({sporion:'state', pots:_master.pots, archive:_master.archive},'*'); w.postMessage({sporion:'lang', lang:LANG},'*'); if(_masterView) w.postMessage(Object.assign({sporion:'view'}, _masterView),'*'); }
+function switchAppTheme(t){ if(!THEME_FILES[t] || t===_curTheme) return; _curTheme=t; appFrame.src=THEME_FILES[t]; }   // reload → téma pošle 'hello' → dosync přes _syncTheme
+appFrame.src=THEME_FILES[_curTheme];
 
 // Kolečko/dotyk nad appkou → naroluj aktivní téma napřímo (vše same-origin). Pojistka pro desktop,
 // kde se gesto ve vnoření pod fixním #app-frame nemusí dostat až do tématu.
 (function(){
-  function themeWin(){ try{ var wd=appFrame.contentDocument; var f=wd&&wd.querySelector('iframe.active'); return f&&f.contentWindow; }catch(e){ return null; } }
+  function themeWin(){ try{ return appFrame.contentWindow; }catch(e){ return null; } }
   function live(){ return document.body.classList.contains('app-live'); }
   addEventListener('wheel', function(e){
     if(!live()) return; var w=themeWin(); if(!w||!w.__sporionScrollBy) return;
@@ -416,6 +425,12 @@ function exitTransition(){
 }
 window.addEventListener('message', function(e){
   if(!e.data) return;
+  // ── sync-hub role (dřív to dělal wrapper) ──
+  if(e.data.theme){ switchAppTheme(e.data.theme); return; }
+  if(e.data.sporion==='hello'){ if(!_master) _master={pots:e.data.pots||[], archive:e.data.archive||[]}; _syncTheme(appFrame.contentWindow); return; }
+  if(e.data.sporion==='sync'){ _master={pots:e.data.pots||[], archive:e.data.archive||[]}; return; }
+  if(e.data.sporion==='view'){ _masterView={view:e.data.view, potId:e.data.potId, mode:e.data.mode}; return; }
+  // ── ostatní ──
   if(e.data.sporion==='logout') exitTransition();
   else if(e.data.sporion==='lang') applyLang(e.data.lang);
   else if(e.data.sporion==='openContrib') openContribute(e.data.pot);
