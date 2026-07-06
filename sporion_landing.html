@@ -369,25 +369,6 @@ function _syncTheme(w){ if(!w) return; if(_master) w.postMessage({sporion:'state
 function switchAppTheme(t){ if(!THEME_FILES[t] || t===_curTheme) return; _curTheme=t; appFrame.src=THEME_FILES[t]; }   // reload → téma pošle 'hello' → dosync přes _syncTheme
 appFrame.src=THEME_FILES[_curTheme];
 
-// Kolečko/dotyk nad appkou → naroluj aktivní téma napřímo (vše same-origin). Pojistka pro desktop,
-// kde se gesto ve vnoření pod fixním #app-frame nemusí dostat až do tématu.
-(function(){
-  function themeWin(){ try{ return appFrame.contentWindow; }catch(e){ return null; } }
-  function live(){ return document.body.classList.contains('app-live'); }
-  addEventListener('wheel', function(e){
-    if(!live()) return; var w=themeWin(); if(!w||!w.__sporionScrollBy) return;
-    var dy=e.deltaY; if(e.deltaMode===1) dy*=16; else if(e.deltaMode===2) dy*=(w.innerHeight||600);
-    if(w.__sporionScrollBy(dy)) e.preventDefault();
-  }, {passive:false});
-  var _sly=null;
-  addEventListener('touchstart', function(e){ _sly=(live()&&e.touches.length===1)?e.touches[0].clientY:null; }, {passive:true});
-  addEventListener('touchmove', function(e){
-    if(_sly==null||e.touches.length!==1) return; var w=themeWin(); if(!w||!w.__sporionScrollBy) return;
-    var y=e.touches[0].clientY, dy=_sly-y; _sly=y;
-    if(w.__sporionScrollBy(dy)) e.preventDefault();
-  }, {passive:false});
-})();
-
 let entering=false;
 function puf(){ crtFlash.classList.remove('puf'); void crtFlash.offsetWidth; crtFlash.classList.add('puf'); }
 

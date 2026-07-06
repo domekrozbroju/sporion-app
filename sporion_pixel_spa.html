@@ -7,8 +7,9 @@
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&display=swap');
   * { box-sizing:border-box; margin:0; padding:0; }
-  /* Puvodni model: aplikace roluje pres dokument (body roste s obsahem). Ve vnorenem
-     data-URL iframu to funguje koleckem i dotykem; NEnasazovat overflow na html/body. */
+  /* Scroll PRESNE jako darcovska stranka (ta na desktopu roluje bez problemu): explicitni
+     overflow-y:auto na html/body. Appka je v #app-frame jen 1 uroven hluboko, takze to jede nativne. */
+  html, body { height:auto; min-height:100%; overflow-x:hidden; overflow-y:auto; -webkit-overflow-scrolling:touch; }
   body { background:#ebd9b2; font-family:'Silkscreen',monospace; }
 
   /* ── BANNER ── */
@@ -1465,37 +1466,6 @@ function showSettings() {
 const _origSD = showDashboard;
 showDashboard = function() { _origSD(); document.getElementById('sb-home').classList.add('active'); };
 
-</script>
-<script>
-/* Scroll ve vnorene appce (landing -> fixni #app-frame -> wrapper -> tema).
-   Kdyz nativni kolecko/dotyk funguje, NEchame ho (plynule). Kdyz ne (hluboke vnoreni),
-   rolujeme programove s dojezdem. window.__sporionScrollBy volaji i rodicovske ramce
-   (wrapper/landing), kdyby gesto dorazilo jen k nim. Cil: otevrene mini-okno ma prednost. */
-(function(){
-  var docSc=document.scrollingElement||document.documentElement;
-  function target(){
-    var m=document.querySelector('.np-modal.show, .logout-modal.show');
-    if(m){ var box=m.querySelector('.np-box, .logout-box, .set-box'); return (box && box.scrollHeight>box.clientHeight+1) ? box : null; }
-    return (docSc.scrollHeight>docSc.clientHeight+1) ? docSc : null;
-  }
-  window.__sporionScrollBy=function(dy){ var t=target(); if(!t) return false; var b=t.scrollTop; t.scrollTop+=dy; return t.scrollTop!==b; };
-  function wheelDy(e){ var dy=e.deltaY; if(e.deltaMode===1) dy*=16; else if(e.deltaMode===2) dy*=(target()||docSc).clientHeight; return dy; }
-  // kolecko (desktop): VZDY programove - detekce nativniho scrollu se ukazala nespolehliva
-  // (ve 2 urovnich vnoreni native "ujede" o kousek a detekce ho chybne vyhodnoti jako funkcni).
-  addEventListener('wheel', function(e){ if(window.__sporionScrollBy(wheelDy(e))) e.preventDefault(); }, {passive:false});
-  var ly=null, vy=0, lt=0, raf=0, tMode=null;
-  addEventListener('touchstart', function(e){ if(raf) cancelAnimationFrame(raf); ly=(e.touches.length===1)?e.touches[0].clientY:null; vy=0; lt=performance.now(); }, {passive:true});
-  addEventListener('touchmove', function(e){
-    if(ly==null || e.touches.length!==1) return;
-    var t=target(); if(!t){ ly=e.touches[0].clientY; return; }
-    var y=e.touches[0].clientY, dy=ly-y; ly=y;
-    if(tMode===false) return;
-    if(tMode===null){ var bt=t.scrollTop; requestAnimationFrame(function(){ if(tMode===null) tMode=(t.scrollTop===bt); }); return; }
-    var now=performance.now(), dt=now-lt; lt=now; if(dt>0) vy=dy/dt*16;
-    if(window.__sporionScrollBy(dy)) e.preventDefault();
-  }, {passive:false});
-  addEventListener('touchend', function(){ if(tMode!==true || Math.abs(vy)<0.6) return; var v=vy; (function fling(){ if(Math.abs(v)<0.4) return; if(!window.__sporionScrollBy(v)) return; v*=0.94; raf=requestAnimationFrame(fling); })(); }, {passive:true});
-})();
 </script>
 </body>
 </html>
