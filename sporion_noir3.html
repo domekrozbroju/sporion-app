@@ -1647,13 +1647,9 @@ showDashboard = function() { _origSD(); document.getElementById('sb-home').class
   }
   window.__sporionScrollBy=function(dy){ var t=target(); if(!t) return false; var b=t.scrollTop; t.scrollTop+=dy; return t.scrollTop!==b; };
   function wheelDy(e){ var dy=e.deltaY; if(e.deltaMode===1) dy*=16; else if(e.deltaMode===2) dy*=(target()||docSc).clientHeight; return dy; }
-  var wMode=null;   // null=neznámo, false=nativní kolečko funguje (nezasahuj), true=ručně
-  addEventListener('wheel', function(e){
-    var t=target(); if(!t) return;
-    if(wMode===false) return;
-    if(wMode===null){ var bt=t.scrollTop; requestAnimationFrame(function(){ if(wMode===null) wMode=(t.scrollTop===bt); }); return; }
-    if(window.__sporionScrollBy(wheelDy(e))) e.preventDefault();
-  }, {passive:false});
+  // kolečko (desktop): VŽDY programově – detekce nativního scrollu se ukázala nespolehlivá
+  // (ve 2 úrovních vnoření native „ujede" o kousek a detekce ho chybně vyhodnotí jako funkční).
+  addEventListener('wheel', function(e){ if(window.__sporionScrollBy(wheelDy(e))) e.preventDefault(); }, {passive:false});
   var ly=null, vy=0, lt=0, raf=0, tMode=null;
   addEventListener('touchstart', function(e){ if(raf) cancelAnimationFrame(raf); ly=(e.touches.length===1)?e.touches[0].clientY:null; vy=0; lt=performance.now(); }, {passive:true});
   addEventListener('touchmove', function(e){
