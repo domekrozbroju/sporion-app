@@ -7,11 +7,9 @@
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&display=swap');
   * { box-sizing:border-box; margin:0; padding:0; }
-  /* Aplikace roluje pres vlastni scroll-kontejner (body), ne pres dokument -
-     explicitni overflow:auto spolehlive roluje koleckem i dotykem i ve vnorenem
-     data-URL iframu (jinak detail potu na desktopu ani mobilu nesel odrolovat). */
-  html { height:100%; overflow:hidden; }
-  body { background:#ebd9b2; font-family:'Silkscreen',monospace; height:100%; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; }
+  /* Puvodni model: aplikace roluje pres dokument (body roste s obsahem). Ve vnorenem
+     data-URL iframu to funguje koleckem i dotykem; NEnasazovat overflow na html/body. */
+  body { background:#ebd9b2; font-family:'Silkscreen',monospace; }
 
   /* ── BANNER ── */
   .banner { width:100%; background:#000; position:relative; overflow:hidden; height:110px; cursor:pointer; display:flex; align-items:center; padding:0 24px; }
@@ -224,8 +222,8 @@
   /* ── NEW POT MODAL PX ── */
   .np-modal { display:none; position:fixed; inset:0; z-index:600; align-items:center; justify-content:center; background:rgba(0,0,0,0.4); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); padding:20px; }
   .np-modal.show { display:flex; }
-  /* mini-okno otevrene -> hlavni obrazovka se nesmi rolovat (roluje jen okno samo, pokud potrebuje) */
-  body:has(.np-modal.show), body:has(.logout-modal.show) { overflow:hidden; }
+  /* mini-okno otevrene -> hlavni obrazovka (dokument) se nesmi rolovat (roluje jen okno samo, pokud potrebuje) */
+  html:has(.np-modal.show), html:has(.logout-modal.show) { overflow:hidden; }
   .np-box { background:#fdf6e7; border:4px solid #000; box-shadow:9px 9px 0 #000; width:100%; max-width:620px; max-height:88vh; overflow-y:auto; font-family:'Silkscreen',monospace; }
   .np-head { display:flex; align-items:center; justify-content:space-between; padding:16px 18px 13px; border-bottom:3px solid #000; position:sticky; top:0; background:#fdf6e7; z-index:2; }
   .np-title { font-size:12px; font-weight:700; color:#000; letter-spacing:1px; }

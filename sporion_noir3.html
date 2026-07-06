@@ -19,11 +19,9 @@
 }
 
 * { box-sizing:border-box; margin:0; padding:0; }
-/* Aplikace roluje přes vlastní scroll-kontejner (body), ne přes dokument –
-   explicitní overflow:auto spolehlivě roluje kolečkem i dotykem i ve vnořeném
-   data-URL iframu (jinak detail potu na desktopu ani mobilu nešel odrolovat). */
-html { height:100%; overflow:hidden; }
-body { background:var(--bg); color:var(--white); font-family:'Comfortaa',sans-serif; font-weight:300; height:100%; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; }
+/* Původní model: aplikace roluje přes dokument (body roste s obsahem). Ve vnořeném
+   data-URL iframu to funguje kolečkem i dotykem; NEnasazovat overflow na html/body. */
+body { background:var(--bg); color:var(--white); font-family:'Comfortaa',sans-serif; font-weight:300; min-height:100vh; }
 
 /* ── BANNER ── */
 .banner {
@@ -472,8 +470,8 @@ footer {
 /* ── NEW POT MODAL NOIR ── */
 .np-modal { display:none; position:fixed; inset:0; z-index:600; align-items:center; justify-content:center; background:rgba(0,0,0,0.5); backdrop-filter:blur(7px); -webkit-backdrop-filter:blur(7px); padding:24px; }
 .np-modal.show { display:flex; }
-/* mini-okno otevřené → hlavní obrazovka se nesmí rolovat (roluje jen okno samo, pokud potřebuje) */
-body:has(.np-modal.show), body:has(.logout-modal.show) { overflow:hidden; }
+/* mini-okno otevřené → hlavní obrazovka (dokument) se nesmí rolovat (roluje jen okno samo, pokud potřebuje) */
+html:has(.np-modal.show), html:has(.logout-modal.show) { overflow:hidden; }
 .np-box { background:var(--bg2); border:1px solid var(--blue); box-shadow:0 0 36px rgba(0,207,255,0.32); width:100%; max-width:620px; max-height:88vh; overflow-y:auto; font-family:'Comfortaa',sans-serif; }
 .np-head { display:flex; align-items:center; justify-content:space-between; padding:20px 24px 14px; border-bottom:1px solid rgba(0,207,255,0.25); position:sticky; top:0; background:var(--bg2); z-index:2; }
 .np-title { font-size:14px; letter-spacing:0.14em; text-transform:uppercase; font-weight:700; color:var(--blue); text-shadow:0 0 10px rgba(0,207,255,0.5); }

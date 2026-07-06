@@ -17,11 +17,10 @@
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
-/* Aplikace roluje přes vlastní scroll-kontejner (body), ne přes dokument –
-   explicitní overflow:auto spolehlivě rolује kolečkem i dotykem i ve vnořeném
-   data-URL iframu (jinak detail potu na desktopu ani mobilu nešel odrolovat). */
-html { height: 100%; overflow: hidden; }
-body { background: var(--white); color: var(--black); font-family: 'Outfit', sans-serif; font-weight: 300; height: 100%; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
+/* Původní model: aplikace roluje přes dokument (body roste s obsahem). Ve vnořeném
+   data-URL iframu to funguje kolečkem i dotykem; NEnasazovat overflow na html/body
+   (to z kořene udělá scroll-kontejner a rolování se rozbije). */
+body { background: var(--white); color: var(--black); font-family: 'Outfit', sans-serif; font-weight: 300; min-height: 100vh; }
 
 /* ── BANNER ── */
 .sporion-banner {
@@ -345,8 +344,8 @@ footer .f-copy { font-family:'Outfit',sans-serif; font-size:11px; font-weight:30
 /* ── NEW POT MODAL ── */
 .np-modal { display:none; position:fixed; inset:0; z-index:600; align-items:center; justify-content:center; background:rgba(10,10,10,0.28); backdrop-filter:blur(7px); -webkit-backdrop-filter:blur(7px); padding:24px; }
 .np-modal.show { display:flex; }
-/* mini-okno otevřené → hlavní obrazovka se nesmí rolovat (roluje jen okno samo, pokud potřebuje) */
-body:has(.np-modal.show), body:has(.logout-modal.show) { overflow:hidden; }
+/* mini-okno otevřené → hlavní obrazovka (dokument) se nesmí rolovat (roluje jen okno samo, pokud potřebuje) */
+html:has(.np-modal.show), html:has(.logout-modal.show) { overflow:hidden; }
 .np-box { background:var(--white); border:var(--border); box-shadow:12px 12px 0 rgba(0,0,0,0.08); width:100%; max-width:620px; max-height:88vh; overflow-y:auto; }
 .np-head { display:flex; align-items:center; justify-content:space-between; padding:20px 24px 14px; border-bottom:var(--border); position:sticky; top:0; background:var(--white); z-index:2; }
 .np-title { font-size:15px; letter-spacing:0.18em; text-transform:uppercase; font-weight:400; }
