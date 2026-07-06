@@ -13,16 +13,21 @@ ZDROJOVÉ soubory (zde se edituje) — každý je samostatné, plně funkční t
 
 VÝSLEDNÝ soubor (build artefakt, needitovat ručně):
 - `sporion_7r22b03ja1ol8zsy.html` — tenký wrapper, který vkládá tři zdrojové soubory jako
-  base64 data-URL do tří <iframe>. Přepínání témat přes window.postMessage({theme:...}).
+  `<iframe srcdoc="...">` (NE data-URL!). Přepínání témat přes window.postMessage({theme:...}).
 
 ## Build krok (DŮLEŽITÉ)
 
 Po JAKÉKOLIV změně ve zdrojovém souboru je nutné přegenerovat `sporion_7r22b03ja1ol8zsy.html`.
-Postup: každý zdroj se přečte jako bytes, zakóduje base64 a vloží do wrapperu jako
-`src="data:text/html;base64,..."`. Wrapper poslouchá `message` event a přepíná
+Postup: každý zdroj se přečte jako text, HTML-escapuje se (`&`→`&amp;`, `"`→`&quot;`) a vloží
+do wrapperu jako `<iframe srcdoc="...">`. Wrapper poslouchá `message` event a přepíná
 `.active` třídu na iframech. Tři ID: frame-minimal, frame-pixel, frame-noir.
 
-Hotový build skript: **`python3 build_app.py`** (přečte tři zdroje, base64, vloží do šablony
+**PROČ srcdoc a NE data-URL:** srcdoc dědí origin rodiče → téma je SAME-ORIGIN (in-process).
+data-URL dělal z tématu cross-origin OOPIF a prohlížeč pak ve vnoření pod fixním landing
+`#app-frame` NEDORUČIL scroll (kolečko/dotyk) do detailu potu. srcdoc to opravuje. Sync
+přes postMessage funguje dál (nikde se nekontroluje `e.origin`). Viz memory `scroll-vnorene-iframy`.
+
+Hotový build skript: **`python3 build_app.py`** (přečte tři zdroje, escapuje, vloží do šablony
 wrapperu a zapíše `sporion_7r22b03ja1ol8zsy.html`). Po každé změně zdroje spustit.
 
 ## Společná architektura všech tří témat

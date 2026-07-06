@@ -972,7 +972,7 @@ function buildDashboard() {
 
   POTS.forEach(pot => {
     const progress = Math.min(pot.collected/pot.goal,1);
-    const pct = Math.round(pot.collected/pot.goal*100);   // číslo smí přesáhnout 100 % (přestřelení cíle); kroužek zůstává max. 100 %
+    const pct = Math.floor(pot.collected/pot.goal*100);   // floor: 1990/2000 = 99 %, ne 100 %; smí přesáhnout 100 % (přestřelení); kroužek zůstává max. 100 %
     const isComplete = pot.collected >= pot.goal;
     const card = document.createElement('div');
     card.className = 'pot-card' + (isComplete?' complete':'');
@@ -1080,7 +1080,7 @@ function showDetail(pot) {
   /* přepínač zobrazení necháváme i na detailu, aby se ikonky nav (štětec/ozubené kolo) neposouvaly – gear zůstává na svém místě */
   document.getElementById('item-view').style.display='';
   const progress = Math.min(pot.collected/pot.goal,1);
-  const pct = Math.round(pot.collected/pot.goal*100);   // číslo smí přesáhnout 100 % (přestřelení cíle); kroužek zůstává max. 100 %
+  const pct = Math.floor(pot.collected/pot.goal*100);   // floor: 1990/2000 = 99 %, ne 100 %; smí přesáhnout 100 % (přestřelení); kroužek zůstává max. 100 %
 
   // Hero
   document.getElementById('d-label').textContent = `Money pot · ${tOcc(pot)}`;

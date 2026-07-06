@@ -854,7 +854,7 @@ function renderContribState(){
   var showProgress = (v.progress!=null)   ? !!v.progress   : true;
   var showDonors   = (v.donors!=null)     ? !!v.donors     : true;
   var showIndiv    = (v.individual!=null) ? !!v.individual : true;
-  var pct=Math.round(c.collected/c.goal*100);   // může přesáhnout 100 % (přestřelení cíle) – číslo se ukazuje, pruh se ořízne na 100 %
+  var pct=Math.floor(c.collected/c.goal*100);   // floor: 1990/2000 = 99 %, ne 100 %; smí přesáhnout 100 % (přestřelení) – pruh se ořízne na 100 %
   // ── blok "Průběh / Cílová částka" ──
   var bp=document.getElementById('cc-block-progress'); if(bp) bp.classList.toggle('on', showProgress || showAmount);
   var hd=document.getElementById('cc-progress-hd');

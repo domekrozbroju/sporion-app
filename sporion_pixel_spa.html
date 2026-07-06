@@ -1138,7 +1138,7 @@ function buildDashboard(){
 
   POTS.forEach(pot=>{
     const progress=Math.min(pot.collected/pot.goal,1);
-    const pct=Math.round(pot.collected/pot.goal*100);   // cislo smi presahnout 100 % (prestreleni cile); houba zustava max. 100 %
+    const pct=Math.floor(pot.collected/pot.goal*100);   // floor: 1990/2000 = 99 %, ne 100 %; smi presahnout 100 % (prestreleni); houba zustava max. 100 %
     const isComplete=pot.collected>=pot.goal;
 
     const card=document.createElement('div');
@@ -1177,7 +1177,7 @@ function showDetail(pot){
   /* prepinac zobrazeni nechavame i na detailu, aby se ikonky nav (stetec/ozubene kolo) neposouvaly - gear zustava na svem miste */
   document.getElementById('item-view').style.display='';
   const progress=Math.min(pot.collected/pot.goal,1);
-  const pct=Math.round(pot.collected/pot.goal*100);   // cislo smi presahnout 100 % (prestreleni cile); houba zustava max. 100 %
+  const pct=Math.floor(pot.collected/pot.goal*100);   // floor: 1990/2000 = 99 %, ne 100 %; smi presahnout 100 % (prestreleni); houba zustava max. 100 %
 
   document.getElementById('d-badge').textContent=`> money pot / ${dia(tOcc(pot))}`;
   document.getElementById('d-title').textContent=dia(tName(pot));

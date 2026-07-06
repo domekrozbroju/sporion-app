@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 """Sestaví sporion_7r22b03ja1ol8zsy.html ze tří zdrojových témat.
-Každý zdroj se zakóduje base64 a vloží jako data-URL do <iframe>.
+Každý zdroj se vloží do <iframe srcdoc="..."> (NE data-URL!).
+Důvod: srcdoc dědí origin rodiče → téma je SAME-ORIGIN (ne cross-origin OOPIF).
+data:-URL dělal z tématu out-of-process frame a prohlížeč pak ve vnoření pod
+fixním landing #app-frame nedoručil scroll (kolečko/dotyk) do detailu potu.
+Wrapper zůstává jeden samostatný soubor (obsah témat je vložený, jen HTML-escapovaný).
 Spuštění:  python3 build_app.py
 """
-import base64, os
+import os
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
@@ -13,15 +17,18 @@ FRAMES = [
     ("frame-noir",    "sporion_noir3.html",        False),
 ]
 
-def b64(path):
-    with open(os.path.join(HERE, path), "rb") as f:
-        return base64.b64encode(f.read()).decode("ascii")
+def srcdoc(path):
+    """Přečti téma a HTML-escapuj pro atribut srcdoc (dvojité uvozovky).
+    Escapovat stačí & a " (< > jsou samotné značky HTML a musí zůstat)."""
+    with open(os.path.join(HERE, path), "r", encoding="utf-8") as f:
+        s = f.read()
+    return s.replace("&", "&amp;").replace('"', "&quot;")
 
 iframes = "\n".join(
-    '<iframe id="{id}"{active} src="data:text/html;base64,{data}"></iframe>'.format(
+    '<iframe id="{id}"{active} srcdoc="{data}"></iframe>'.format(
         id=fid,
         active=' class="active"' if active else "",
-        data=b64(src),
+        data=srcdoc(src),
     )
     for fid, src, active in FRAMES
 )
