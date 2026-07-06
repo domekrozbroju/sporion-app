@@ -11,9 +11,18 @@ ZDROJOVÉ soubory (zde se edituje) — každý je samostatné, plně funkční t
 - `sporion_pixel_spa.html`    — téma "8Bit Shroomies" (font Silkscreen, pixel art, houby jako progress, banner s raketkou + hvězdami). Obsahuje base64 PNG hub (~870 KB).
 - `sporion_noir3.html`        — téma "Neon Noir" (font Comfortaa, tmavé pozadí, modrá #00cfff + žlutá #ffe600, banner s kapkami na skle + bleskem, hvězda jako progress)
 
-VÝSLEDNÝ soubor (build artefakt, needitovat ručně):
-- `sporion_7r22b03ja1ol8zsy.html` — tenký wrapper, který vkládá tři zdrojové soubory jako
-  `<iframe srcdoc="...">` (NE data-URL!). Přepínání témat přes window.postMessage({theme:...}).
+VÝSLEDNÝ soubor (build artefakt):
+- `sporion_7r22b03ja1ol8zsy.html` — wrapper se třemi tématy v `<iframe srcdoc>`.
+  **POZOR: appka ho už NEPOUŽÍVÁ.** `sporion_landing.html` načítá téma PŘÍMO do `#app-frame`
+  (`appFrame.src = THEME_FILES[t]`, jen 1 úroveň vnoření — kvůli scrollu kolečkem na desktopu,
+  viz níže). Landing je sync-hub: drží stav potů/zobrazení/jazyk a po přepnutí tématu (reload
+  iframu → téma pošle `hello`) je vrátí. Wrapper zůstává jen jako artefakt (build_app.py ho umí
+  vyrobit), pro appku není v cestě.
+
+**Scroll (DŮLEŽITÉ):** Appka MUSÍ být v `#app-frame` jen 1 úroveň hluboko (tj. téma přímo, ne přes
+wrapper). Ve 2 úrovních vnoření pod fixním iframem se na desktopu kolečko nedoručí do tématu a
+detail potu nejde odrolovat. Vzor je dárcovská stránka (`#contrib-frame` → stránka přímo), která
+roluje bez potíží. Nezanořovat appku hlouběji.
 
 ## Build krok (DŮLEŽITÉ)
 
