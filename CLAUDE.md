@@ -12,17 +12,20 @@ ZDROJOVÉ soubory (zde se edituje) — každý je samostatné, plně funkční t
 - `sporion_noir3.html`        — téma "Neon Noir" (font Comfortaa, tmavé pozadí, modrá #00cfff + žlutá #ffe600, banner s kapkami na skle + bleskem, hvězda jako progress)
 
 VÝSLEDNÝ soubor (build artefakt):
-- `sporion_7r22b03ja1ol8zsy.html` — wrapper se třemi tématy v `<iframe srcdoc>`.
-  **POZOR: appka ho už NEPOUŽÍVÁ.** `sporion_landing.html` načítá téma PŘÍMO do `#app-frame`
-  (`appFrame.src = THEME_FILES[t]`, jen 1 úroveň vnoření — kvůli scrollu kolečkem na desktopu,
-  viz níže). Landing je sync-hub: drží stav potů/zobrazení/jazyk a po přepnutí tématu (reload
-  iframu → téma pošle `hello`) je vrátí. Wrapper zůstává jen jako artefakt (build_app.py ho umí
-  vyrobit), pro appku není v cestě.
+- `sporion_7r22b03ja1ol8zsy.html` — wrapper, který vkládá tři zdrojové soubory jako
+  `<iframe srcdoc="...">`. `sporion_landing.html` načítá appku přes `#app-frame` → tento
+  wrapper (`appFrame.src='sporion_7r22b03ja1ol8zsy.html'`, nastaveno hned při načtení landingu).
+  Wrapper drží sdílený stav potů napříč tématy (zprávy hello/state/sync/view) a přepínání
+  tématu (`postMessage({theme:...})` → `switchTheme()` uvnitř wrapperu).
 
-**Scroll (DŮLEŽITÉ):** Appka MUSÍ být v `#app-frame` jen 1 úroveň hluboko (tj. téma přímo, ne přes
-wrapper). Ve 2 úrovních vnoření pod fixním iframem se na desktopu kolečko nedoručí do tématu a
-detail potu nejde odrolovat. Vzor je dárcovská stránka (`#contrib-frame` → stránka přímo), která
-roluje bez potíží. Nezanořovat appku hlouběji.
+**Scroll (DŮLEŽITÉ — ověřená konfigurace):** Toto vnoření (landing → `#app-frame` → wrapper →
+téma) je záměrně dvouúrovňové a je to konfigurace, která prokazatelně funguje (scroll kolečkem
+i dotykem). Nezjednodušovat na "přímé" načtení tématu do `#app-frame` — to bylo vyzkoušeno
+(commity mezi `b174b7e` a `f22ceae`) a scroll to NEOPRAVILO; skutečná příčina tehdejší
+regrese scrollu byla jinde (viz memory `scroll-vnorene-iframy` pro detaily pátrání). Landing
+`body` má VŽDY `overflow:hidden` (žádné podmíněné `overflow-y:auto`/třída pro "app-live" —
+to bylo zdrojem zmatku). `#app-frame` základní CSS pravidlo obsahuje `transform-origin` a
+`.land` třída svůj vlastní `transition:opacity` — neměnit, obojí bylo v ověřené verzi.
 
 ## Build krok (DŮLEŽITÉ)
 
