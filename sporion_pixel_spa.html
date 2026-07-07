@@ -1491,5 +1491,20 @@ showDashboard = function() { _origSD(); document.getElementById('sb-home').class
   addEventListener('touchend', function(){ if(Math.abs(vy)<0.6) return; var v=vy; (function fling(){ if(Math.abs(v)<0.4) return; if(!window.__sporionScrollBy(v)) return; v*=0.94; raf=requestAnimationFrame(fling); })(); }, {passive:true});
 })();
 </script>
+<!-- DOCASNA DIAGNOSTIKA SCROLLU (cerveny prouzek) - po vyreseni odstranim -->
+<div id="__sdbg" style="position:fixed;top:0;left:0;right:0;z-index:2147483647;background:#c0392b;color:#fff;font:bold 13px/1.4 monospace;padding:6px 8px;pointer-events:none;text-align:center;">SCROLL TEST - zkus rolovat koleckem nad detailem potu</div>
+<script>
+(function(){
+  var el=document.getElementById('__sdbg'); if(!el) return;
+  var wheelN=0, moveN=0, sc=document.scrollingElement||document.documentElement, topWin=null;
+  try{ topWin=window.top; }catch(e){}
+  try{ if(topWin && topWin!==window && !topWin.__sdbgSet){ topWin.__sdbgN=0; topWin.addEventListener('wheel', function(){ topWin.__sdbgN++; }, {passive:true, capture:true}); topWin.__sdbgSet=1; } }catch(e){}
+  function landN(){ try{ return (topWin && topWin!==window) ? (topWin.__sdbgN||0) : '-'; }catch(e){ return 'X'; } }
+  function upd(){ el.textContent='TEMA:'+wheelN+'  LANDING:'+landN()+'  pozice:'+Math.round(sc.scrollTop)+' / '+(sc.scrollHeight-sc.clientHeight); }
+  addEventListener('wheel', function(){ wheelN++; upd(); }, {passive:true, capture:true});
+  addEventListener('touchmove', function(){ moveN++; upd(); }, {passive:true, capture:true});
+  setInterval(upd, 300); upd();
+})();
+</script>
 </body>
 </html>
