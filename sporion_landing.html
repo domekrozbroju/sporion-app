@@ -417,10 +417,15 @@ let entering=false;
 function puf(){ crtFlash.classList.remove('puf'); void crtFlash.offsetWidth; crtFlash.classList.add('puf'); }
 
 // VSTOUPIT → "přistání": zoom do pixelové planety, pak naskočí aplikace
+// DOČASNÝ TEST 3 (?testframe=appnowarp v URL): appka se zobrazí v #app-frame OKAMŽITĚ,
+// úplně bez warp/zoom choreografie – izolace, jestli vadí #app-frame samotný (ID/CSS/z-index),
+// nebo JS sekvence běžící BĚHEM vstupu (i když se pak uklidí).
+var _testAppNoWarp = /[?&]testframe=appnowarp/.test(location.search);
 function enterTransition(){
   if(entering) return; entering=true;
   if(!_appFrameLoaded){ _appFrameLoaded=true; appFrame.src=_themeSrc(_curTheme); }   // líné načtení (viz pozn. výše), stejně jako dárcovská stránka
   document.body.classList.add('app-live');       // appka převzala obrazovku → landing zamkne rolování (scroll patří appce)
+  if(_testAppNoWarp){ appFrame.classList.add('land'); focusApp(); return; }
   // Sjednoceno: appka se VŽDY zobrazuje přes stejnou CSS třídu .land (i při "omezit pohyb" v macOS
   // – @media (prefers-reduced-motion) níž appce sama vypne transition, netřeba inline styl zvlášť).
   // Dřívější inline appFrame.style.opacity/pointerEvents pro reduced-motion byla jiná cesta než
