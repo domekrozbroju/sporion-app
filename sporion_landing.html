@@ -421,7 +421,11 @@ function enterTransition(){
   if(entering) return; entering=true;
   if(!_appFrameLoaded){ _appFrameLoaded=true; appFrame.src=_themeSrc(_curTheme); }   // líné načtení (viz pozn. výše), stejně jako dárcovská stránka
   document.body.classList.add('app-live');       // appka převzala obrazovku → landing zamkne rolování (scroll patří appce)
-  if(reduced){ appFrame.style.opacity='1'; appFrame.style.pointerEvents='auto'; focusApp(); return; }
+  // Sjednoceno: appka se VŽDY zobrazuje přes stejnou CSS třídu .land (i při "omezit pohyb" v macOS
+  // – @media (prefers-reduced-motion) níž appce sama vypne transition, netřeba inline styl zvlášť).
+  // Dřívější inline appFrame.style.opacity/pointerEvents pro reduced-motion byla jiná cesta než
+  // dárcovská stránka (ta vždy jede přes CSS třídu) – možný zdroj nekonzistence v Safari.
+  if(reduced){ appFrame.classList.add('land'); focusApp(); return; }
   document.body.classList.add('warp');           // planeta se přiblíží, menu odletí
   if(appFrame.contentWindow) appFrame.contentWindow.postMessage({sporion:'lang',lang:LANG},'*');  // appce řekni aktuální jazyk
   if(window.startWarpZoom) window.startWarpZoom();
@@ -434,7 +438,7 @@ function enterApp(prov){ enterTransition(); }
 function exitTransition(){
   document.body.classList.remove('app-live');    // zpět na landing → povolit rolování přihlašovací karty
   if(reduced){
-    appFrame.classList.remove('on','land'); appFrame.style.opacity='0'; appFrame.style.pointerEvents='none';
+    appFrame.classList.remove('on','land');
     document.body.classList.remove('warp'); if(window.resetWarpZoom) window.resetWarpZoom(); crtBackdrop.classList.remove('show'); entering=false; return;
   }
   appFrame.classList.remove('on','land'); void appFrame.offsetWidth;
