@@ -4,7 +4,6 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <script>['gesturestart','gesturechange','gestureend'].forEach(function(g){document.addEventListener(g,function(e){e.preventDefault();});});</script>
-<script>/* DOCASNA diagnostika scrollu (odstranit po vyreseni) - aktivni jen s ?scrolldebug=1 v URL */(function(){if(!/scrolldebug/.test(location.search))return;var b=document.createElement('div');b.style.cssText='position:fixed;top:8px;right:8px;z-index:2147483647;background:#000;color:#0f0;font:11px monospace;padding:6px 10px;border-radius:4px;pointer-events:none;white-space:pre;opacity:0.9;';b.textContent='wheel: (waiting) doc=LANDING';document.documentElement.appendChild(b);var n=0;window.addEventListener('wheel',function(e){n++;var af=document.getElementById('app-frame');var cs=af?getComputedStyle(af):null;var t=e.target;var tid=(t&&t.id)?('#'+t.id):(t&&t.className?('.'+String(t.className).split(' ')[0]):(t&&t.tagName));b.textContent='LANDING wheel #'+n+' dY='+Math.round(e.deltaY)+' tgt='+tid+'\napp-frame: opacity='+(cs&&cs.opacity)+' pe='+(cs&&cs.pointerEvents)+' class='+(af&&af.className);},{capture:true,passive:true});})();</script>
 <title>Sporion</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&family=Silkscreen:wght@400;700&family=Comfortaa:wght@400;700&family=Press+Start+2P&family=VT323&family=Major+Mono+Display&family=Bungee&family=Monoton&family=Orbitron:wght@700&family=Audiowide&family=Wallpoet&family=Rubik+Glitch&family=Fraunces:opsz,wght@9..144,600&family=Playfair+Display:wght@700&family=Bebas+Neue&family=Archivo+Black&family=Share+Tech+Mono&family=Tourney:wght@700&family=Pixelify+Sans:wght@700&family=Syne+Mono&family=Michroma&display=swap');
@@ -253,9 +252,11 @@ body.warp #warp-flash { animation:warpFlash 2.1s ease-in forwards; }
 <style>
 #contrib-frame { position:fixed; inset:0; width:100%; height:100%; border:none; z-index:60; background:#fff; opacity:0; pointer-events:none; transition:opacity 0.28s ease; }
 #contrib-frame.show { opacity:1; pointer-events:auto; }
-/* TEST: contrib-frame vyjmuty z layoutu, dokud neni aktivni - podezreni, ze i s pointer-events:none
-   pořád stoji ve stacku nad #app-frame (z-index 60 > 50) a v Safari muze blokovat wheel dorucovani
-   do spodni vrstvy (na rozdil od kliku, ktere pointer-events:none propousti spolehlive). */
+/* #contrib-frame je trvale v DOM (i nikdy neotevreny) a ma vyssi z-index nez #app-frame (60 > 50).
+   I s pointer-events:none WebKit spolehlive nedorucuje wheel event do vrstvy pod nim (klik projde
+   bez problemu, wheel ne) - proto detail potu nesla odscrollovat. display:none prvek uplne vyjme
+   ze stacku, dokud neni aktivne zobrazeny. Overeno uzivatelem primo (Safari desktop), scroll funguje.
+   Viz memory scroll-vnorene-iframy pro cely pribeh pátrání. */
 #contrib-frame:not(.show) { display:none; }
 /* zrnění „stará televize" — velké pixely (canvas kreslený nízkorozlišeně a roztažený pixelovaně) */
 #contrib-grain { position:fixed; inset:0; z-index:75; pointer-events:none; opacity:0; transition:opacity 0.34s ease;
