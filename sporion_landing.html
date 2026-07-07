@@ -389,7 +389,12 @@ var _masterView=null;    // {view, potId, mode}
 function _syncTheme(w){ if(!w) return; if(_master) w.postMessage({sporion:'state', pots:_master.pots, archive:_master.archive},'*'); w.postMessage({sporion:'lang', lang:LANG},'*'); if(_masterView) w.postMessage(Object.assign({sporion:'view'}, _masterView),'*'); }
 function _themeSrc(t){ return THEME_FILES[t] + '?v=' + Date.now(); }   // cache-busting: file:// i Pages jinak drží staré téma v cache (i po hard-reloadu landingu)
 function switchAppTheme(t){ if(!THEME_FILES[t] || t===_curTheme) return; _curTheme=t; appFrame.src=_themeSrc(t); }   // reload → téma pošle 'hello' → dosync přes _syncTheme
-appFrame.src=_themeSrc(_curTheme);
+// TEST: appka se dřív načítala hned při otevření landingu (appFrame.src nastaveno tady, "na pozadí"),
+// zatímco #app-frame zůstal dlouho neviditelný (opacity:0). Dárcovská stránka (#contrib-frame) se
+// naopak vždy načítá LÍNĚ, až v okamžiku zobrazení. Podezření: dlouho skrytý iframe si v Safari
+// "neprobudí" pořádně vlastní scroll mechanismus, i když se pak zviditelní. appFrame.src se teď
+// nastavuje až v enterTransition(), stejně líně jako u dárcovské.
+var _appFrameLoaded=false;
 
 // Safari (macOS): gesto na touchpadu se řídí podle FOCUSU dokumentu, ne jen podle polohy myši
 // (na rozdíl od kliknutí). Pokud po vstupu do appky zůstal focus na landingu, Safari gesto
@@ -414,6 +419,7 @@ function puf(){ crtFlash.classList.remove('puf'); void crtFlash.offsetWidth; crt
 // VSTOUPIT → "přistání": zoom do pixelové planety, pak naskočí aplikace
 function enterTransition(){
   if(entering) return; entering=true;
+  if(!_appFrameLoaded){ _appFrameLoaded=true; appFrame.src=_themeSrc(_curTheme); }   // líné načtení (viz pozn. výše), stejně jako dárcovská stránka
   document.body.classList.add('app-live');       // appka převzala obrazovku → landing zamkne rolování (scroll patří appce)
   if(reduced){ appFrame.style.opacity='1'; appFrame.style.pointerEvents='auto'; focusApp(); return; }
   document.body.classList.add('warp');           // planeta se přiblíží, menu odletí
