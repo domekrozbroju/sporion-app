@@ -373,7 +373,12 @@ const crtFlash=document.getElementById('crt-flash');
 // Appka: téma se načítá PŘÍMO do #app-frame (jen 1 úroveň vnoření – jako dárcovská stránka,
 // aby fungovalo rolování kolečkem). Landing je zároveň sync-hub: drží stav potů, jazyk i zobrazení
 // a po přepnutí tématu (reload iframu) je pošle novému tématu.
-var THEME_FILES={ minimal:'sporion_minimal_spa2.html', pixel:'sporion_pixel_spa.html', noir:'sporion_noir3.html' };
+// DOČASNÝ TEST (?testframe=contrib v URL): appka do #app-frame místo tématu načte dárcovskou
+// stránku – zjišťujeme, jestli scroll problém je v #app-frame samotném, nebo v obsahu tématu.
+var _testFrameContrib = /[?&]testframe=contrib/.test(location.search);
+var THEME_FILES = _testFrameContrib
+  ? { minimal:'sporion_contribute.html', pixel:'sporion_contribute.html', noir:'sporion_contribute.html' }
+  : { minimal:'sporion_minimal_spa2.html', pixel:'sporion_pixel_spa.html', noir:'sporion_noir3.html' };
 var _curTheme='minimal';
 var _master=null;        // {pots, archive} – přežívá přepnutí tématu
 var _masterView=null;    // {view, potId, mode}
