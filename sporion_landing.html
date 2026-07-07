@@ -370,6 +370,23 @@ function _themeSrc(t){ return THEME_FILES[t] + '?v=' + Date.now(); }   // cache-
 function switchAppTheme(t){ if(!THEME_FILES[t] || t===_curTheme) return; _curTheme=t; appFrame.src=_themeSrc(t); }   // reload → téma pošle 'hello' → dosync přes _syncTheme
 appFrame.src=_themeSrc(_curTheme);
 
+// Safari (macOS): gesto na touchpadu se řídí podle FOCUSU dokumentu, ne jen podle polohy myši
+// (na rozdíl od kliknutí). Pokud po vstupu do appky zůstal focus na landingu, Safari gesto
+// do iframu vůbec nedoručí jako JS 'wheel' událost → appka se nedá odrolovat. Řešení: vynutit
+// focus na appku, jakmile je vidět, a znovu při každém najetí myší nad ni.
+function focusApp(){ try{ appFrame.focus(); }catch(e){} }
+appFrame.addEventListener('load', function(){ if(document.body.classList.contains('app-live')) focusApp(); });
+appFrame.addEventListener('mouseenter', function(){ if(document.body.classList.contains('app-live')) focusApp(); });
+// pojistka: i kdyby myš byla nad appkou už PŘED jejím zobrazením (mouseenter by nenaskočil),
+// hlídej pohyb myši nad landingem a focus dožeň (throttle 400 ms – gesto samo o sobě nevadí,
+// jen focus se musí stihnout přesunout, než začne rolování)
+var _focusChk=0;
+addEventListener('mousemove', function(){
+  if(!document.body.classList.contains('app-live')) return;
+  var now=Date.now(); if(now-_focusChk<400) return; _focusChk=now;
+  if(document.activeElement!==appFrame) focusApp();
+}, {passive:true});
+
 let entering=false;
 function puf(){ crtFlash.classList.remove('puf'); void crtFlash.offsetWidth; crtFlash.classList.add('puf'); }
 
@@ -377,11 +394,11 @@ function puf(){ crtFlash.classList.remove('puf'); void crtFlash.offsetWidth; crt
 function enterTransition(){
   if(entering) return; entering=true;
   document.body.classList.add('app-live');       // appka převzala obrazovku → landing zamkne rolování (scroll patří appce)
-  if(reduced){ appFrame.style.opacity='1'; appFrame.style.pointerEvents='auto'; return; }
+  if(reduced){ appFrame.style.opacity='1'; appFrame.style.pointerEvents='auto'; focusApp(); return; }
   document.body.classList.add('warp');           // planeta se přiblíží, menu odletí
   if(appFrame.contentWindow) appFrame.contentWindow.postMessage({sporion:'lang',lang:LANG},'*');  // appce řekni aktuální jazyk
   if(window.startWarpZoom) window.startWarpZoom();
-  setTimeout(function(){ appFrame.classList.add('land'); }, 1750); // appka prolne na konci zoomu (po atmosférickém záblesku)
+  setTimeout(function(){ appFrame.classList.add('land'); focusApp(); }, 1750); // appka prolne na konci zoomu (po atmosférickém záblesku) + vynutit focus (Safari touchpad scroll)
 }
 function submitAuth(){ enterTransition(); }
 function enterApp(prov){ enterTransition(); }
