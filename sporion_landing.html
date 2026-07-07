@@ -253,6 +253,10 @@ body.warp #warp-flash { animation:warpFlash 2.1s ease-in forwards; }
 <style>
 #contrib-frame { position:fixed; inset:0; width:100%; height:100%; border:none; z-index:60; background:#fff; opacity:0; pointer-events:none; transition:opacity 0.28s ease; }
 #contrib-frame.show { opacity:1; pointer-events:auto; }
+/* TEST: contrib-frame vyjmuty z layoutu, dokud neni aktivni - podezreni, ze i s pointer-events:none
+   pořád stoji ve stacku nad #app-frame (z-index 60 > 50) a v Safari muze blokovat wheel dorucovani
+   do spodni vrstvy (na rozdil od kliku, ktere pointer-events:none propousti spolehlive). */
+#contrib-frame:not(.show) { display:none; }
 /* zrnění „stará televize" — velké pixely (canvas kreslený nízkorozlišeně a roztažený pixelovaně) */
 #contrib-grain { position:fixed; inset:0; z-index:75; pointer-events:none; opacity:0; transition:opacity 0.34s ease;
   image-rendering:pixelated; image-rendering:crisp-edges; background:#0a0b0e; }
