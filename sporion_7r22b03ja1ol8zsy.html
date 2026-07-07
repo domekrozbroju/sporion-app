@@ -31,9 +31,6 @@ iframe.active { display: block; }
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
-/* Původní model: aplikace roluje přes dokument (body roste s obsahem). Ve vnořeném
-   data-URL iframu to funguje kolečkem i dotykem; NEnasazovat overflow na html/body
-   (to z kořene udělá scroll-kontejner a rolování se rozbije). */
 body { background: var(--white); color: var(--black); font-family: 'Outfit', sans-serif; font-weight: 300; min-height: 100vh; }
 
 /* ── BANNER ── */
@@ -1493,37 +1490,6 @@ showDashboard = function() {
 };
 
 </script>
-<script>
-/* Scroll ve vnořené appce (landing → fixní #app-frame → wrapper → téma).
-   Když nativní kolečko/dotyk funguje, NEcháme ho (plynulé). Když ne (hluboké vnoření),
-   rolujeme programově s dojezdem. window.__sporionScrollBy volají i rodičovské rámce
-   (wrapper/landing), kdyby gesto dorazilo jen k nim. Cíl: otevřené mini-okno má přednost. */
-(function(){
-  var docSc=document.scrollingElement||document.documentElement;
-  function target(){
-    var m=document.querySelector('.np-modal.show, .logout-modal.show');
-    if(m){ var box=m.querySelector('.np-box, .logout-box, .set-box'); return (box &amp;&amp; box.scrollHeight>box.clientHeight+1) ? box : null; }
-    return (docSc.scrollHeight>docSc.clientHeight+1) ? docSc : null;
-  }
-  window.__sporionScrollBy=function(dy){ var t=target(); if(!t) return false; var b=t.scrollTop; t.scrollTop+=dy; return t.scrollTop!==b; };
-  function wheelDy(e){ var dy=e.deltaY; if(e.deltaMode===1) dy*=16; else if(e.deltaMode===2) dy*=(target()||docSc).clientHeight; return dy; }
-  // kolečko (desktop): VŽDY programově – detekce nativního scrollu se ukázala nespolehlivá
-  // (ve 2 úrovních vnoření native „ujede&quot; o kousek a detekce ho chybně vyhodnotí jako funkční).
-  addEventListener('wheel', function(e){ if(window.__sporionScrollBy(wheelDy(e))) e.preventDefault(); }, {passive:false});
-  var ly=null, vy=0, lt=0, raf=0, tMode=null;
-  addEventListener('touchstart', function(e){ if(raf) cancelAnimationFrame(raf); ly=(e.touches.length===1)?e.touches[0].clientY:null; vy=0; lt=performance.now(); }, {passive:true});
-  addEventListener('touchmove', function(e){
-    if(ly==null || e.touches.length!==1) return;
-    var t=target(); if(!t){ ly=e.touches[0].clientY; return; }
-    var y=e.touches[0].clientY, dy=ly-y; ly=y;
-    if(tMode===false) return;
-    if(tMode===null){ var bt=t.scrollTop; requestAnimationFrame(function(){ if(tMode===null) tMode=(t.scrollTop===bt); }); return; }
-    var now=performance.now(), dt=now-lt; lt=now; if(dt>0) vy=dy/dt*16;
-    if(window.__sporionScrollBy(dy)) e.preventDefault();
-  }, {passive:false});
-  addEventListener('touchend', function(){ if(tMode!==true || Math.abs(vy)<0.6) return; var v=vy; (function fling(){ if(Math.abs(v)<0.4) return; if(!window.__sporionScrollBy(v)) return; v*=0.94; raf=requestAnimationFrame(fling); })(); }, {passive:true});
-})();
-</script>
 </body>
 </html>
 "></iframe>
@@ -1536,8 +1502,6 @@ showDashboard = function() {
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&amp;display=swap');
   * { box-sizing:border-box; margin:0; padding:0; }
-  /* Puvodni model: aplikace roluje pres dokument (body roste s obsahem). Ve vnorenem
-     data-URL iframu to funguje koleckem i dotykem; NEnasazovat overflow na html/body. */
   body { background:#ebd9b2; font-family:'Silkscreen',monospace; }
 
   /* ── BANNER ── */
@@ -2995,37 +2959,6 @@ const _origSD = showDashboard;
 showDashboard = function() { _origSD(); document.getElementById('sb-home').classList.add('active'); };
 
 </script>
-<script>
-/* Scroll ve vnorene appce (landing -> fixni #app-frame -> wrapper -> tema).
-   Kdyz nativni kolecko/dotyk funguje, NEchame ho (plynule). Kdyz ne (hluboke vnoreni),
-   rolujeme programove s dojezdem. window.__sporionScrollBy volaji i rodicovske ramce
-   (wrapper/landing), kdyby gesto dorazilo jen k nim. Cil: otevrene mini-okno ma prednost. */
-(function(){
-  var docSc=document.scrollingElement||document.documentElement;
-  function target(){
-    var m=document.querySelector('.np-modal.show, .logout-modal.show');
-    if(m){ var box=m.querySelector('.np-box, .logout-box, .set-box'); return (box &amp;&amp; box.scrollHeight>box.clientHeight+1) ? box : null; }
-    return (docSc.scrollHeight>docSc.clientHeight+1) ? docSc : null;
-  }
-  window.__sporionScrollBy=function(dy){ var t=target(); if(!t) return false; var b=t.scrollTop; t.scrollTop+=dy; return t.scrollTop!==b; };
-  function wheelDy(e){ var dy=e.deltaY; if(e.deltaMode===1) dy*=16; else if(e.deltaMode===2) dy*=(target()||docSc).clientHeight; return dy; }
-  // kolecko (desktop): VZDY programove - detekce nativniho scrollu se ukazala nespolehliva
-  // (ve 2 urovnich vnoreni native &quot;ujede&quot; o kousek a detekce ho chybne vyhodnoti jako funkcni).
-  addEventListener('wheel', function(e){ if(window.__sporionScrollBy(wheelDy(e))) e.preventDefault(); }, {passive:false});
-  var ly=null, vy=0, lt=0, raf=0, tMode=null;
-  addEventListener('touchstart', function(e){ if(raf) cancelAnimationFrame(raf); ly=(e.touches.length===1)?e.touches[0].clientY:null; vy=0; lt=performance.now(); }, {passive:true});
-  addEventListener('touchmove', function(e){
-    if(ly==null || e.touches.length!==1) return;
-    var t=target(); if(!t){ ly=e.touches[0].clientY; return; }
-    var y=e.touches[0].clientY, dy=ly-y; ly=y;
-    if(tMode===false) return;
-    if(tMode===null){ var bt=t.scrollTop; requestAnimationFrame(function(){ if(tMode===null) tMode=(t.scrollTop===bt); }); return; }
-    var now=performance.now(), dt=now-lt; lt=now; if(dt>0) vy=dy/dt*16;
-    if(window.__sporionScrollBy(dy)) e.preventDefault();
-  }, {passive:false});
-  addEventListener('touchend', function(){ if(tMode!==true || Math.abs(vy)<0.6) return; var v=vy; (function fling(){ if(Math.abs(v)<0.4) return; if(!window.__sporionScrollBy(v)) return; v*=0.94; raf=requestAnimationFrame(fling); })(); }, {passive:true});
-})();
-</script>
 </body>
 </html>"></iframe>
 <iframe id="frame-noir" srcdoc="<!DOCTYPE html>
@@ -3049,8 +2982,6 @@ showDashboard = function() { _origSD(); document.getElementById('sb-home').class
 }
 
 * { box-sizing:border-box; margin:0; padding:0; }
-/* Původní model: aplikace roluje přes dokument (body roste s obsahem). Ve vnořeném
-   data-URL iframu to funguje kolečkem i dotykem; NEnasazovat overflow na html/body. */
 body { background:var(--bg); color:var(--white); font-family:'Comfortaa',sans-serif; font-weight:300; min-height:100vh; }
 
 /* ── BANNER ── */
@@ -4663,37 +4594,6 @@ const _origSD = showDashboard;
 showDashboard = function() { _origSD(); document.getElementById('sb-home').classList.add('active'); };
 
 </script>
-<script>
-/* Scroll ve vnořené appce (landing → fixní #app-frame → wrapper → téma).
-   Když nativní kolečko/dotyk funguje, NEcháme ho (plynulé). Když ne (hluboké vnoření),
-   rolujeme programově s dojezdem. window.__sporionScrollBy volají i rodičovské rámce
-   (wrapper/landing), kdyby gesto dorazilo jen k nim. Cíl: otevřené mini-okno má přednost. */
-(function(){
-  var docSc=document.scrollingElement||document.documentElement;
-  function target(){
-    var m=document.querySelector('.np-modal.show, .logout-modal.show');
-    if(m){ var box=m.querySelector('.np-box, .logout-box, .set-box'); return (box &amp;&amp; box.scrollHeight>box.clientHeight+1) ? box : null; }
-    return (docSc.scrollHeight>docSc.clientHeight+1) ? docSc : null;
-  }
-  window.__sporionScrollBy=function(dy){ var t=target(); if(!t) return false; var b=t.scrollTop; t.scrollTop+=dy; return t.scrollTop!==b; };
-  function wheelDy(e){ var dy=e.deltaY; if(e.deltaMode===1) dy*=16; else if(e.deltaMode===2) dy*=(target()||docSc).clientHeight; return dy; }
-  // kolečko (desktop): VŽDY programově – detekce nativního scrollu se ukázala nespolehlivá
-  // (ve 2 úrovních vnoření native „ujede&quot; o kousek a detekce ho chybně vyhodnotí jako funkční).
-  addEventListener('wheel', function(e){ if(window.__sporionScrollBy(wheelDy(e))) e.preventDefault(); }, {passive:false});
-  var ly=null, vy=0, lt=0, raf=0, tMode=null;
-  addEventListener('touchstart', function(e){ if(raf) cancelAnimationFrame(raf); ly=(e.touches.length===1)?e.touches[0].clientY:null; vy=0; lt=performance.now(); }, {passive:true});
-  addEventListener('touchmove', function(e){
-    if(ly==null || e.touches.length!==1) return;
-    var t=target(); if(!t){ ly=e.touches[0].clientY; return; }
-    var y=e.touches[0].clientY, dy=ly-y; ly=y;
-    if(tMode===false) return;
-    if(tMode===null){ var bt=t.scrollTop; requestAnimationFrame(function(){ if(tMode===null) tMode=(t.scrollTop===bt); }); return; }
-    var now=performance.now(), dt=now-lt; lt=now; if(dt>0) vy=dy/dt*16;
-    if(window.__sporionScrollBy(dy)) e.preventDefault();
-  }, {passive:false});
-  addEventListener('touchend', function(){ if(tMode!==true || Math.abs(vy)<0.6) return; var v=vy; (function fling(){ if(Math.abs(v)<0.4) return; if(!window.__sporionScrollBy(v)) return; v*=0.94; raf=requestAnimationFrame(fling); })(); }, {passive:true});
-})();
-</script>
 </body>
 </html>
 "></iframe>
@@ -4713,24 +4613,6 @@ window.addEventListener('message',function(e){
   if(d.sporion==='contribApply'){ var _af=document.querySelector('iframe.active'); if(_af&&_af.contentWindow) _af.contentWindow.postMessage(d,'*'); return; }
   if(d.sporion==='lang'){ document.querySelectorAll('iframe').forEach(function(f){ if(f.contentWindow&&f.contentWindow!==e.source) f.contentWindow.postMessage(d,'*'); }); if(window.parent && window.parent!==window && e.source!==window.parent) window.parent.postMessage(d,'*'); return; }
 });
-// Kolečko/dotyk nad appkou → naroluj aktivní téma napřímo (same-origin srcdoc). Pojistka pro
-// desktop, kde se ve vnoření pod fixním landing #app-frame nedoručí gesto až do tématu.
-(function(){
-  function tw(){ var f=document.querySelector('iframe.active'); return f && f.contentWindow; }
-  addEventListener('wheel', function(e){
-    var w=tw(); if(!w||!w.__sporionScrollBy) return;
-    var dy=e.deltaY; if(e.deltaMode===1) dy*=16; else if(e.deltaMode===2) dy*=(w.innerHeight||600);
-    if(w.__sporionScrollBy(dy)) e.preventDefault();
-  }, {passive:false});
-  var ly=null;
-  addEventListener('touchstart', function(e){ ly=(e.touches.length===1)?e.touches[0].clientY:null; }, {passive:true});
-  addEventListener('touchmove', function(e){
-    if(ly==null||e.touches.length!==1) return;
-    var w=tw(); if(!w||!w.__sporionScrollBy) return;
-    var y=e.touches[0].clientY, dy=ly-y; ly=y;
-    if(w.__sporionScrollBy(dy)) e.preventDefault();
-  }, {passive:false});
-})();
 </script>
 </body>
 </html>

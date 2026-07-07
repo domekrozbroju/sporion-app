@@ -18,11 +18,8 @@ html, body { height:100%; }
 body {
   background: radial-gradient(130% 90% at 50% 32%, #11141a 0%, var(--bg) 60%);
   color: var(--cream); font-family:'Outfit',sans-serif;
-  overflow-x:hidden; overflow-y:auto; position:relative;   /* auth landing: povolit svislé rolování (přihlašovací karta na malých displejích) */
+  overflow:hidden; position:relative;
 }
-/* appka zobrazená → zamknout rolování landingu, aby wheel/dotyk šel do #app-frame
-   (když je body scroll-region, „spolkne" scroll a appka v iframu se nedá odrolovat) */
-body.app-live { overflow:hidden; }
 body::before {
   content:''; position:fixed; inset:0; z-index:1; pointer-events:none;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
@@ -132,14 +129,9 @@ body::after {
 #game { position:fixed; inset:0; width:100%; height:100%; z-index:8; pointer-events:none; image-rendering:pixelated; }
 #app-frame {
   position:fixed; inset:0; width:100%; height:100%; border:none;
-  z-index:50; background:#000;
+  z-index:50; background:#000; transform-origin:center center;
   opacity:0; pointer-events:none;
-  transition:opacity 0.7s ease;   /* v základním pravidle od začátku (jako u funkčního #contrib-frame), ne jen přes .land */
 }
-/* transform-origin jen když skutečně běží scale animace (on/off) – v klidu (.land, běžné
-   používání appky) žádný transform-origin, ať appka není zbytečně na vlastní GPU vrstvě
-   jako potenciálně transformovaný prvek (podezření na rozbité routování scroll gesta v Safari) */
-#app-frame.on, #app-frame.off { transform-origin:center center; }
 #app-frame.on  { opacity:1; pointer-events:auto; animation:crtOn 0.62s cubic-bezier(0.2,0.7,0.3,1) forwards; }
 #app-frame.off { opacity:1; pointer-events:none; animation:crtOff 0.5s cubic-bezier(0.6,0,0.85,0.25) forwards; }
 #crt-flash {
@@ -166,7 +158,7 @@ body::after {
 }
 
 /* ── VSTUP = zoom "přistání" na planetu ── */
-#app-frame.land { opacity:1; pointer-events:auto; }
+#app-frame.land { opacity:1; pointer-events:auto; transition:opacity 0.7s ease; }
 body.warp #sky { will-change:transform; }
 body.warp .stage { animation:stageAway 0.9s cubic-bezier(0.4,0,0.6,1) forwards; will-change:transform, opacity; }
 @keyframes stageAway {
@@ -263,18 +255,6 @@ body.warp #warp-flash { animation:warpFlash 2.1s ease-in forwards; }
 <canvas id="contrib-grain"></canvas>
 
 <div class="toast" id="toast"></div>
-
-<!-- DOČASNÁ DIAGNOSTIKA (landing) – po vyřešení scrollu odstraním -->
-<div id="__ldbg" style="position:fixed;bottom:0;left:0;right:0;z-index:2147483647;background:#1a5fb4;color:#fff;font:bold 13px/1.4 monospace;padding:6px 8px;pointer-events:none;text-align:center;">LANDING wheel: 0 | focus: -</div>
-<script>
-(function(){
-  var el=document.getElementById('__ldbg'); if(!el) return;
-  var n=0;
-  function upd(){ el.textContent='LANDING wheel:'+n+' | focus:'+(document.activeElement?document.activeElement.tagName:'-')+' | app-live:'+document.body.classList.contains('app-live'); }
-  addEventListener('wheel', function(){ n++; upd(); }, {passive:true, capture:true});
-  setInterval(upd, 300); upd();
-})();
-</script>
 
 <script>
 // ───────── WORDMARK ─────────
@@ -375,83 +355,31 @@ function setMode(m){
 const appFrame=document.getElementById('app-frame');
 const crtBackdrop=document.getElementById('crt-backdrop');
 const crtFlash=document.getElementById('crt-flash');
-// Appka: téma se načítá PŘÍMO do #app-frame (jen 1 úroveň vnoření – jako dárcovská stránka,
-// aby fungovalo rolování kolečkem). Landing je zároveň sync-hub: drží stav potů, jazyk i zobrazení
-// a po přepnutí tématu (reload iframu) je pošle novému tématu.
-// DOČASNÝ TEST (?testframe=contrib v URL): appka do #app-frame místo tématu načte dárcovskou
-// stránku – zjišťujeme, jestli scroll problém je v #app-frame samotném, nebo v obsahu tématu.
-var _testFrameContrib = /[?&]testframe=contrib/.test(location.search);
-var THEME_FILES = _testFrameContrib
-  ? { minimal:'sporion_contribute.html', pixel:'sporion_contribute.html', noir:'sporion_contribute.html' }
-  : { minimal:'sporion_minimal_spa2.html', pixel:'sporion_pixel_spa.html', noir:'sporion_noir3.html' };
-var _curTheme='minimal';
-var _master=null;        // {pots, archive} – přežívá přepnutí tématu
-var _masterView=null;    // {view, potId, mode}
-function _syncTheme(w){ if(!w) return; if(_master) w.postMessage({sporion:'state', pots:_master.pots, archive:_master.archive},'*'); w.postMessage({sporion:'lang', lang:LANG},'*'); if(_masterView) w.postMessage(Object.assign({sporion:'view'}, _masterView),'*'); }
-function _themeSrc(t){ return THEME_FILES[t] + '?v=' + Date.now(); }   // cache-busting: file:// i Pages jinak drží staré téma v cache (i po hard-reloadu landingu)
-function switchAppTheme(t){ if(!THEME_FILES[t] || t===_curTheme) return; _curTheme=t; appFrame.src=_themeSrc(t); }   // reload → téma pošle 'hello' → dosync přes _syncTheme
-// TEST: appka se dřív načítala hned při otevření landingu (appFrame.src nastaveno tady, "na pozadí"),
-// zatímco #app-frame zůstal dlouho neviditelný (opacity:0). Dárcovská stránka (#contrib-frame) se
-// naopak vždy načítá LÍNĚ, až v okamžiku zobrazení. Podezření: dlouho skrytý iframe si v Safari
-// "neprobudí" pořádně vlastní scroll mechanismus, i když se pak zviditelní. appFrame.src se teď
-// nastavuje až v enterTransition(), stejně líně jako u dárcovské.
-var _appFrameLoaded=false;
-
-// Safari (macOS): gesto na touchpadu se řídí podle FOCUSU dokumentu, ne jen podle polohy myši
-// (na rozdíl od kliknutí). Pokud po vstupu do appky zůstal focus na landingu, Safari gesto
-// do iframu vůbec nedoručí jako JS 'wheel' událost → appka se nedá odrolovat. Řešení: vynutit
-// focus na appku, jakmile je vidět, a znovu při každém najetí myší nad ni.
-function focusApp(){ try{ appFrame.focus(); }catch(e){} }
-appFrame.addEventListener('load', function(){ if(document.body.classList.contains('app-live')) focusApp(); });
-appFrame.addEventListener('mouseenter', function(){ if(document.body.classList.contains('app-live')) focusApp(); });
-// pojistka: i kdyby myš byla nad appkou už PŘED jejím zobrazením (mouseenter by nenaskočil),
-// hlídej pohyb myši nad landingem a focus dožeň (throttle 400 ms – gesto samo o sobě nevadí,
-// jen focus se musí stihnout přesunout, než začne rolování)
-var _focusChk=0;
-addEventListener('mousemove', function(){
-  if(!document.body.classList.contains('app-live')) return;
-  var now=Date.now(); if(now-_focusChk<400) return; _focusChk=now;
-  if(document.activeElement!==appFrame) focusApp();
-}, {passive:true});
+// NÁVRAT K OVĚŘENÉ KONFIGURACI (stav před mobilními úpravami, kdy scroll fungoval bez potíží):
+// appka se načítá přes wrapper sporion_7r22b03ja1ol8zsy.html (2 úrovně vnoření), appFrame.src
+// se nastavuje hned při načtení landingu (ne líně), žádné vynucování focusu, žádné mazání
+// třídy warp za běhu. Wrapper sám drží stav potů (hello/state/sync/view) a přepínání témat.
+appFrame.src='sporion_7r22b03ja1ol8zsy.html';
 
 let entering=false;
 function puf(){ crtFlash.classList.remove('puf'); void crtFlash.offsetWidth; crtFlash.classList.add('puf'); }
 
 // VSTOUPIT → "přistání": zoom do pixelové planety, pak naskočí aplikace
-// DOČASNÝ TEST 3 (?testframe=appnowarp v URL): appka se zobrazí v #app-frame OKAMŽITĚ,
-// úplně bez warp/zoom choreografie – izolace, jestli vadí #app-frame samotný (ID/CSS/z-index),
-// nebo JS sekvence běžící BĚHEM vstupu (i když se pak uklidí).
-var _testAppNoWarp = /[?&]testframe=appnowarp/.test(location.search);
 function enterTransition(){
   if(entering) return; entering=true;
-  if(!_appFrameLoaded){ _appFrameLoaded=true; appFrame.src=_themeSrc(_curTheme); }   // líné načtení (viz pozn. výše), stejně jako dárcovská stránka
-  document.body.classList.add('app-live');       // appka převzala obrazovku → landing zamkne rolování (scroll patří appce)
-  if(_testAppNoWarp){ appFrame.classList.add('land'); focusApp(); return; }
-  // Sjednoceno: appka se VŽDY zobrazuje přes stejnou CSS třídu .land (i při "omezit pohyb" v macOS
-  // – @media (prefers-reduced-motion) níž appce sama vypne transition, netřeba inline styl zvlášť).
-  // Dřívější inline appFrame.style.opacity/pointerEvents pro reduced-motion byla jiná cesta než
-  // dárcovská stránka (ta vždy jede přes CSS třídu) – možný zdroj nekonzistence v Safari.
-  if(reduced){ appFrame.classList.add('land'); focusApp(); return; }
+  if(reduced){ appFrame.style.opacity='1'; appFrame.style.pointerEvents='auto'; return; }
   document.body.classList.add('warp');           // planeta se přiblíží, menu odletí
   if(appFrame.contentWindow) appFrame.contentWindow.postMessage({sporion:'lang',lang:LANG},'*');  // appce řekni aktuální jazyk
   if(window.startWarpZoom) window.startWarpZoom();
-  setTimeout(function(){ appFrame.classList.add('land'); focusApp(); }, 1750); // appka prolne na konci zoomu (po atmosférickém záblesku) + vynutit focus (Safari touchpad scroll)
-  // KLÍČOVÉ: warp odstranit, jakmile appka doběhne do plné neprůhlednosti (2100ms zoom + 700ms
-  // prolnutí opacity ≈ 2450ms, +100ms rezerva). Dřív warp zůstával navěky (odstraňoval se jen
-  // při odhlášení) → .stage/#warp-flash byly TRVALE transformované/rozmazané/will-change (viz
-  // "body.warp .stage{...forwards...}") celou dobu používání appky. Test (?testframe=…) prokázal,
-  // že přesně tahle appka/#app-frame cesta je viník rozbitého scroll gesta v Safari (dárcovská
-  // stránka i téma zobrazené jednoduchým mechanismem #contrib-frame scrollují bez problému).
-  setTimeout(function(){ if(entering) document.body.classList.remove('warp'); }, 2550);   // guard: kdyby uživatel mezitím rychle odhlásil/přihlásil znovu
+  setTimeout(function(){ appFrame.classList.add('land'); }, 1750); // appka prolne na konci zoomu (po atmosférickém záblesku)
 }
 function submitAuth(){ enterTransition(); }
 function enterApp(prov){ enterTransition(); }
 
 // odhlášení → "vypnutí televize": smrštění do linky → bod → puf, zpět na landing
 function exitTransition(){
-  document.body.classList.remove('app-live');    // zpět na landing → povolit rolování přihlašovací karty
   if(reduced){
-    appFrame.classList.remove('on','land');
+    appFrame.classList.remove('on','land'); appFrame.style.opacity='0'; appFrame.style.pointerEvents='none';
     document.body.classList.remove('warp'); if(window.resetWarpZoom) window.resetWarpZoom(); crtBackdrop.classList.remove('show'); entering=false; return;
   }
   appFrame.classList.remove('on','land'); void appFrame.offsetWidth;
@@ -468,12 +396,6 @@ function exitTransition(){
 }
 window.addEventListener('message', function(e){
   if(!e.data) return;
-  // ── sync-hub role (dřív to dělal wrapper) ──
-  if(e.data.theme){ switchAppTheme(e.data.theme); return; }
-  if(e.data.sporion==='hello'){ if(!_master) _master={pots:e.data.pots||[], archive:e.data.archive||[]}; _syncTheme(appFrame.contentWindow); return; }
-  if(e.data.sporion==='sync'){ _master={pots:e.data.pots||[], archive:e.data.archive||[]}; return; }
-  if(e.data.sporion==='view'){ _masterView={view:e.data.view, potId:e.data.potId, mode:e.data.mode}; return; }
-  // ── ostatní ──
   if(e.data.sporion==='logout') exitTransition();
   else if(e.data.sporion==='lang') applyLang(e.data.lang);
   else if(e.data.sporion==='openContrib') openContribute(e.data.pot);
@@ -500,17 +422,6 @@ var _grainRAF=null;
   window._grainStart=function(){ sizeGrain(); if(!_grainRAF) frame(); };
   window._grainStop=function(){ if(_grainRAF){ cancelAnimationFrame(_grainRAF); _grainRAF=null; } };
 })();
-
-// DOČASNÝ TEST 2 (?testframe=themeincontrib v URL): téma appky se zobrazí přes #contrib-frame
-// (stejný jednoduchý mechanismus jako dárcovská stránka, BEZ warp/zoom vstupní choreografie a
-// bez přihlášení) – izolace, jestli je problém v #app-frame/enterTransition, nebo jinde úplně.
-if(/[?&]testframe=themeincontrib/.test(location.search)){
-  addEventListener('DOMContentLoaded', function(){
-    var f=document.getElementById('contrib-frame');
-    f.src='sporion_minimal_spa2.html?v='+Date.now();
-    f.addEventListener('load', function(){ f.classList.add('show'); f.focus(); });
-  });
-}
 
 // ── DÁRCOVSKÁ STRÁNKA: příchod z detailu potu (zrnění přes celou obrazovku → stránka) ──
 var _contribLoaded=false, _contribPot=null;
@@ -677,7 +588,7 @@ function toast(t){ const el=document.getElementById('toast'); el.textContent=t; 
 
   function onShoot(e){
     if(window.matchMedia('(hover:none) and (pointer:coarse)').matches) return;   // telefon: nestřílíme
-    if(document.body.classList.contains('app-live')) return;    // appka je vepředu
+    if(document.body.classList.contains('warp')) return;    // appka je vepředu
     const gx=e.clientX, gy=e.clientY;
     for(let k=vehicles.length-1;k>=0;k--){
       const v=vehicles[k], sp=SPR[v.type];
@@ -691,7 +602,7 @@ function toast(t){ const el=document.getElementById('toast'); el.textContent=t; 
   // Zaměřovátko (zelené) při najetí kurzoru na letící těleso
   var RETICLE="url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"30\" height=\"30\" viewBox=\"0 0 30 30\"><g fill=\"none\" stroke=\"%2300ff66\" stroke-width=\"2\"><circle cx=\"15\" cy=\"15\" r=\"10\"/><line x1=\"15\" y1=\"2\" x2=\"15\" y2=\"8\"/><line x1=\"15\" y1=\"22\" x2=\"15\" y2=\"28\"/><line x1=\"2\" y1=\"15\" x2=\"8\" y2=\"15\"/><line x1=\"22\" y1=\"15\" x2=\"28\" y2=\"15\"/></g><circle cx=\"15\" cy=\"15\" r=\"1.6\" fill=\"%2300ff66\"/></svg>') 15 15, crosshair";
   function overVehicle(gx,gy){ for(let k=0;k<vehicles.length;k++){ const v=vehicles[k], sp=SPR[v.type]; const sz=Math.max(sp.rows.length, sp.rows[0].length); const hr=Math.max(13, v.cs*5.5*sz*0.6*0.5); const dx=gx-v.cx, dy=gy-v.cy; if(dx*dx+dy*dy<=hr*hr) return true; } return false; }
-  function onHover(e){ if(window.matchMedia('(hover:none) and (pointer:coarse)').matches){ document.body.style.cursor=''; return; } if(document.body.classList.contains('app-live')){ document.body.style.cursor=''; return; } document.body.style.cursor = overVehicle(e.clientX,e.clientY) ? RETICLE : ''; }
+  function onHover(e){ if(window.matchMedia('(hover:none) and (pointer:coarse)').matches){ document.body.style.cursor=''; return; } if(document.body.classList.contains('warp')){ document.body.style.cursor=''; return; } document.body.style.cursor = overVehicle(e.clientX,e.clientY) ? RETICLE : ''; }
   window.addEventListener('pointermove', onHover);
 
   function render(time){
@@ -783,7 +694,7 @@ function toast(t){ const el=document.getElementById('toast'); el.textContent=t; 
     let dt=time-lastT; lastT=time; if(dt<0||dt>0.05) dt=0.016;
     gctx.clearRect(0,0,gW,gH);
     if(window.matchMedia('(hover:none) and (pointer:coarse)').matches){ vehicles.length=0; particles.length=0; return; }   // telefon: žádná lítající plavidla
-    if(document.body.classList.contains('app-live')){ particles.length=0; return; }   // appka vepředu = pauza
+    if(document.body.classList.contains('warp')){ particles.length=0; return; }   // appka vepředu = pauza
     if(((frameN++)&31)===0) refreshFields();
     if(time>=nextSpawn && vehicles.length<7){ var burst=1+(Math.random()<0.45?(1+(Math.random()*2|0)):0); for(var bb=0;bb<burst && vehicles.length<7;bb++) spawnVehicle(time); nextSpawn=time+3.5+Math.random()*4.5; }
     for(let k=vehicles.length-1;k>=0;k--){
@@ -834,7 +745,7 @@ function toast(t){ const el=document.getElementById('toast'); el.textContent=t; 
     }
     gctx.globalAlpha=1;
   }
-  function frame(t){ const tt=t*0.001; if(!document.body.classList.contains('app-live')){ lastRenderT=tt; render(tt); } gameStep(tt); if(!reduced) requestAnimationFrame(frame); }
+  function frame(t){ const tt=t*0.001; if(!document.body.classList.contains('warp')){ lastRenderT=tt; render(tt); } gameStep(tt); if(!reduced) requestAnimationFrame(frame); }
   window.addEventListener('resize', size);
   window.addEventListener('pointerdown', onShoot);   // sestřel klikem / dotykem
   size();
