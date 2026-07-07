@@ -18,6 +18,7 @@ iframe.active { display: block; }
 <meta charset=&quot;utf-8&quot;>
 <meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no&quot;>
 <script>['gesturestart','gesturechange','gestureend'].forEach(function(g){document.addEventListener(g,function(e){e.preventDefault();});});</script>
+<script>/* DOCASNA diagnostika scrollu (odstranit po vyreseni) - aktivni jen s ?scrolldebug=1 v URL landingu */(function(){try{if(!/scrolldebug/.test(window.top.location.search))return;}catch(e){return;}var b=document.createElement('div');b.style.cssText='position:fixed;bottom:8px;right:8px;z-index:999999;background:#000;color:#0f0;font:11px monospace;padding:6px 10px;border-radius:4px;pointer-events:none;white-space:pre;opacity:0.9;';b.textContent='wheel: (waiting) doc=minimal';document.documentElement.appendChild(b);var n=0;window.addEventListener('wheel',function(e){n++;var t=e.target;var tid=(t&amp;&amp;t.id)?('#'+t.id):(t&amp;&amp;t.className?('.'+String(t.className).split(' ')[0]):(t&amp;&amp;t.tagName));b.textContent='wheel #'+n+' dY='+Math.round(e.deltaY)+' tgt='+tid+'\nscrollY='+Math.round(window.scrollY)+' docH='+document.documentElement.scrollHeight+' cliH='+document.documentElement.clientHeight;},{capture:true,passive:true});})();</script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;700&amp;display=swap');
 
@@ -1499,6 +1500,7 @@ showDashboard = function() {
 <meta charset=&quot;utf-8&quot;>
 <meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no&quot;>
 <script>['gesturestart','gesturechange','gestureend'].forEach(function(g){document.addEventListener(g,function(e){e.preventDefault();});});</script>
+<script>/* DOCASNA diagnostika scrollu (odstranit po vyreseni) - aktivni jen s ?scrolldebug=1 v URL landingu */(function(){try{if(!/scrolldebug/.test(window.top.location.search))return;}catch(e){return;}var b=document.createElement('div');b.style.cssText='position:fixed;bottom:8px;right:8px;z-index:999999;background:#000;color:#0f0;font:11px monospace;padding:6px 10px;border-radius:4px;pointer-events:none;white-space:pre;opacity:0.9;';b.textContent='wheel: (waiting) doc=pixel';document.documentElement.appendChild(b);var n=0;window.addEventListener('wheel',function(e){n++;var t=e.target;var tid=(t&amp;&amp;t.id)?('#'+t.id):(t&amp;&amp;t.className?('.'+String(t.className).split(' ')[0]):(t&amp;&amp;t.tagName));b.textContent='wheel #'+n+' dY='+Math.round(e.deltaY)+' tgt='+tid+'\nscrollY='+Math.round(window.scrollY)+' docH='+document.documentElement.scrollHeight+' cliH='+document.documentElement.clientHeight;},{capture:true,passive:true});})();</script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&amp;display=swap');
   * { box-sizing:border-box; margin:0; padding:0; }
@@ -2967,6 +2969,7 @@ showDashboard = function() { _origSD(); document.getElementById('sb-home').class
 <meta charset=&quot;utf-8&quot;>
 <meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no&quot;>
 <script>['gesturestart','gesturechange','gestureend'].forEach(function(g){document.addEventListener(g,function(e){e.preventDefault();});});</script>
+<script>/* DOCASNA diagnostika scrollu (odstranit po vyreseni) - aktivni jen s ?scrolldebug=1 v URL landingu */(function(){try{if(!/scrolldebug/.test(window.top.location.search))return;}catch(e){return;}var b=document.createElement('div');b.style.cssText='position:fixed;bottom:8px;right:8px;z-index:999999;background:#000;color:#0f0;font:11px monospace;padding:6px 10px;border-radius:4px;pointer-events:none;white-space:pre;opacity:0.9;';b.textContent='wheel: (waiting) doc=noir';document.documentElement.appendChild(b);var n=0;window.addEventListener('wheel',function(e){n++;var t=e.target;var tid=(t&amp;&amp;t.id)?('#'+t.id):(t&amp;&amp;t.className?('.'+String(t.className).split(' ')[0]):(t&amp;&amp;t.tagName));b.textContent='wheel #'+n+' dY='+Math.round(e.deltaY)+' tgt='+tid+'\nscrollY='+Math.round(window.scrollY)+' docH='+document.documentElement.scrollHeight+' cliH='+document.documentElement.clientHeight;},{capture:true,passive:true});})();</script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;700&amp;display=swap');
 
