@@ -488,6 +488,17 @@ var _grainRAF=null;
   window._grainStop=function(){ if(_grainRAF){ cancelAnimationFrame(_grainRAF); _grainRAF=null; } };
 })();
 
+// DOČASNÝ TEST 2 (?testframe=themeincontrib v URL): téma appky se zobrazí přes #contrib-frame
+// (stejný jednoduchý mechanismus jako dárcovská stránka, BEZ warp/zoom vstupní choreografie a
+// bez přihlášení) – izolace, jestli je problém v #app-frame/enterTransition, nebo jinde úplně.
+if(/[?&]testframe=themeincontrib/.test(location.search)){
+  addEventListener('DOMContentLoaded', function(){
+    var f=document.getElementById('contrib-frame');
+    f.src='sporion_minimal_spa2.html?v='+Date.now();
+    f.addEventListener('load', function(){ f.classList.add('show'); f.focus(); });
+  });
+}
+
 // ── DÁRCOVSKÁ STRÁNKA: příchod z detailu potu (zrnění přes celou obrazovku → stránka) ──
 var _contribLoaded=false, _contribPot=null;
 function openContribute(pot){
