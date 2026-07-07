@@ -134,6 +134,7 @@ body::after {
   position:fixed; inset:0; width:100%; height:100%; border:none;
   z-index:50; background:#000;
   opacity:0; pointer-events:none;
+  transition:opacity 0.7s ease;   /* v základním pravidle od začátku (jako u funkčního #contrib-frame), ne jen přes .land */
 }
 /* transform-origin jen když skutečně běží scale animace (on/off) – v klidu (.land, běžné
    používání appky) žádný transform-origin, ať appka není zbytečně na vlastní GPU vrstvě
@@ -165,7 +166,7 @@ body::after {
 }
 
 /* ── VSTUP = zoom "přistání" na planetu ── */
-#app-frame.land { opacity:1; pointer-events:auto; transition:opacity 0.7s ease; }
+#app-frame.land { opacity:1; pointer-events:auto; }
 body.warp #sky { will-change:transform; }
 body.warp .stage { animation:stageAway 0.9s cubic-bezier(0.4,0,0.6,1) forwards; will-change:transform, opacity; }
 @keyframes stageAway {
