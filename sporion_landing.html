@@ -259,6 +259,18 @@ body.warp #warp-flash { animation:warpFlash 2.1s ease-in forwards; }
 
 <div class="toast" id="toast"></div>
 
+<!-- DOČASNÁ DIAGNOSTIKA (landing) – po vyřešení scrollu odstraním -->
+<div id="__ldbg" style="position:fixed;bottom:0;left:0;right:0;z-index:2147483647;background:#1a5fb4;color:#fff;font:bold 13px/1.4 monospace;padding:6px 8px;pointer-events:none;text-align:center;">LANDING wheel: 0 | focus: -</div>
+<script>
+(function(){
+  var el=document.getElementById('__ldbg'); if(!el) return;
+  var n=0;
+  function upd(){ el.textContent='LANDING wheel:'+n+' | focus:'+(document.activeElement?document.activeElement.tagName:'-')+' | app-live:'+document.body.classList.contains('app-live'); }
+  addEventListener('wheel', function(){ n++; upd(); }, {passive:true, capture:true});
+  setInterval(upd, 300); upd();
+})();
+</script>
+
 <script>
 // ───────── WORDMARK ─────────
 const WORD='SPORION';
