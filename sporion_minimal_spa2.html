@@ -947,6 +947,22 @@ animC();
 const R_SMALL = 47, CIRC_SMALL = 2*Math.PI*R_SMALL;
 const R_BIG = 74, CIRC_BIG = 2*Math.PI*R_BIG;
 
+// při nehorázně vysokém příspěvku může procentáž narůst na 4-5místné číslo -
+// zmenšit písmo, ať se pořád vejde dovnitř kroužku (místo aby přetékalo). Měřeno přes canvas
+// text metriky (ne getBoundingClientRect) - .ring-pct/.big-pct-num mívají position:absolute;
+// inset:0, takže by getBoundingClientRect vracelo velikost rodiče, ne skutečnou šířku textu.
+const _fitCv = document.createElement('canvas'), _fitCtx = _fitCv.getContext('2d');
+function fitPctNum(el, maxW, minPx){
+  if(!el) return;
+  el.style.fontSize='';
+  const cs = getComputedStyle(el);
+  const base = parseFloat(cs.fontSize);
+  _fitCtx.font = cs.fontWeight+' '+base+'px '+cs.fontFamily;
+  const w = _fitCtx.measureText(el.textContent).width;
+  if(w<=maxW || w<=0) return;
+  el.style.fontSize = Math.max(minPx, base*(maxW/w)) + 'px';
+}
+
 function ringHTML(pct, complete) {
   const offset = CIRC_SMALL * (1 - Math.min(pct,100)/100);   // kroužek se plní max. na 100 %, i když číslo je vyšší
   return `
@@ -995,6 +1011,7 @@ function buildDashboard() {
       </div>`;
     card.addEventListener('click', ()=>showDetail(pot));
     grid.appendChild(card);
+    fitPctNum(card.querySelector('.ring-pct'), 78, 11);
     if(isComplete) registerConstellation(card);
   });
 }
@@ -1135,6 +1152,7 @@ function showDetail(pot) {
   // Switch page
   document.getElementById('page-dashboard').classList.remove('active');
   document.getElementById('page-detail').classList.add('active');
+  fitPctNum(document.getElementById('d-pct'), 112, 15);   // az po zviditelneni stranky (jinak sirka 0)
   _pushView();
   document.getElementById('back-btn').style.display = 'block';
   document.getElementById('main-new-btn').style.display = 'none';
@@ -1147,6 +1165,8 @@ function showDashboard() {
   _footer(true);
   document.getElementById('page-detail').classList.remove('active'); closeSet();
   document.getElementById('page-dashboard').classList.add('active');
+  // karty se mohly vykreslit, kdyz byl dashboard jeste skryty (0 sirka) - domerit az ted
+  document.querySelectorAll('.ring-pct').forEach(el=>fitPctNum(el, 78, 11));
   _pushView();
   document.getElementById('back-btn').style.display = 'none';
   document.getElementById('main-new-btn').style.display = 'inline-flex';
