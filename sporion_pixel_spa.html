@@ -61,7 +61,9 @@
   .add-card-btn.full:hover::after { background:#243024; }
   .add-card-btn.full > span { position:relative; z-index:2; transform:translateZ(0); }
   @keyframes edgeSweep { to { transform:translate(-50%,-50%) rotate(360deg); } }
-  .dash-title-row { display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+  .dash-title-row { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:14px; }
+  .dash-title-left { display:flex; align-items:center; gap:10px; }
+  .dash-title-row #dash-meta { margin-bottom:0; }
   .dash-title { font-family:'Silkscreen',monospace; font-size:16px; font-weight:700; color:#000; letter-spacing:1px; }
   .pot-info-btn { width:26px; height:26px; border:2px solid #000; background:#fff; color:#000; font-family:'Silkscreen',monospace; font-size:9px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; padding:0; flex-shrink:0; image-rendering:pixelated; }
   .pot-info-btn svg { width:11px; height:15px; display:block; }
@@ -538,10 +540,12 @@
 <div class="page active" id="page-dashboard">
   <div class="page-wrap">
     <div class="dash-title-row">
-      <h1 class="dash-title" data-i18n="yourPots">VASE MONEY POTS</h1>
-      <button class="pot-info-btn" type="button" onclick="openInfo()" title="Co je to money pot?" data-i18n-title="ttWhatPot" aria-label="Co je to money pot?"><svg width="9" height="12" viewBox="0 0 6 8" fill="currentColor" shape-rendering="crispEdges"><rect x="2" y="0" width="2" height="2"/><rect x="2" y="3" width="2" height="5"/></svg></button>
+      <div class="dash-title-left">
+        <h1 class="dash-title" data-i18n="yourPots">VASE MONEY POTS</h1>
+        <button class="pot-info-btn" type="button" onclick="openInfo()" title="Co je to money pot?" data-i18n-title="ttWhatPot" aria-label="Co je to money pot?"><svg width="9" height="12" viewBox="0 0 6 8" fill="currentColor" shape-rendering="crispEdges"><rect x="2" y="0" width="2" height="2"/><rect x="2" y="3" width="2" height="5"/></svg></button>
+      </div>
+      <p class="section-title" id="dash-meta">&gt; aktivni poty</p>
     </div>
-    <p class="section-title" id="dash-meta">&gt; aktivni poty</p>
     <div class="pots-grid" id="pots-grid"></div>
     <button class="add-card-btn" id="dash-add" onclick="openNp()"><span data-i18n="createNewPot">+ VYTVOR NOVY MONEY POT</span></button>
   </div>
@@ -650,7 +654,7 @@
       <button class="np-back" type="button" onclick="closeInfo()">&#9664; <span data-i18n="back">ZPET</span></button>
     </div>
     <div class="np-body">
-      <p class="info-text" data-i18n="whatPotBody">Money pot je spolecna online pokladnicka. Zalozis ji k nejake prilezitosti - narozeninam, svatbe, dovolene - a sdilis odkaz s ostatnimi. Kazdy muze bezpecne prispet libovolnou castkou ze sveho a ty pak vidis, jak se vybrana suma blizi k cili. Az je vybrano, penize poslete obdarovanemu nebo na spolecny ucel. Zadne obihani s hotovosti, zadne pripominani - jen jeden odkaz, kam vsichni pridaji svuj dil.</p>
+      <p class="info-text" data-i18n="whatPotBody">Money pot je spolecna online pokladnicka. Zalozis ji k nejake prilezitosti - narozeninam, svatbe, dovolene - ale stejne dobre i na vecny darek: treba kdyz se rodine rozbije lednicka nebo televize a preji si k Vanocum novou. Sdilis odkaz s ostatnimi. Kazdy muze bezpecne prispet libovolnou castkou ze sveho a ty pak vidis, jak se vybrana suma blizi k cili. Az je vybrano, penize poslete obdarovanemu nebo na spolecny ucel. Zadne obihani s hotovosti, zadne pripominani - jen jeden odkaz, kam vsichni pridaji svuj dil.</p>
     </div>
   </div>
 </div>
@@ -770,8 +774,8 @@ const POTS = [
     contributions:[{date:'24.4.',name:'Tomáš K.',amount:200},{date:'26.4.',name:'Anonymní',amount:150},{date:'28.4.',name:'Petra N.',amount:500},{date:'1.5.',name:'Martin S.',amount:100},{date:'5.5.',name:'Lucie V.',amount:200},{date:'9.5.',name:'Anonymní',amount:120},{date:'14.5.',name:'Jana H.',amount:100},{date:'20.5.',name:'Ondřej P.',amount:70}] },
   { id:2, name:'Rozlučka Jana', occasion:'Rozlučka', name_en:"Jan's Bachelor Party", occasion_en:'Bachelor Party', collected:3500, goal:3500, mush:'vaclavky', contributors:12, occasion_date:'25. 5. 2026', description:'', photo:'',
     contributions:[{date:'2.4.',name:'Markéta S.',amount:500},{date:'5.4.',name:'Tomáš V.',amount:300},{date:'10.4.',name:'Anonymní',amount:200},{date:'14.4.',name:'Petra K.',amount:400},{date:'18.4.',name:'Jan H.',amount:250},{date:'22.4.',name:'Lucie N.',amount:350},{date:'25.4.',name:'Anonymní',amount:300},{date:'28.4.',name:'Martin D.',amount:200},{date:'2.5.',name:'Eva R.',amount:300},{date:'6.5.',name:'Ondřej L.',amount:200},{date:'10.5.',name:'Jana P.',amount:200},{date:'15.5.',name:'Anonymní',amount:300}] },
-  { id:3, name:'Dovolená Kuba', occasion:'Dovolená', name_en:'Cuba Trip', occasion_en:'Holiday', collected:1200, goal:4000, mush:'bedla', contributors:6, occasion_date:'1. 8. 2026', description:'', photo:'',
-    contributions:[{date:'5.4.',name:'Kuba M.',amount:500},{date:'15.4.',name:'Anonymní',amount:200},{date:'1.5.',name:'Jana M.',amount:300},{date:'10.5.',name:'Petr M.',amount:100},{date:'16.5.',name:'Anonymní',amount:50},{date:'20.5.',name:'Tomáš M.',amount:50}] },
+  { id:3, name:'Plyšový slon pro Františka', occasion:'Vánoční dárek', name_en:'Plush Elephant for František', occasion_en:'Christmas gift', collected:480, goal:750, mush:'lisky', contributors:5, occasion_date:'24. 12. 2026', description:'', photo:'',
+    contributions:[{date:'2.12.',name:'Petr N.',amount:150},{date:'8.12.',name:'Anonymní',amount:100},{date:'14.12.',name:'Eva K.',amount:100},{date:'18.12.',name:'Anonymní',amount:80},{date:'21.12.',name:'Tomáš R.',amount:50}] },
 ];
 
 const CW=200, CH=220;
@@ -1119,8 +1123,8 @@ var I18N={
 };
 function t(k){ var d=I18N[APPLANG]||I18N.cs; return (d&&d[k]!=null)?d[k]:(I18N.cs[k]!=null?I18N.cs[k]:k); }
 function applyStatic(){ document.querySelectorAll('[data-i18n]').forEach(function(el){ el.textContent=t(el.getAttribute('data-i18n')); }); document.querySelectorAll('[data-i18n-ph]').forEach(function(el){ el.placeholder=t(el.getAttribute('data-i18n-ph')); }); document.querySelectorAll('[data-i18n-title]').forEach(function(el){ el.title=t(el.getAttribute('data-i18n-title')); }); }
-Object.assign(I18N.cs, { ttDash:'Tady jsem doma.', ttView:'Co ti vic vyhovuje?', ttTheme:'Jak si to tady vymalujes?', ttSettings:'Volim si tebe, Charizarde!', ttNewPot:'Vytvor novy money pot', ttWhatPot:'Co je to money pot?', yourPots:'VASE MONEY POTS', createNewPot:'+ VYTVOR NOVY MONEY POT', whatPotTitle:'CO JE MONEY POT?', whatPotBody:'Money pot je spolecna online pokladnicka. Zalozis ji k nejake prilezitosti - narozeninam, svatbe, dovolene - a sdilis odkaz s ostatnimi. Kazdy muze bezpecne prispet libovolnou castkou ze sveho a ty pak vidis, jak se vybrana suma blizi k cili. Az je vybrano, penize poslete obdarovanemu nebo na spolecny ucel. Zadne obihani s hotovosti, zadne pripominani - jen jeden odkaz, kam vsichni pridaji svuj dil.', viewCards:'Karty', viewList:'Seznam', link:'ODKAZ', qr:'QR KOD', email:'E-MAIL', viCastka:'CILOVA CASTKA', viProgress:'PRUBEH VYBIRANI', viList:'SEZNAM PRISPEVATELU', viIndiv:'JEDNOTLIVE PRISPEVKY' });
-Object.assign(I18N.en, { ttDash:'Home sweet home.', ttView:'What suits you better?', ttTheme:'How will you paint the place?', ttSettings:'I choose you, Charizard!', ttNewPot:'Create a new money pot', ttWhatPot:'What is a money pot?', yourPots:'YOUR MONEY POTS', createNewPot:'+ CREATE A NEW MONEY POT', whatPotTitle:'WHAT IS A MONEY POT?', whatPotBody:'A money pot is a shared online piggy bank. You set it up for an occasion - a birthday, a wedding, a holiday - and share the link with everyone. Each person can safely chip in any amount they like, and you watch the total grow toward your goal. Once collected, you send the money to the lucky person or put it toward your shared plan. No chasing cash, no reminders - just one link where everyone adds their part.', viewCards:'Cards', viewList:'List', link:'LINK', qr:'QR CODE', email:'E-MAIL', viCastka:'TARGET AMOUNT', viProgress:'COLLECTION PROGRESS', viList:'CONTRIBUTORS LIST', viIndiv:'INDIVIDUAL CONTRIBUTIONS' });
+Object.assign(I18N.cs, { ttDash:'Tady jsem doma.', ttView:'Co ti vic vyhovuje?', ttTheme:'Jak si to tady vymalujes?', ttSettings:'Volim si tebe, Charizarde!', ttNewPot:'Vytvor novy money pot', ttWhatPot:'Co je to money pot?', yourPots:'VASE MONEY POTS', createNewPot:'+ VYTVOR NOVY MONEY POT', whatPotTitle:'CO JE MONEY POT?', whatPotBody:'Money pot je spolecna online pokladnicka. Zalozis ji k nejake prilezitosti - narozeninam, svatbe, dovolene - ale stejne dobre i na vecny darek: treba kdyz se rodine rozbije lednicka nebo televize a preji si k Vanocum novou. Sdilis odkaz s ostatnimi. Kazdy muze bezpecne prispet libovolnou castkou ze sveho a ty pak vidis, jak se vybrana suma blizi k cili. Az je vybrano, penize poslete obdarovanemu nebo na spolecny ucel. Zadne obihani s hotovosti, zadne pripominani - jen jeden odkaz, kam vsichni pridaji svuj dil.', viewCards:'Karty', viewList:'Seznam', link:'ODKAZ', qr:'QR KOD', email:'E-MAIL', viCastka:'CILOVA CASTKA', viProgress:'PRUBEH VYBIRANI', viList:'SEZNAM PRISPEVATELU', viIndiv:'JEDNOTLIVE PRISPEVKY' });
+Object.assign(I18N.en, { ttDash:'Home sweet home.', ttView:'What suits you better?', ttTheme:'How will you paint the place?', ttSettings:'I choose you, Charizard!', ttNewPot:'Create a new money pot', ttWhatPot:'What is a money pot?', yourPots:'YOUR MONEY POTS', createNewPot:'+ CREATE A NEW MONEY POT', whatPotTitle:'WHAT IS A MONEY POT?', whatPotBody:'A money pot is a shared online piggy bank. You set it up for an occasion - a birthday, a wedding, a holiday - but it works just as well for a practical gift: say, a family\'s fridge or TV breaks and they\'d love a new one for Christmas. Share the link with everyone. Each person can safely chip in any amount they like, and you watch the total grow toward your goal. Once collected, you send the money to the lucky person or put it toward your shared plan. No chasing cash, no reminders - just one link where everyone adds their part.', viewCards:'Cards', viewList:'List', link:'LINK', qr:'QR CODE', email:'E-MAIL', viCastka:'TARGET AMOUNT', viProgress:'COLLECTION PROGRESS', viList:'CONTRIBUTORS LIST', viIndiv:'INDIVIDUAL CONTRIBUTIONS' });
 setTimeout(applyStatic,0);
 var RATE=25.3;
 function money(v){ v=+v||0; if(APPLANG==='en') return '€'+Math.round(v/RATE).toLocaleString('en'); return v.toLocaleString('cs')+' Kc'; }

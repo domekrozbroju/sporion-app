@@ -53,7 +53,17 @@ body::after {
   font-size:clamp(10px, 1.3vw, 13px); color:var(--cream); opacity:0.55; text-align:center;
   -webkit-user-select:none; -moz-user-select:none; user-select:none;
 }
-.word-scale { display:flex; align-items:center; justify-content:center; width:100%; }
+/* overflow:hidden je tu nutny, ne jen kosmeticky: fitWordScale() dlouhy nazev potu jen
+   vizualne zmensi pres transform:scale, ale jeho SKUTECNA (nezmensena) sirka v layoutu
+   zustava puvodni a bez oriznuti by protlacila .hero i cele telo stranky do sirky
+   (=> horizontalni scroll na mobilu). */
+.word-scale { display:flex; align-items:center; justify-content:center; width:100%; overflow:hidden; }
+/* zmenseni (transform:scale) musi byt na TOMTO mezivrstevnim wrapperu, ne na #word samotnem
+   (tam bezi glitch keyframe animace se svym vlastnim transform:translateX/skewX, ktery by
+   inline scale prepsal) a ne na .word-scale (tam by se oriznuti overflow:hidden pocitalo
+   jeste PRED zmensenim, protoze transform se aplikuje az na vysledek vlastniho layoutu -
+   viz fitWordScale()). */
+.word-zoom { display:flex; align-items:center; justify-content:center; }
 .word {
   display:flex; align-items:center; justify-content:center;
   height:1.18em; font-weight:700;
@@ -77,7 +87,11 @@ body::after {
   84%{transform:translateX(4px);filter:none;}
   100%{transform:translateX(0);filter:none;}
 }
-.hero { display:flex; flex-direction:column; align-items:center; gap:2.4vh; }
+/* width:100% je nutne, ne kosmeticke: .hero je flex polozka v .stage (align-items:center),
+   takze by se bez explicitni sirky "srsknula" podle NEOMEZENE sirky sveho obsahu (dlouhy
+   glitchujici nazev potu) - overflow:hidden na .word-scale samo o sobe stacit nebude,
+   protoze neovlivnuje "preferovanou" (shrink-to-fit) sirku, kterou pro sebe .hero pocita. */
+.hero { display:flex; flex-direction:column; align-items:center; gap:2.4vh; width:100%; }
 .tagline {
   font-family:'Outfit',sans-serif; font-weight:300;
   font-size:clamp(10px, 1.5vw, 14px); letter-spacing:0.06em; text-transform:uppercase;
@@ -190,7 +204,11 @@ body.warp #warp-flash { animation:warpFlash 2.1s ease-in forwards; }
    se ale vizualne posouva spolu s html, takze sticky prvek misto lpeni na viewportu jen
    "plave" s obsahem jako position:relative). */
 html { height:auto !important; min-height:100%; overflow-x:hidden; overflow-y:auto !important; }
-body { min-height:100%; overflow:visible !important; }   /* prebiji zakladni body{overflow:hidden} zdedene z landingu */
+/* overflow:visible na OBOU osach - CSS specifikace vynucuje, ze pokud je jedna osa
+   "visible" a druha neni, prohlizec tu "visible" tise zmeni na "auto" (aby nevznikaly
+   nesmyslne kombinace) - a "auto" pořád zaklada scroll container, ktery rozbiji sticky.
+   Horizontalni oriznuti resi vyhradne html{overflow-x:hidden} o uroven vys. */
+body { min-height:100%; overflow:visible !important; }
 body { background: radial-gradient(135% 95% at 50% 30%, #ffffff 0%, #f3f5f7 72%) !important; color:#0a0b0e; }
 body::before, body::after { display:none !important; }   /* pryč šum i scanline čáry přes celou obrazovku */
 #sky { filter: invert(1) brightness(0.98) !important; }
@@ -202,7 +220,7 @@ body::before, body::after { display:none !important; }   /* pryč šum i scanlin
 .tagline {
   animation:none !important; opacity:0.82 !important; font-weight:400 !important;
   font-size:clamp(12px, 1.6vw, 15px) !important; letter-spacing:0.01em !important; text-transform:none !important;
-  max-width:380px; line-height:1.5; text-indent:0 !important;
+  width:100%; max-width:380px; line-height:1.5; text-indent:0 !important;   /* width:100% - jinak si flex polozka (.hero, align-items:center) sedne na max-content sirku textu a na uzkych mobilech preteka */
   background:none !important; color:#3a3f45 !important; -webkit-text-fill-color:#3a3f45;
   filter:none !important; text-shadow:none;
 }
@@ -252,17 +270,14 @@ body::before, body::after { display:none !important; }   /* pryč šum i scanlin
 .cc-donor { display:flex; justify-content:space-between; font-family:'Outfit',sans-serif; font-size:12px; color:#3a3f45; }
 .cc-donor b { font-weight:600; color:#0a0b0e; }
 .cc-donor.anon span:first-child { color:#9aa0a6; font-style:italic; }
-/* SELF režim (přispívám sám sobě do vlastního potu) - čáska+tlačítko vlevo, "teploměr" po
-   pravém boku karty jako její součást (stejná výška jako levý sloupec), zbývá pod celou řadou */
-.cc-self-layout { display:flex; gap:18px; align-items:stretch; }
-.cc-self-left { flex:1; min-width:0; }
-.cc-self-therm { display:none; flex-direction:column; align-items:center; width:42px; flex-shrink:0; }
-#contrib-card.mode-self .cc-self-therm { display:flex; }
-.cc-self-pct { font-family:'Outfit',sans-serif; font-weight:700; font-size:19px; letter-spacing:-0.01em; color:#0a0b0e; text-align:center; margin-bottom:9px; white-space:nowrap; }
-.cc-self-bar { position:relative; flex:1; width:100%; min-height:64px; border-radius:100px; background:rgba(0,0,0,0.08); overflow:hidden; box-shadow:inset 0 1px 3px rgba(0,0,0,0.12); }
-.cc-self-bar > i { position:absolute; left:0; bottom:0; width:100%; height:0; border-radius:100px; background:linear-gradient(0deg,#2a2d33,#0a0b0e); transition:height 0.8s cubic-bezier(0.22,0.9,0.3,1); }
-.cc-self-remain { display:none; margin-top:16px; text-align:center; font-family:'Outfit',sans-serif; font-size:12px; letter-spacing:0.04em; color:#6c757d; }
-#contrib-card.mode-self .cc-self-remain { display:block; }
+/* SELF režim (přispívám sám sobě do vlastního potu) - pod formulářem: koláčový ukazatel
+   (celý vnitřek kruhu vyplněný, ne jen linka po obvodu), procenta uvnitř, zbývá pod ním */
+.cc-self-block { display:none; margin-top:20px; padding-top:20px; border-top:1px solid rgba(0,0,0,0.1); }
+#contrib-card.mode-self .cc-self-block { display:block; }
+.cc-self-pie-wrap { display:flex; justify-content:center; }
+.cc-self-pie { position:relative; width:132px; height:132px; border-radius:50%; background:conic-gradient(#0a0b0e 0%, rgba(0,0,0,0.08) 0%); transition:background 0.8s cubic-bezier(0.22,0.9,0.3,1); display:flex; align-items:center; justify-content:center; }
+.cc-self-pie-pct { font-family:'Outfit',sans-serif; font-weight:700; font-size:20px; letter-spacing:-0.01em; color:#0a0b0e; background:rgba(255,255,255,0.92); border-radius:100px; padding:7px 15px; box-shadow:0 3px 10px rgba(0,0,0,0.15); }
+.cc-self-remain { margin-top:16px; text-align:center; font-family:'Outfit',sans-serif; font-size:12px; letter-spacing:0.04em; color:#6c757d; }
 .cc-self-remain b { color:#0a0b0e; font-weight:600; }
 /* zvýraznění, když dárce nezadal jméno ani nezaškrtl anonymní příspěvek */
 .cc-input.cc-err { border-color:#d64545 !important; }
@@ -298,32 +313,29 @@ body::before, body::after { display:none !important; }   /* pryč šum i scanlin
 <div class="stage">
   <div class="hero">
     <div class="mini-brand" id="mini-brand">SPORION</div>
-    <div class="word-scale" id="wordScale"><div class="word" id="word"></div></div>
+    <div class="word-scale" id="wordScale"><div class="word-zoom" id="wordZoom"><div class="word" id="word"></div></div></div>
     <div class="tagline" id="tagline"></div>
   </div>
 
   <div class="contrib-card" id="contrib-card">
     <div class="cc-title" id="cc-title">Přidat příspěvek</div>
-    <!-- SELF režim: čáska + tlačítko vlevo, "teploměr" (%, bar) po pravém boku jako součást karty -->
-    <div class="cc-self-layout">
-      <div class="cc-self-left">
-        <div class="cc-field">
-          <label class="cc-label" id="cc-amount-l" for="cc-amount">Vaše částka</label>
-          <div class="cc-amount"><input id="cc-amount" type="number" min="1" inputmode="numeric" placeholder="Libovolná"><span class="cc-cur" id="cc-cur">Kč</span></div>
-        </div>
-        <div class="cc-field" id="cc-name-field">
-          <label class="cc-label" id="cc-name-l" for="cc-name">Podpis</label>
-          <input class="cc-input" id="cc-name" type="text" placeholder="Vaše jméno">
-          <label class="cc-check" id="cc-anon-wrap"><input type="checkbox" id="cc-anon"><span id="cc-anon-l">Přispět anonymně</span></label>
-        </div>
-        <button class="cc-submit" id="cc-submit" onclick="submitContribution()">Přispět</button>
-      </div>
-      <div class="cc-self-therm" id="cc-self-therm">
-        <div class="cc-self-pct" id="cc-self-pct">0%</div>
-        <div class="cc-self-bar"><i id="cc-self-bar-fill"></i></div>
-      </div>
+    <div class="cc-field">
+      <label class="cc-label" id="cc-amount-l" for="cc-amount">Vaše částka</label>
+      <div class="cc-amount"><input id="cc-amount" type="number" min="1" inputmode="numeric" placeholder="Zadejte libovolnou částku"><span class="cc-cur" id="cc-cur">Kč</span></div>
     </div>
-    <div class="cc-self-remain" id="cc-self-remain"></div>
+    <div class="cc-field" id="cc-name-field">
+      <label class="cc-label" id="cc-name-l" for="cc-name">Podpis</label>
+      <input class="cc-input" id="cc-name" type="text" placeholder="Vaše jméno">
+      <label class="cc-check" id="cc-anon-wrap"><input type="checkbox" id="cc-anon"><span id="cc-anon-l">Přispět anonymně</span></label>
+    </div>
+    <button class="cc-submit" id="cc-submit" onclick="submitContribution()">Přispět</button>
+    <!-- SELF režim: koláčový ukazatel (procenta uvnitř, plný vnitřek) + zbývá -->
+    <div class="cc-self-block" id="cc-self-block">
+      <div class="cc-self-pie-wrap">
+        <div class="cc-self-pie" id="cc-self-pie"><span class="cc-self-pie-pct" id="cc-self-pct">0%</span></div>
+      </div>
+      <div class="cc-self-remain" id="cc-self-remain"></div>
+    </div>
     <div class="cc-info" id="cc-info">
       <!-- DONOR režim (cizí dárce) - průběh výběru + seznam přispěvatelů -->
       <div class="cc-info-block" id="cc-block-progress" data-vis="progress">
@@ -432,12 +444,12 @@ function applyEvenSpacing(){
 // nevejde do sirky obrazovky, cely blok zmensime transformem (na wrapperu #wordScale,
 // NE na #word samotnem, protoze ten uz pouziva transform pro glitch-shake animaci)
 function fitWordScale(){
-  var ws=document.getElementById('wordScale'); if(!ws||!wordEl) return;
-  ws.style.transform='';
+  var wz=document.getElementById('wordZoom'); if(!wz||!wordEl) return;
+  wz.style.transform='';
   var natural=wordEl.getBoundingClientRect().width; if(natural<=0) return;
   var maxW=Math.min(window.innerWidth-48, 900);
   var scale=Math.min(1, maxW/natural);
-  if(scale<0.999) ws.style.transform='scale('+scale.toFixed(4)+')';
+  if(scale<0.999) wz.style.transform='scale('+scale.toFixed(4)+')';
 }
 window.addEventListener('resize', fitWordScale);
 function buildWord(text){
@@ -477,8 +489,8 @@ if (!reduced) setTimeout(cycle, 1400);
 let mode='login';
 let LANG='cs';
 const LL={
-  cs:{ tagline:'Místo, kde se vaše peníze hromadí', login:'Přihlášení', register:'Registrace', name:'Jméno', email:'E-mail', password:'Heslo', enter:'Vstoupit', create:'Vytvořit účet', or:'nebo', google:'Pokračovat přes Google', apple:'Pokračovat přes Apple', noAcc:'Nemáte účet?', regBtn:'Registrovat', hasAcc:'Už máte účet?', loginBtn:'Přihlásit', langTip:'Abychom si rozuměli.', ccTitle:'Přidat příspěvek', ccAmount:'Vaše částka', ccSign:'Podpis', ccNamePh:'Vaše jméno', ccAmountPh:'Libovolná', ccAnon:'Přispět anonymně', ccSubmit:'Přispět', ccProgressHd:'Průběh výběru', ccDonorsHd:'Přispěvatelé', ccOf:'z', ccRemain:'Zbývá vybrat', ccThanks:'Děkujeme za příspěvek!', ccAnonName:'Anonymní', ccNoNameErr:'Zadejte jméno, nebo zaškrtněte anonymní příspěvek', ccGoalReached:'Cíl dosažen!', ccCur:'Kč', flag:'<svg class="flag" viewBox="0 0 36 24" preserveAspectRatio="none"><rect width="36" height="12" fill="#fff"/><rect y="12" width="36" height="12" fill="#d7141a"/><path d="M0 0 L18 12 L0 24 Z" fill="#11457e"/></svg>' },
-  en:{ tagline:'Where your money piles up', login:'Sign in', register:'Sign up', name:'Name', email:'E-mail', password:'Password', enter:'Enter', create:'Create account', or:'or', google:'Continue with Google', apple:'Continue with Apple', noAcc:"Don't have an account?", regBtn:'Sign up', hasAcc:'Already have an account?', loginBtn:'Sign in', langTip:'So we understand each other.', ccTitle:'Add contribution', ccAmount:'Your amount', ccSign:'Signature', ccNamePh:'Your name', ccAmountPh:'Any amount', ccAnon:'Contribute anonymously', ccSubmit:'Contribute', ccProgressHd:'Collection progress', ccDonorsHd:'Contributors', ccOf:'of', ccRemain:'Left to collect', ccThanks:'Thank you for your contribution!', ccAnonName:'Anonymous', ccNoNameErr:'Enter a name, or check contribute anonymously', ccGoalReached:'Goal reached!', ccCur:'€', flag:'<svg class="flag" viewBox="0 0 36 24" preserveAspectRatio="none"><rect width="36" height="24" fill="#012169"/><path d="M0,0 36,24 M36,0 0,24" stroke="#fff" stroke-width="5"/><path d="M0,0 36,24 M36,0 0,24" stroke="#C8102E" stroke-width="3"/><path d="M18,0 V24 M0,12 H36" stroke="#fff" stroke-width="8"/><path d="M18,0 V24 M0,12 H36" stroke="#C8102E" stroke-width="4.5"/></svg>' }
+  cs:{ tagline:'Místo, kde se vaše peníze hromadí', login:'Přihlášení', register:'Registrace', name:'Jméno', email:'E-mail', password:'Heslo', enter:'Vstoupit', create:'Vytvořit účet', or:'nebo', google:'Pokračovat přes Google', apple:'Pokračovat přes Apple', noAcc:'Nemáte účet?', regBtn:'Registrovat', hasAcc:'Už máte účet?', loginBtn:'Přihlásit', langTip:'Abychom si rozuměli.', ccTitle:'Přidat příspěvek', ccAmount:'Vaše částka', ccSign:'Podpis', ccNamePh:'Vaše jméno', ccAmountPh:'Zadejte libovolnou částku', ccAnon:'Přispět anonymně', ccSubmit:'Přispět', ccProgressHd:'Průběh výběru', ccDonorsHd:'Přispěvatelé', ccOf:'z', ccRemain:'Zbývá vybrat', ccThanks:'Děkujeme za příspěvek!', ccAnonName:'Anonymní', ccNoNameErr:'Zadejte jméno, nebo zaškrtněte anonymní příspěvek', ccGoalReached:'Cíl dosažen!', ccCur:'Kč', flag:'<svg class="flag" viewBox="0 0 36 24" preserveAspectRatio="none"><rect width="36" height="12" fill="#fff"/><rect y="12" width="36" height="12" fill="#d7141a"/><path d="M0 0 L18 12 L0 24 Z" fill="#11457e"/></svg>' },
+  en:{ tagline:'Where your money piles up', login:'Sign in', register:'Sign up', name:'Name', email:'E-mail', password:'Password', enter:'Enter', create:'Create account', or:'or', google:'Continue with Google', apple:'Continue with Apple', noAcc:"Don't have an account?", regBtn:'Sign up', hasAcc:'Already have an account?', loginBtn:'Sign in', langTip:'So we understand each other.', ccTitle:'Add contribution', ccAmount:'Your amount', ccSign:'Signature', ccNamePh:'Your name', ccAmountPh:'Enter any amount', ccAnon:'Contribute anonymously', ccSubmit:'Contribute', ccProgressHd:'Collection progress', ccDonorsHd:'Contributors', ccOf:'of', ccRemain:'Left to collect', ccThanks:'Thank you for your contribution!', ccAnonName:'Anonymous', ccNoNameErr:'Enter a name, or check contribute anonymously', ccGoalReached:'Goal reached!', ccCur:'€', flag:'<svg class="flag" viewBox="0 0 36 24" preserveAspectRatio="none"><rect width="36" height="24" fill="#012169"/><path d="M0,0 36,24 M36,0 0,24" stroke="#fff" stroke-width="5"/><path d="M0,0 36,24 M36,0 0,24" stroke="#C8102E" stroke-width="3"/><path d="M18,0 V24 M0,12 H36" stroke="#fff" stroke-width="8"/><path d="M18,0 V24 M0,12 H36" stroke="#C8102E" stroke-width="4.5"/></svg>' }
 };
 // oslavné hlášky po odeslání příspěvku ({amount} = částka, {pot} = název potu) + tlačítko
 LL.cs.ccDoneBtn='Hotovo'; LL.en.ccDoneBtn='Done';
@@ -696,10 +708,11 @@ function renderContribState(){
   var nf=document.getElementById('cc-name-field'); if(nf) nf.style.display = isSelf ? 'none' : '';
   var _card=document.getElementById('contrib-card'); if(_card){ _card.classList.toggle('mode-self', isSelf); _card.classList.toggle('mode-donor', !isSelf); }
   if(isSelf){
-    // ── SELF: jen procenta + stylový bar + kolik zbývá do cíle ──
+    // ── SELF: koláčový ukazatel (celý vnitřek vyplněný) + kolik zbývá do cíle ──
     var remaining=Math.max(0, c.goal-c.collected);
-    var spct=document.getElementById('cc-self-pct'); if(spct) spct.textContent = Math.min(100,pct)+'%';
-    var sbar=document.getElementById('cc-self-bar-fill'); if(sbar) sbar.style.height=Math.min(100,pct)+'%';
+    var pieP=Math.min(100,pct);
+    var spct=document.getElementById('cc-self-pct'); if(spct) spct.textContent = pieP+'%';
+    var spie=document.getElementById('cc-self-pie'); if(spie) spie.style.background = 'conic-gradient(#0a0b0e '+pieP+'%, rgba(0,0,0,0.08) '+pieP+'%)';
     var srem=document.getElementById('cc-self-remain');
     if(srem) srem.innerHTML = remaining>0 ? (d.ccRemain+': <b>'+ccMoney(remaining)+'</b>') : ('<b>'+d.ccGoalReached+'</b>');
     var bp0=document.getElementById('cc-block-progress'); if(bp0) bp0.classList.remove('on');
