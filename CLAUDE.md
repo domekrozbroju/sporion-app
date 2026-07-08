@@ -14,18 +14,23 @@ ZDROJOVÉ soubory (zde se edituje) — každý je samostatné, plně funkční t
 VÝSLEDNÝ soubor (build artefakt):
 - `sporion_7r22b03ja1ol8zsy.html` — wrapper, který vkládá tři zdrojové soubory jako
   `<iframe srcdoc="...">`. `sporion_landing.html` načítá appku přes `#app-frame` → tento
-  wrapper (`appFrame.src='sporion_7r22b03ja1ol8zsy.html'`, nastaveno hned při načtení landingu).
-  Wrapper drží sdílený stav potů napříč tématy (zprávy hello/state/sync/view) a přepínání
-  tématu (`postMessage({theme:...})` → `switchTheme()` uvnitř wrapperu).
+  wrapper. `appFrame.src` se nastavuje LÍNĚ (až při prvním vstupu do appky, ne předem),
+  appka se odhalí třídou `.show` (opacity transition v základním pravidle #app-frame,
+  žádná `.land` třída — ta byla zrušena). Wrapper drží sdílený stav potů napříč tématy
+  (zprávy hello/state/sync/view) a přepínání tématu (`postMessage({theme:...})` →
+  `switchTheme()` uvnitř wrapperu).
 
-**Scroll (DŮLEŽITÉ — ověřená konfigurace):** Toto vnoření (landing → `#app-frame` → wrapper →
-téma) je záměrně dvouúrovňové a je to konfigurace, která prokazatelně funguje (scroll kolečkem
-i dotykem). Nezjednodušovat na "přímé" načtení tématu do `#app-frame` — to bylo vyzkoušeno
-(commity mezi `b174b7e` a `f22ceae`) a scroll to NEOPRAVILO; skutečná příčina tehdejší
-regrese scrollu byla jinde (viz memory `scroll-vnorene-iframy` pro detaily pátrání). Landing
-`body` má VŽDY `overflow:hidden` (žádné podmíněné `overflow-y:auto`/třída pro "app-live" —
-to bylo zdrojem zmatku). `#app-frame` základní CSS pravidlo obsahuje `transform-origin` a
-`.land` třída svůj vlastní `transition:opacity` — neměnit, obojí bylo v ověřené verzi.
+**Scroll (DŮLEŽITÉ — vyřešeno 7. 7. 2026, ověřeno uživatelem na desktop Safari):** Skutečná
+příčina dlouhého pátrání (15+ commitů, viz memory `scroll-vnorene-iframy`) NEBYLA dvouúrovňové
+vnoření (landing → `#app-frame` → wrapper → téma) ani mechanismus zobrazení appky (`.show`
+timing) — obojí bylo v pořádku. Skutečná příčina: `#contrib-frame` (dárcovská stránka) je
+v DOM landingu TRVALE přítomný (i nikdy neotevřený) a má vyšší `z-index` (60) než `#app-frame`
+(50) — stojí tedy ve stacku nad appkou, i když je `opacity:0; pointer-events:none`. Safari/WebKit
+nedoručí spolehlivě **wheel** event skrz takhle vrstvený iframe do vrstvy pod ním (klik projde
+bez problémů, proto appka jinak normálně reagovala na interakce — jen scroll ne). **Oprava:**
+`#contrib-frame:not(.show) { display:none; }` — prvek se úplně vyjme z layoutu/stacku, dokud
+není aktivně zobrazený. Landing `body` má VŽDY `overflow:hidden` (žádné podmíněné
+`overflow-y:auto`/třída pro "app-live" — nezjednodušovat, to bylo zdrojem zmatku dřív).
 
 ## Build krok (DŮLEŽITÉ)
 

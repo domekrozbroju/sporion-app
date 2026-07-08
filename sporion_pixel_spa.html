@@ -6,6 +6,8 @@
 <script>['gesturestart','gesturechange','gestureend'].forEach(function(g){document.addEventListener(g,function(e){e.preventDefault();});});</script><style>
   @import url('https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&display=swap');
   * { box-sizing:border-box; margin:0; padding:0; }
+  *, *::before, *::after { -webkit-user-select:none; user-select:none; }
+  input, textarea, [contenteditable="true"] { -webkit-user-select:text; user-select:text; }
   body { background:#ebd9b2; font-family:'Silkscreen',monospace; }
 
   /* ── BANNER ── */
@@ -1057,7 +1059,7 @@ window.openEdit=openEdit;
 function openContribute(){
   var p=_currentPot; if(!p) return;
   var v=p.visibility||{viCastka:true,viProgress:true,viList:false,viIndiv:false};
-  var payload={ id:p.id, name:tName(p), collected:p.collected, goal:p.goal, contributions:(p.contributions||[]),
+  var payload={ id:p.id, name:tName(p), description:dia(p.description||''), collected:p.collected, goal:p.goal, contributions:(p.contributions||[]),
     visibility:{ amount:!!v.viCastka, progress:!!v.viProgress, donors:!!v.viList, individual:!!v.viIndiv } };
   try{ if(window.parent && window.parent!==window) window.parent.postMessage({sporion:'openContrib', pot:payload}, '*'); }catch(e){}
 }
@@ -1178,7 +1180,7 @@ function showDetail(pot){
 
   document.getElementById('d-badge').textContent=`> money pot / ${dia(tOcc(pot))}`;
   document.getElementById('d-title').textContent=dia(tName(pot));
-  document.getElementById('d-sub').textContent=`${pot.contributors} `+t('contributors');
+  document.getElementById('d-sub').textContent=dia((pot.description||'').trim()) || (`${pot.contributors} `+t('contributors'));
   document.getElementById('d-pct').textContent=pct+' %';
   document.getElementById('d-collected').textContent=money(pot.collected);
   document.getElementById('d-goal-txt').textContent='/ '+money(pot.goal);

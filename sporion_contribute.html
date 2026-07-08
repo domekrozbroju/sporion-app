@@ -13,6 +13,8 @@
   --cream:#f5f3ee; --muted:#6c757d; --field:rgba(8,9,12,0.7);
 }
 * { box-sizing:border-box; margin:0; padding:0; }
+*, *::before, *::after { -webkit-user-select:none; user-select:none; }
+input, textarea, [contenteditable="true"] { -webkit-user-select:text; user-select:text; }
 html, body { height:100%; }
 body {
   background: radial-gradient(130% 90% at 50% 32%, #11141a 0%, var(--bg) 60%);
@@ -46,6 +48,12 @@ body::after {
   display:flex; flex-direction:column; align-items:center; justify-content:center;
   gap:7vh; padding:6vh 24px;
 }
+.mini-brand {
+  font-family:'Outfit',sans-serif; font-weight:700; letter-spacing:0.32em; text-transform:uppercase;
+  font-size:clamp(10px, 1.3vw, 13px); color:var(--cream); opacity:0.55; text-align:center;
+  -webkit-user-select:none; -moz-user-select:none; user-select:none;
+}
+.word-scale { display:flex; align-items:center; justify-content:center; width:100%; }
 .word {
   display:flex; align-items:center; justify-content:center;
   height:1.18em; font-weight:700;
@@ -177,14 +185,19 @@ body { background: radial-gradient(135% 95% at 50% 30%, #ffffff 0%, #f3f5f7 72%)
 body::before, body::after { display:none !important; }   /* pryč šum i scanline čáry přes celou obrazovku */
 #sky { filter: invert(1) brightness(0.98) !important; }
 #game { filter: invert(1); }
-/* SPORION ztmavený přímo barvou; podnadpis (název potu) řešíme přímou zářivou barvou */
-.word, .word .gl { color:#474c55 !important; }   /* SPORION mírně ztlumen, ať podnadpis vynikne */
+/* mini SPORION nad glitchujícím názvem potu – statické, tlumené */
+.mini-brand { color:#7a828a !important; }
+/* název potu (#word) je hlavní glitchující prvek – tmavý, výrazný (dřív to dělalo SPORION) */
+.word, .word .gl { color:#0a0b0e !important; }
+/* popis potu (#tagline) – klidný statický text pod názvem, žádný glitch; skryje se, když je prázdný */
 .tagline {
-  animation:none !important; opacity:1 !important; font-weight:800 !important;
-  font-size:clamp(15px, 2.7vw, 27px) !important; letter-spacing:0.05em !important;
-  background:none !important; color:#0a0b0e !important; -webkit-text-fill-color:#0a0b0e;
-  filter:none !important; text-shadow:0 1px 1px rgba(255,255,255,0.55);
+  animation:none !important; opacity:0.82 !important; font-weight:400 !important;
+  font-size:clamp(12px, 1.6vw, 15px) !important; letter-spacing:0.01em !important; text-transform:none !important;
+  max-width:380px; line-height:1.5; text-indent:0 !important;
+  background:none !important; color:#3a3f45 !important; -webkit-text-fill-color:#3a3f45;
+  filter:none !important; text-shadow:none;
 }
+.tagline:empty { display:none; }
 /* jazykový přepínač – světlý (vlaječky zůstávají barevné, nejsou pod filtrem) */
 .lang-toggle { width:25px; height:25px; padding:0; gap:0; border-radius:50%; overflow:hidden; justify-content:center; background:rgba(255,255,255,0.85); border:1px solid rgba(0,0,0,0.16); color:#1a1c22; box-shadow:0 3px 10px rgba(0,0,0,0.12); }
 .lang-toggle:hover { border-color:rgba(0,0,0,0.4); }
@@ -259,8 +272,9 @@ body::before, body::after { display:none !important; }   /* pryč šum i scanlin
 </div>
 <div class="stage">
   <div class="hero">
-    <div class="word" id="word" aria-label="SPORION"></div>
-    <div class="tagline" id="tagline">Narozeniny Martiny</div>
+    <div class="mini-brand" id="mini-brand">SPORION</div>
+    <div class="word-scale" id="wordScale"><div class="word" id="word"></div></div>
+    <div class="tagline" id="tagline"></div>
   </div>
 
   <div class="contrib-card">
@@ -349,8 +363,7 @@ body::before, body::after { display:none !important; }   /* pryč šum i scanlin
 </div>
 
 <script>
-// ───────── WORDMARK ─────────
-const WORD='SPORION';
+// ───────── WORDMARK (glitchující název potu) ─────────
 const wordEl=document.getElementById('word');
 const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const BASE=["'Outfit', sans-serif",1.0];
@@ -363,10 +376,7 @@ const POOL=[
   ["'Archivo Black', sans-serif",0.9],["'Share Tech Mono', monospace",1.0],["'Tourney', cursive",1.0],
   ["'Pixelify Sans', sans-serif",1.0],["'Syne Mono', monospace",1.0],["'Michroma', sans-serif",0.86],
 ];
-const letters=WORD.split('').map(ch=>{
-  const s=document.createElement('span'); s.className='gl'; s.textContent=ch;
-  wordEl.appendChild(s); return s;
-});
+let letters=[], curWordText='';
 function setFont(l,f){ l.style.fontFamily=f[0]; l.style.fontSize=f[1]+'em'; }
 function stableAll(){ letters.forEach(l=>{ setFont(l,BASE); l.style.letterSpacing='0'; }); }
 
@@ -380,14 +390,38 @@ function applyEvenSpacing(){
     const adv=c.measureText(l.textContent).width/200;
     l.style.width=(adv+GAP).toFixed(4)+'em';
   });
-  fitTagline();
+  fitWordScale();
 }
-function fitTagline(){ var w=document.getElementById('word'), tg=document.getElementById('tagline'); if(!w||!tg) return; var ww=w.getBoundingClientRect().width; if(ww<=0) return; tg.style.letterSpacing='0'; tg.style.textIndent='0'; var natural=tg.getBoundingClientRect().width; var n=(tg.textContent||'').length; if(n<2) return; var ls=(ww*0.80-natural)/n; if(ls<0) ls=0; tg.style.letterSpacing=ls+'px'; tg.style.textIndent=(ls/2)+'px'; }
-window.addEventListener('resize', fitTagline);
-if (document.fonts && document.fonts.load) {
-  document.fonts.load("700 1em 'Outfit'").then(applyEvenSpacing).catch(applyEvenSpacing);
-  setTimeout(applyEvenSpacing, 600);
-} else { applyEvenSpacing(); }
+// nazev potu ma libovolnou delku (na rozdil od puvodniho pevneho "SPORION") - kdyz se
+// nevejde do sirky obrazovky, cely blok zmensime transformem (na wrapperu #wordScale,
+// NE na #word samotnem, protoze ten uz pouziva transform pro glitch-shake animaci)
+function fitWordScale(){
+  var ws=document.getElementById('wordScale'); if(!ws||!wordEl) return;
+  ws.style.transform='';
+  var natural=wordEl.getBoundingClientRect().width; if(natural<=0) return;
+  var maxW=Math.min(window.innerWidth-48, 900);
+  var scale=Math.min(1, maxW/natural);
+  if(scale<0.999) ws.style.transform='scale('+scale.toFixed(4)+')';
+}
+window.addEventListener('resize', fitWordScale);
+function buildWord(text){
+  text=(text||'').trim();
+  if(!text || text===curWordText) return;
+  curWordText=text;
+  wordEl.innerHTML='';
+  letters=text.split('').map(function(ch){
+    const s=document.createElement('span'); s.className='gl'; s.textContent=(ch===' ')?' ':ch;
+    wordEl.appendChild(s); return s;
+  });
+  wordEl.setAttribute('aria-label', text);
+  stableAll();
+  if (document.fonts && document.fonts.load) {
+    document.fonts.load("700 1em 'Outfit'").then(applyEvenSpacing).catch(applyEvenSpacing);
+  } else { applyEvenSpacing(); }
+}
+window.buildWord=buildWord;
+buildWord('Narozeniny Martiny');
+setTimeout(applyEvenSpacing, 600);
 
 let swapTimers=[];
 function clearSwaps(){ swapTimers.forEach(clearTimeout); swapTimers=[]; }
@@ -534,8 +568,8 @@ function toast(t){ const el=document.getElementById('toast'); el.textContent=t; 
   const ctx=vis.getContext('2d');
   const lo=document.createElement('canvas');
   const lc=lo.getContext('2d');
-  let PX=6; const BASE_PX=6, HI_PX=2, TILT=-0.34, cosT=Math.cos(-TILT), sinT=Math.sin(-TILT);
-  let W,H,DPR,lw,lh,img,data,lpx,lpy,lR,RX,RY,starFlag,starPhase;
+  let PX=6; const BASE_PX=6, HI_PX=2;
+  let W,H,DPR,lw,lh,img,data,starFlag,starPhase;
   const game=document.getElementById('game'), gctx=game.getContext('2d');
   let gW,gH,planetSX,planetSY,planetSR,fieldRects=[],lastT=0,frameN=0,lastRenderT=0;
 
@@ -543,9 +577,6 @@ function toast(t){ const el=document.getElementById('toast'); el.textContent=t; 
     lw=Math.ceil(W/PX); lh=Math.ceil(H/PX);
     lo.width=lw; lo.height=lh;
     img=lc.createImageData(lw,lh); data=img.data;
-    const pcx=W*0.84, pcy=H*0.88, R=H*0.62;
-    lpx=pcx/PX; lpy=pcy/PX; lR=R/PX;
-    RX=lR*2.05; RY=lR*0.52;
     starFlag=new Float32Array(lw*lh);
     starPhase=new Float32Array(lw*lh);
     const n=Math.round(lw*lh*0.0176);
@@ -565,8 +596,6 @@ function toast(t){ const el=document.getElementById('toast'); el.textContent=t; 
     planetSX=r.left+W*0.84; planetSY=r.top+H*0.88; planetSR=H*0.62;
     refreshFields();
   }
-  function ringGrey(rr){ if(rr>0.87)return 0.80; if(rr>0.79)return 0.42; return 0.6; }
-
   // ── vesmírné stroje (pixelové sprity, kreslené na celoobrazovkový #game) ──
   const PAL={ W:[235,238,245], G:[168,178,196], D:[60,66,82],
               B:[64,140,235], C:[120,212,255], P:[40,92,205],
@@ -678,65 +707,15 @@ function toast(t){ const el=document.getElementById('toast'); el.textContent=t; 
   function overVehicle(gx,gy){ for(let k=0;k<vehicles.length;k++){ const v=vehicles[k], sp=SPR[v.type]; const sz=Math.max(sp.rows.length, sp.rows[0].length); const hr=Math.max(13, v.cs*5.5*sz*0.6*0.5); const dx=gx-v.cx, dy=gy-v.cy; if(dx*dx+dy*dy<=hr*hr) return true; } return false; }
   function onHover(e){ if(document.body.classList.contains('warp')){ document.body.style.cursor=''; return; } document.body.style.cursor = overVehicle(e.clientX,e.clientY) ? RETICLE : ''; }
   window.addEventListener('pointermove', onHover);
-
   function render(time){
-    const rot=time*0.10;
     let o=0;
     for(let j=0;j<lh;j++){
       for(let i=0;i<lw;i++){
-        const x=i+0.5, y=j+0.5;
-        const ddx=x-lpx, ddy=y-lpy;
-        const dx=ddx/lR, dy=ddy/lR;
-        const d2=dx*dx+dy*dy;
-        const rxl=ddx*cosT-ddy*sinT, ryl=ddx*sinT+ddy*cosT;
-        const rr=Math.sqrt((rxl/RX)*(rxl/RX)+(ryl/RY)*(ryl/RY));
-        const ringB=rr>0.70&&rr<1.03;
-        let ringVal=0;
-        if(ringB){ const ra=Math.atan2(ryl,rxl); ringVal=ringGrey(rr)*(0.80+0.20*Math.sin(ra*9+time*1.7)); }
-        let val=-1, kind=-1, cont=0, pol=0;
         const si=j*lw+i; const sf=starFlag[si];
-        if(sf>0){ val=sf*(0.7+0.3*Math.sin(time*0.5+starPhase[si])); kind=0; }
-        if(d2<=1){
-          const z=Math.sqrt(1-d2);
-          const lon=Math.atan2(dx,z)+rot;                    // rotace kolem osy
-          const lat=Math.asin(dy<-1?-1:dy>1?1:dy);
-          const det=Math.sin(lon*8.0+lat*5.0)*Math.cos(lat*6.5-lon*4.0)+0.5*Math.sin(lon*15.0+lat*9.0+0.7)+0.3*Math.sin(lon*27.0-lat*19.0+1.5);  // jemná pixel textura (kratery, hrebeny)
-          cont=Math.sin(lon*2.0+lat*0.7)*Math.cos(lat*2.3-lon*0.6)+0.55*Math.sin(lon*3.6+1.2)*Math.cos(lat*1.8+0.4)+det*0.12;
-          pol=Math.abs(lat);
-          let b=0.66+0.10*Math.sin(lat*3.0+0.4);
-          b*=(0.66+0.34*z);                                  // ztmavení k okraji = koule (jasný okraj)
-          b*=(0.90+0.12*det);                                // textura povrchu
-          if(det>0.85) b*=0.78;                              // krátery / tmavé skvrny
-          else if(det<-0.92) b*=1.14;                        // světlé hřebeny
-          if(ringB&&ryl>0){ val=ringVal; kind=2; }
-          else { val=b>1?1:b<0?0:b; kind=1; }
-        } else if(ringB){
-          val=ringVal; kind=2;
-        } else if(d2<=1.18){
-          const t=(1.18-d2)/0.18; if(0.5*t>val){ val=0.5*t; kind=3; }
-        }
-        if(val<0){ data[o+3]=0; }
-        else{
-          let v=val<0?0:val>1?1:val;
-          let cr,cg,cb;
-          if(kind===0){ cr=255*v; cg=250*v; cb=235*v; }      // hvězda – teplá bílá
-          else{
-            v=Math.round(v*5)/5;                              // pixelové pásy stínování
-            let ar,ag,ab;
-            if(kind===2){ ar=210; ag=196; ab=170; }           // prstenec – teplá šeď
-            else if(kind===3){ ar=90; ag=150; ab=220; }       // atmosféra – modrý okraj
-            else{                                             // povrch – výrazné zóny
-              if(pol>1.45){ ar=234; ag=242; ab=250; }         // ledové póly (malé, jasné)
-              else if(cont<-0.30){ ar=42; ag=104; ab=200; }   // modrý oceán
-              else if(cont<-0.02){ ar=70; ag=150; ab=210; }   // mělčina / tyrkys
-              else if(cont<0.22){ ar=92; ag=158; ab=96; }     // zeleň
-              else if(cont<0.45){ ar=210; ag=190; ab=140; }   // béžová
-              else{ ar=235; ag=140; ab=46; }                  // oranžová poušť
-            }
-            cr=ar*v; cg=ag*v; cb=ab*v;
-          }
-          data[o]=cr|0; data[o+1]=cg|0; data[o+2]=cb|0; data[o+3]=255;
-        }
+        if(sf>0){
+          const v=sf*(0.7+0.3*Math.sin(time*0.5+starPhase[si]));
+          data[o]=255*v|0; data[o+1]=250*v|0; data[o+2]=235*v|0; data[o+3]=255;   // hvězda – teplá bílá
+        } else { data[o+3]=0; }
         o+=4;
       }
     }
@@ -764,6 +743,10 @@ function toast(t){ const el=document.getElementById('toast'); el.textContent=t; 
   }
   window.startWarpZoom=startWarpZoom;
   window.resetWarpZoom=function(){ vis.style.transform=''; };
+  // stranka se muze nacist, zatimco ji rodicovsky #contrib-frame ma jeste display:none
+  // (kvuli scroll-fixu) - v tu chvili size() spocita nulove rozmery. Znovu prepocitat
+  // az je stranka opravdu videt (setContribPot prijde tesne pred fade-in).
+  window.__sporionResizeSky=size;
   function gameStep(time){
     let dt=time-lastT; lastT=time; if(dt<0||dt>0.05) dt=0.016;
     gctx.clearRect(0,0,gW,gH);
@@ -833,6 +816,7 @@ function ccMoney(v){ v=+v||0; return (LANG==='en') ? '€'+Math.round(v/RATE).to
 var CONTRIB = {
   id:null,
   name:'Narozeniny Martiny',
+  description:'Sešli jsme se, abychom Martině společně připravili nezapomenutelnou oslavu. Díky za každou korunu!',
   collected:1440, goal:2000,
   donors:[
     {name:'Tomáš K.', amount:200, anon:false},
@@ -873,8 +857,11 @@ function renderContribState(){
       box.appendChild(row);
     });
   }
-  // podnadpis = název potu
-  var tg=document.getElementById('tagline'); if(tg && tg.textContent!==c.name){ tg.textContent=c.name; if(typeof fitTagline==='function') setTimeout(fitTagline,0); }
+  // hlavni glitchujici nadpis = nazev potu
+  if(typeof buildWord==='function') buildWord(c.name);
+  // popis potu (je-li vyplneny) - staticky text pod nadpisem, jinak se schova (:empty)
+  var tg=document.getElementById('tagline'); var descTxt=(c.description||'').trim();
+  if(tg && tg.textContent!==descTxt) tg.textContent=descTxt;
 }
 // návrat do aplikace (landing skryje překryv)
 function contribBack(){ try{ if(window.parent && window.parent!==window) window.parent.postMessage({sporion:'closeContrib'},'*'); }catch(e){} }
@@ -969,12 +956,16 @@ window.setContribPot=function(pot){
   if(!pot) return;
   if(pot.id!=null) CONTRIB.id = pot.id;
   CONTRIB.name = pot.name || CONTRIB.name;
+  CONTRIB.description = pot.description!=null ? pot.description : '';
   if(pot.collected!=null) CONTRIB.collected = pot.collected;
   if(pot.goal!=null) CONTRIB.goal = pot.goal;
   if(Array.isArray(pot.donors)) CONTRIB.donors = pot.donors;
   else if(Array.isArray(pot.contributions)) CONTRIB.donors = pot.contributions.map(function(x){ var a=/^Anonym/.test(x.name||''); return {name:x.name, amount:x.amount, anon:a}; });
   if(pot.visibility) CONTRIB.visibility = pot.visibility;
   renderContribState();
+  // stranka prave dostava data tesne pred tim, nez ji rodic odhali (viz __sporionResizeSky vyse) -
+  // prepocitat rozmery hvezdneho pozadi, kdyby se prvni size() trefil jeste do display:none
+  if(window.__sporionResizeSky){ window.__sporionResizeSky(); requestAnimationFrame(window.__sporionResizeSky); }
 };
 window.addEventListener('message', function(e){ if(e.data && e.data.sporion==='contribPot') window.setContribPot(e.data.pot); });
 (function(){
