@@ -92,7 +92,12 @@ body::after {
   90%{ transform:translateX(-1px); filter:drop-shadow(-1px 0 rgba(0,210,255,0.3)); }
   92%{ transform:translateX(0); filter:none; }
 }
-.lang-switch { position:fixed; top:18px; right:18px; z-index:12; font-family:'Outfit',sans-serif; }
+/* mobile-topbar drzi zpet-sipku i jazyk pres position:sticky (ne fixed) - na mobilnim Safari
+   uvnitr scrollovaneho iframu se "fixed" prvky pri tazeni prstem prekresluji spatne a
+   na chvili je prekryje obsah pod nimi; sticky uvnitr normalniho flow tímto trpi min. */
+.mobile-topbar { position:sticky; top:0; z-index:12; display:flex; justify-content:space-between; align-items:flex-start; padding:18px; pointer-events:none; }
+.mobile-topbar > * { pointer-events:auto; }
+.lang-switch { position:relative; font-family:'Outfit',sans-serif; }
 .lang-toggle { display:flex; align-items:center; gap:7px; background:rgba(20,22,30,0.55); border:1px solid rgba(255,255,255,0.18); border-radius:100px; padding:7px 11px; cursor:pointer; color:var(--cream); -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px); }
 .lang-toggle:hover { border-color:rgba(255,255,255,0.4); }
 .lang-toggle svg { width:17px; height:17px; }
@@ -179,7 +184,13 @@ body.warp #warp-flash { animation:warpFlash 2.1s ease-in forwards; }
 @media (prefers-reduced-motion: reduce) { body::before { animation:none; } .word.glitching { animation:none; } #app-frame, #crt-backdrop, body.warp #sky, body.warp .stage, body.warp #warp-flash { animation:none; transition:none; } }
 
 /* ===== INVERTOVANÁ SCÉNA (pozadí, hvězdy, planeta, plavidla) ===== */
-html, body { height:auto !important; min-height:100%; overflow-x:hidden; overflow-y:auto !important; }
+/* overflow-y:auto jen na html (skutecny scroll container) - kdyz ho ma i body, vznikne
+   "fantomovy" scroll kontejner, ktery se sam nikdy neposune (obsah presne odpovida jeho
+   vlastni vysce) a rozbiji position:sticky potomku (sticky se pak pocita vuci body, ktery
+   se ale vizualne posouva spolu s html, takze sticky prvek misto lpeni na viewportu jen
+   "plave" s obsahem jako position:relative). */
+html { height:auto !important; min-height:100%; overflow-x:hidden; overflow-y:auto !important; }
+body { min-height:100%; overflow:visible !important; }   /* prebiji zakladni body{overflow:hidden} zdedene z landingu */
 body { background: radial-gradient(135% 95% at 50% 30%, #ffffff 0%, #f3f5f7 72%) !important; color:#0a0b0e; }
 body::before, body::after { display:none !important; }   /* pryč šum i scanline čáry přes celou obrazovku */
 #sky { filter: invert(1) brightness(0.98) !important; }
@@ -241,12 +252,17 @@ body::before, body::after { display:none !important; }   /* pryč šum i scanlin
 .cc-donor { display:flex; justify-content:space-between; font-family:'Outfit',sans-serif; font-size:12px; color:#3a3f45; }
 .cc-donor b { font-weight:600; color:#0a0b0e; }
 .cc-donor.anon span:first-child { color:#9aa0a6; font-style:italic; }
-/* SELF režim (přispívám sám sobě do vlastního potu) - jen procenta, vertikální "teploměr", zbývá */
-.cc-self-pct { font-family:'Outfit',sans-serif; font-weight:700; font-size:34px; letter-spacing:-0.02em; color:#0a0b0e; text-align:center; margin-bottom:14px; }
-.cc-self-bar-wrap { display:flex; justify-content:center; margin:0 0 6px; }
-.cc-self-bar { position:relative; width:34px; height:150px; border-radius:100px; background:rgba(0,0,0,0.08); overflow:hidden; box-shadow:inset 0 1px 3px rgba(0,0,0,0.12); }
+/* SELF režim (přispívám sám sobě do vlastního potu) - čáska+tlačítko vlevo, "teploměr" po
+   pravém boku karty jako její součást (stejná výška jako levý sloupec), zbývá pod celou řadou */
+.cc-self-layout { display:flex; gap:18px; align-items:stretch; }
+.cc-self-left { flex:1; min-width:0; }
+.cc-self-therm { display:none; flex-direction:column; align-items:center; width:42px; flex-shrink:0; }
+#contrib-card.mode-self .cc-self-therm { display:flex; }
+.cc-self-pct { font-family:'Outfit',sans-serif; font-weight:700; font-size:19px; letter-spacing:-0.01em; color:#0a0b0e; text-align:center; margin-bottom:9px; white-space:nowrap; }
+.cc-self-bar { position:relative; flex:1; width:100%; min-height:64px; border-radius:100px; background:rgba(0,0,0,0.08); overflow:hidden; box-shadow:inset 0 1px 3px rgba(0,0,0,0.12); }
 .cc-self-bar > i { position:absolute; left:0; bottom:0; width:100%; height:0; border-radius:100px; background:linear-gradient(0deg,#2a2d33,#0a0b0e); transition:height 0.8s cubic-bezier(0.22,0.9,0.3,1); }
-.cc-self-remain { margin-top:14px; text-align:center; font-family:'Outfit',sans-serif; font-size:12px; letter-spacing:0.04em; color:#6c757d; }
+.cc-self-remain { display:none; margin-top:16px; text-align:center; font-family:'Outfit',sans-serif; font-size:12px; letter-spacing:0.04em; color:#6c757d; }
+#contrib-card.mode-self .cc-self-remain { display:block; }
 .cc-self-remain b { color:#0a0b0e; font-weight:600; }
 /* zvýraznění, když dárce nezadal jméno ani nezaškrtl anonymní příspěvek */
 .cc-input.cc-err { border-color:#d64545 !important; }
@@ -257,27 +273,28 @@ body::before, body::after { display:none !important; }   /* pryč šum i scanlin
 <body>
 
 <style>
-.contrib-back { position:fixed; top:18px; left:18px; z-index:12; width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.85); border:1px solid rgba(0,0,0,0.16); color:#1a1c22; cursor:pointer; box-shadow:0 3px 10px rgba(0,0,0,0.12); transition:border-color 0.2s, transform 0.05s; }
+.contrib-back { width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.85); border:1px solid rgba(0,0,0,0.16); color:#1a1c22; cursor:pointer; box-shadow:0 3px 10px rgba(0,0,0,0.12); transition:border-color 0.2s, transform 0.05s; }
 .contrib-back:hover { border-color:rgba(0,0,0,0.4); }
 .contrib-back:active { transform:translateY(1px); }
 .contrib-back svg { width:20px; height:20px; }
 </style>
-<button class="contrib-back" id="contrib-back" onclick="contribBack()" title="Zpět / Back" aria-label="Zpět">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
-</button>
-
-<canvas id="sky"></canvas>
-
-<div class="lang-switch" id="lang-switch">
-  <button class="lang-toggle" id="lang-toggle" aria-label="Jazyk / Language" title="Abychom si rozuměli.">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.6 2.7 2.6 15.3 0 18M12 3c-2.6 2.7-2.6 15.3 0 18"/></svg>
-    <span class="lang-cur" id="lang-cur"><svg class="flag" viewBox="0 0 36 24" preserveAspectRatio="none"><rect width="36" height="12" fill="#fff"/><rect y="12" width="36" height="12" fill="#d7141a"/><path d="M0 0 L18 12 L0 24 Z" fill="#11457e"/></svg></span>
+<div class="mobile-topbar">
+  <button class="contrib-back" id="contrib-back" onclick="contribBack()" title="Zpět / Back" aria-label="Zpět">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
   </button>
-  <div class="lang-menu" id="lang-menu">
-    <button class="lang-opt active" data-lang="cs"><svg class="flag" viewBox="0 0 36 24" preserveAspectRatio="none"><rect width="36" height="12" fill="#fff"/><rect y="12" width="36" height="12" fill="#d7141a"/><path d="M0 0 L18 12 L0 24 Z" fill="#11457e"/></svg>Čeština</button>
-    <button class="lang-opt" data-lang="en"><svg class="flag" viewBox="0 0 36 24" preserveAspectRatio="none"><rect width="36" height="24" fill="#012169"/><path d="M0,0 36,24 M36,0 0,24" stroke="#fff" stroke-width="5"/><path d="M0,0 36,24 M36,0 0,24" stroke="#C8102E" stroke-width="3"/><path d="M18,0 V24 M0,12 H36" stroke="#fff" stroke-width="8"/><path d="M18,0 V24 M0,12 H36" stroke="#C8102E" stroke-width="4.5"/></svg>English</button>
+  <div class="lang-switch" id="lang-switch">
+    <button class="lang-toggle" id="lang-toggle" aria-label="Jazyk / Language" title="Abychom si rozuměli.">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.6 2.7 2.6 15.3 0 18M12 3c-2.6 2.7-2.6 15.3 0 18"/></svg>
+      <span class="lang-cur" id="lang-cur"><svg class="flag" viewBox="0 0 36 24" preserveAspectRatio="none"><rect width="36" height="12" fill="#fff"/><rect y="12" width="36" height="12" fill="#d7141a"/><path d="M0 0 L18 12 L0 24 Z" fill="#11457e"/></svg></span>
+    </button>
+    <div class="lang-menu" id="lang-menu">
+      <button class="lang-opt active" data-lang="cs"><svg class="flag" viewBox="0 0 36 24" preserveAspectRatio="none"><rect width="36" height="12" fill="#fff"/><rect y="12" width="36" height="12" fill="#d7141a"/><path d="M0 0 L18 12 L0 24 Z" fill="#11457e"/></svg>Čeština</button>
+      <button class="lang-opt" data-lang="en"><svg class="flag" viewBox="0 0 36 24" preserveAspectRatio="none"><rect width="36" height="24" fill="#012169"/><path d="M0,0 36,24 M36,0 0,24" stroke="#fff" stroke-width="5"/><path d="M0,0 36,24 M36,0 0,24" stroke="#C8102E" stroke-width="3"/><path d="M18,0 V24 M0,12 H36" stroke="#fff" stroke-width="8"/><path d="M18,0 V24 M0,12 H36" stroke="#C8102E" stroke-width="4.5"/></svg>English</button>
+    </div>
   </div>
 </div>
+
+<canvas id="sky"></canvas>
 <div class="stage">
   <div class="hero">
     <div class="mini-brand" id="mini-brand">SPORION</div>
@@ -285,25 +302,29 @@ body::before, body::after { display:none !important; }   /* pryč šum i scanlin
     <div class="tagline" id="tagline"></div>
   </div>
 
-  <div class="contrib-card">
+  <div class="contrib-card" id="contrib-card">
     <div class="cc-title" id="cc-title">Přidat příspěvek</div>
-    <div class="cc-field">
-      <label class="cc-label" id="cc-amount-l" for="cc-amount">Vaše částka</label>
-      <div class="cc-amount"><input id="cc-amount" type="number" min="1" inputmode="numeric" placeholder="Zadejte libovolnou částku"><span class="cc-cur" id="cc-cur">Kč</span></div>
-    </div>
-    <div class="cc-field" id="cc-name-field">
-      <label class="cc-label" id="cc-name-l" for="cc-name">Podpis</label>
-      <input class="cc-input" id="cc-name" type="text" placeholder="Vaše jméno">
-      <label class="cc-check" id="cc-anon-wrap"><input type="checkbox" id="cc-anon"><span id="cc-anon-l">Přispět anonymně</span></label>
-    </div>
-    <button class="cc-submit" id="cc-submit" onclick="submitContribution()">Přispět</button>
-    <div class="cc-info" id="cc-info">
-      <!-- SELF režim (přispívám do vlastního potu) - jen procenta + stylový bar + zbývá -->
-      <div class="cc-info-block" id="cc-block-progress-self">
-        <div class="cc-self-pct" id="cc-self-pct">0%</div>
-        <div class="cc-self-bar-wrap"><div class="cc-self-bar"><i id="cc-self-bar-fill"></i></div></div>
-        <div class="cc-self-remain" id="cc-self-remain"></div>
+    <!-- SELF režim: čáska + tlačítko vlevo, "teploměr" (%, bar) po pravém boku jako součást karty -->
+    <div class="cc-self-layout">
+      <div class="cc-self-left">
+        <div class="cc-field">
+          <label class="cc-label" id="cc-amount-l" for="cc-amount">Vaše částka</label>
+          <div class="cc-amount"><input id="cc-amount" type="number" min="1" inputmode="numeric" placeholder="Libovolná"><span class="cc-cur" id="cc-cur">Kč</span></div>
+        </div>
+        <div class="cc-field" id="cc-name-field">
+          <label class="cc-label" id="cc-name-l" for="cc-name">Podpis</label>
+          <input class="cc-input" id="cc-name" type="text" placeholder="Vaše jméno">
+          <label class="cc-check" id="cc-anon-wrap"><input type="checkbox" id="cc-anon"><span id="cc-anon-l">Přispět anonymně</span></label>
+        </div>
+        <button class="cc-submit" id="cc-submit" onclick="submitContribution()">Přispět</button>
       </div>
+      <div class="cc-self-therm" id="cc-self-therm">
+        <div class="cc-self-pct" id="cc-self-pct">0%</div>
+        <div class="cc-self-bar"><i id="cc-self-bar-fill"></i></div>
+      </div>
+    </div>
+    <div class="cc-self-remain" id="cc-self-remain"></div>
+    <div class="cc-info" id="cc-info">
       <!-- DONOR režim (cizí dárce) - průběh výběru + seznam přispěvatelů -->
       <div class="cc-info-block" id="cc-block-progress" data-vis="progress">
         <div class="cc-info-hd" id="cc-progress-hd">Průběh výběru</div>
@@ -456,8 +477,8 @@ if (!reduced) setTimeout(cycle, 1400);
 let mode='login';
 let LANG='cs';
 const LL={
-  cs:{ tagline:'Místo, kde se vaše peníze hromadí', login:'Přihlášení', register:'Registrace', name:'Jméno', email:'E-mail', password:'Heslo', enter:'Vstoupit', create:'Vytvořit účet', or:'nebo', google:'Pokračovat přes Google', apple:'Pokračovat přes Apple', noAcc:'Nemáte účet?', regBtn:'Registrovat', hasAcc:'Už máte účet?', loginBtn:'Přihlásit', langTip:'Abychom si rozuměli.', ccTitle:'Přidat příspěvek', ccAmount:'Vaše částka', ccSign:'Podpis', ccNamePh:'Vaše jméno', ccAmountPh:'Zadejte libovolnou částku', ccAnon:'Přispět anonymně', ccSubmit:'Přispět', ccProgressHd:'Průběh výběru', ccDonorsHd:'Přispěvatelé', ccOf:'z', ccRemain:'Zbývá vybrat', ccThanks:'Děkujeme za příspěvek!', ccAnonName:'Anonymní', ccNoNameErr:'Zadejte jméno, nebo zaškrtněte anonymní příspěvek', ccGoalReached:'Cíl dosažen!', ccCur:'Kč', flag:'<svg class="flag" viewBox="0 0 36 24" preserveAspectRatio="none"><rect width="36" height="12" fill="#fff"/><rect y="12" width="36" height="12" fill="#d7141a"/><path d="M0 0 L18 12 L0 24 Z" fill="#11457e"/></svg>' },
-  en:{ tagline:'Where your money piles up', login:'Sign in', register:'Sign up', name:'Name', email:'E-mail', password:'Password', enter:'Enter', create:'Create account', or:'or', google:'Continue with Google', apple:'Continue with Apple', noAcc:"Don't have an account?", regBtn:'Sign up', hasAcc:'Already have an account?', loginBtn:'Sign in', langTip:'So we understand each other.', ccTitle:'Add contribution', ccAmount:'Your amount', ccSign:'Signature', ccNamePh:'Your name', ccAmountPh:'Enter any amount', ccAnon:'Contribute anonymously', ccSubmit:'Contribute', ccProgressHd:'Collection progress', ccDonorsHd:'Contributors', ccOf:'of', ccRemain:'Left to collect', ccThanks:'Thank you for your contribution!', ccAnonName:'Anonymous', ccNoNameErr:'Enter a name, or check contribute anonymously', ccGoalReached:'Goal reached!', ccCur:'€', flag:'<svg class="flag" viewBox="0 0 36 24" preserveAspectRatio="none"><rect width="36" height="24" fill="#012169"/><path d="M0,0 36,24 M36,0 0,24" stroke="#fff" stroke-width="5"/><path d="M0,0 36,24 M36,0 0,24" stroke="#C8102E" stroke-width="3"/><path d="M18,0 V24 M0,12 H36" stroke="#fff" stroke-width="8"/><path d="M18,0 V24 M0,12 H36" stroke="#C8102E" stroke-width="4.5"/></svg>' }
+  cs:{ tagline:'Místo, kde se vaše peníze hromadí', login:'Přihlášení', register:'Registrace', name:'Jméno', email:'E-mail', password:'Heslo', enter:'Vstoupit', create:'Vytvořit účet', or:'nebo', google:'Pokračovat přes Google', apple:'Pokračovat přes Apple', noAcc:'Nemáte účet?', regBtn:'Registrovat', hasAcc:'Už máte účet?', loginBtn:'Přihlásit', langTip:'Abychom si rozuměli.', ccTitle:'Přidat příspěvek', ccAmount:'Vaše částka', ccSign:'Podpis', ccNamePh:'Vaše jméno', ccAmountPh:'Libovolná', ccAnon:'Přispět anonymně', ccSubmit:'Přispět', ccProgressHd:'Průběh výběru', ccDonorsHd:'Přispěvatelé', ccOf:'z', ccRemain:'Zbývá vybrat', ccThanks:'Děkujeme za příspěvek!', ccAnonName:'Anonymní', ccNoNameErr:'Zadejte jméno, nebo zaškrtněte anonymní příspěvek', ccGoalReached:'Cíl dosažen!', ccCur:'Kč', flag:'<svg class="flag" viewBox="0 0 36 24" preserveAspectRatio="none"><rect width="36" height="12" fill="#fff"/><rect y="12" width="36" height="12" fill="#d7141a"/><path d="M0 0 L18 12 L0 24 Z" fill="#11457e"/></svg>' },
+  en:{ tagline:'Where your money piles up', login:'Sign in', register:'Sign up', name:'Name', email:'E-mail', password:'Password', enter:'Enter', create:'Create account', or:'or', google:'Continue with Google', apple:'Continue with Apple', noAcc:"Don't have an account?", regBtn:'Sign up', hasAcc:'Already have an account?', loginBtn:'Sign in', langTip:'So we understand each other.', ccTitle:'Add contribution', ccAmount:'Your amount', ccSign:'Signature', ccNamePh:'Your name', ccAmountPh:'Any amount', ccAnon:'Contribute anonymously', ccSubmit:'Contribute', ccProgressHd:'Collection progress', ccDonorsHd:'Contributors', ccOf:'of', ccRemain:'Left to collect', ccThanks:'Thank you for your contribution!', ccAnonName:'Anonymous', ccNoNameErr:'Enter a name, or check contribute anonymously', ccGoalReached:'Goal reached!', ccCur:'€', flag:'<svg class="flag" viewBox="0 0 36 24" preserveAspectRatio="none"><rect width="36" height="24" fill="#012169"/><path d="M0,0 36,24 M36,0 0,24" stroke="#fff" stroke-width="5"/><path d="M0,0 36,24 M36,0 0,24" stroke="#C8102E" stroke-width="3"/><path d="M18,0 V24 M0,12 H36" stroke="#fff" stroke-width="8"/><path d="M18,0 V24 M0,12 H36" stroke="#C8102E" stroke-width="4.5"/></svg>' }
 };
 // oslavné hlášky po odeslání příspěvku ({amount} = částka, {pot} = název potu) + tlačítko
 LL.cs.ccDoneBtn='Hotovo'; LL.en.ccDoneBtn='Done';
@@ -673,7 +694,7 @@ function renderContribState(){
   var pct=Math.floor(c.collected/c.goal*100);   // floor: 1990/2000 = 99 %, ne 100 %; smí přesáhnout 100 % (přestřelení) – pruh se ořízne na 100 %
   // pole "Podpis"/anonymně je jen pro cizí dárce - přispívám-li sám sobě, netřeba se podepisovat
   var nf=document.getElementById('cc-name-field'); if(nf) nf.style.display = isSelf ? 'none' : '';
-  var spBlock=document.getElementById('cc-block-progress-self'); if(spBlock) spBlock.classList.toggle('on', isSelf);
+  var _card=document.getElementById('contrib-card'); if(_card){ _card.classList.toggle('mode-self', isSelf); _card.classList.toggle('mode-donor', !isSelf); }
   if(isSelf){
     // ── SELF: jen procenta + stylový bar + kolik zbývá do cíle ──
     var remaining=Math.max(0, c.goal-c.collected);
