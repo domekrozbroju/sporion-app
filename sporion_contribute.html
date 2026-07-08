@@ -241,6 +241,16 @@ body::before, body::after { display:none !important; }   /* pryč šum i scanlin
 .cc-donor { display:flex; justify-content:space-between; font-family:'Outfit',sans-serif; font-size:12px; color:#3a3f45; }
 .cc-donor b { font-weight:600; color:#0a0b0e; }
 .cc-donor.anon span:first-child { color:#9aa0a6; font-style:italic; }
+/* SELF režim (přispívám sám sobě do vlastního potu) - jen procenta, stylový bar, zbývá */
+.cc-self-pct { font-family:'Outfit',sans-serif; font-weight:700; font-size:34px; letter-spacing:-0.02em; color:#0a0b0e; text-align:center; margin-bottom:12px; }
+.cc-self-bar { height:14px; border-radius:100px; background:rgba(0,0,0,0.08); overflow:hidden; box-shadow:inset 0 1px 3px rgba(0,0,0,0.12); }
+.cc-self-bar > i { display:block; height:100%; width:0; border-radius:100px; background:linear-gradient(90deg,#2a2d33,#0a0b0e); transition:width 0.8s cubic-bezier(0.22,0.9,0.3,1); }
+.cc-self-remain { margin-top:12px; text-align:center; font-family:'Outfit',sans-serif; font-size:12px; letter-spacing:0.04em; color:#6c757d; }
+.cc-self-remain b { color:#0a0b0e; font-weight:600; }
+/* zvýraznění, když dárce nezadal jméno ani nezaškrtl anonymní příspěvek */
+.cc-input.cc-err { border-color:#d64545 !important; }
+.cc-check.cc-err { color:#d64545 !important; }
+.cc-check.cc-err input { outline:2px solid rgba(214,69,69,0.35); outline-offset:2px; border-radius:3px; }
 </style>
 </head>
 <body>
@@ -278,16 +288,23 @@ body::before, body::after { display:none !important; }   /* pryč šum i scanlin
     <div class="cc-title" id="cc-title">Přidat příspěvek</div>
     <div class="cc-field">
       <label class="cc-label" id="cc-amount-l" for="cc-amount">Vaše částka</label>
-      <div class="cc-amount"><input id="cc-amount" type="number" min="1" inputmode="numeric" placeholder="500"><span class="cc-cur" id="cc-cur">Kč</span></div>
+      <div class="cc-amount"><input id="cc-amount" type="number" min="1" inputmode="numeric" placeholder="Zadejte libovolnou částku"><span class="cc-cur" id="cc-cur">Kč</span></div>
     </div>
-    <div class="cc-field">
+    <div class="cc-field" id="cc-name-field">
       <label class="cc-label" id="cc-name-l" for="cc-name">Podpis</label>
       <input class="cc-input" id="cc-name" type="text" placeholder="Vaše jméno">
-      <label class="cc-check"><input type="checkbox" id="cc-anon"><span id="cc-anon-l">Přispět anonymně</span></label>
+      <label class="cc-check" id="cc-anon-wrap"><input type="checkbox" id="cc-anon"><span id="cc-anon-l">Přispět anonymně</span></label>
     </div>
     <button class="cc-submit" id="cc-submit" onclick="submitContribution()">Přispět</button>
     <div class="cc-info" id="cc-info">
-      <div class="cc-info-block on" id="cc-block-progress" data-vis="progress">
+      <!-- SELF režim (přispívám do vlastního potu) - jen procenta + stylový bar + zbývá -->
+      <div class="cc-info-block" id="cc-block-progress-self">
+        <div class="cc-self-pct" id="cc-self-pct">0%</div>
+        <div class="cc-self-bar"><i id="cc-self-bar-fill"></i></div>
+        <div class="cc-self-remain" id="cc-self-remain"></div>
+      </div>
+      <!-- DONOR režim (cizí dárce) - průběh výběru + seznam přispěvatelů -->
+      <div class="cc-info-block" id="cc-block-progress" data-vis="progress">
         <div class="cc-info-hd" id="cc-progress-hd">Průběh výběru</div>
         <div class="cc-prog-top">
           <span class="cc-prog-amt"><b id="cc-collected"></b> <small id="cc-of">z</small> <small id="cc-goal"></small></span>
@@ -295,7 +312,7 @@ body::before, body::after { display:none !important; }   /* pryč šum i scanlin
         </div>
         <div class="cc-bar"><i id="cc-bar-fill"></i></div>
       </div>
-      <div class="cc-info-block on" id="cc-block-donors" data-vis="donors">
+      <div class="cc-info-block" id="cc-block-donors" data-vis="donors">
         <div class="cc-info-hd" id="cc-donors-hd">Přispěvatelé</div>
         <div class="cc-donors" id="cc-donors"></div>
       </div>
@@ -438,8 +455,8 @@ if (!reduced) setTimeout(cycle, 1400);
 let mode='login';
 let LANG='cs';
 const LL={
-  cs:{ tagline:'Místo, kde se vaše peníze hromadí', login:'Přihlášení', register:'Registrace', name:'Jméno', email:'E-mail', password:'Heslo', enter:'Vstoupit', create:'Vytvořit účet', or:'nebo', google:'Pokračovat přes Google', apple:'Pokračovat přes Apple', noAcc:'Nemáte účet?', regBtn:'Registrovat', hasAcc:'Už máte účet?', loginBtn:'Přihlásit', langTip:'Abychom si rozuměli.', ccTitle:'Přidat příspěvek', ccAmount:'Vaše částka', ccSign:'Podpis', ccNamePh:'Vaše jméno', ccAnon:'Přispět anonymně', ccSubmit:'Přispět', ccProgressHd:'Průběh výběru', ccDonorsHd:'Přispěvatelé', ccOf:'z', ccThanks:'Děkujeme za příspěvek!', ccAnonName:'Anonymní', ccCur:'Kč', flag:'<svg class="flag" viewBox="0 0 36 24" preserveAspectRatio="none"><rect width="36" height="12" fill="#fff"/><rect y="12" width="36" height="12" fill="#d7141a"/><path d="M0 0 L18 12 L0 24 Z" fill="#11457e"/></svg>' },
-  en:{ tagline:'Where your money piles up', login:'Sign in', register:'Sign up', name:'Name', email:'E-mail', password:'Password', enter:'Enter', create:'Create account', or:'or', google:'Continue with Google', apple:'Continue with Apple', noAcc:"Don't have an account?", regBtn:'Sign up', hasAcc:'Already have an account?', loginBtn:'Sign in', langTip:'So we understand each other.', ccTitle:'Add contribution', ccAmount:'Your amount', ccSign:'Signature', ccNamePh:'Your name', ccAnon:'Contribute anonymously', ccSubmit:'Contribute', ccProgressHd:'Collection progress', ccDonorsHd:'Contributors', ccOf:'of', ccThanks:'Thank you for your contribution!', ccAnonName:'Anonymous', ccCur:'€', flag:'<svg class="flag" viewBox="0 0 36 24" preserveAspectRatio="none"><rect width="36" height="24" fill="#012169"/><path d="M0,0 36,24 M36,0 0,24" stroke="#fff" stroke-width="5"/><path d="M0,0 36,24 M36,0 0,24" stroke="#C8102E" stroke-width="3"/><path d="M18,0 V24 M0,12 H36" stroke="#fff" stroke-width="8"/><path d="M18,0 V24 M0,12 H36" stroke="#C8102E" stroke-width="4.5"/></svg>' }
+  cs:{ tagline:'Místo, kde se vaše peníze hromadí', login:'Přihlášení', register:'Registrace', name:'Jméno', email:'E-mail', password:'Heslo', enter:'Vstoupit', create:'Vytvořit účet', or:'nebo', google:'Pokračovat přes Google', apple:'Pokračovat přes Apple', noAcc:'Nemáte účet?', regBtn:'Registrovat', hasAcc:'Už máte účet?', loginBtn:'Přihlásit', langTip:'Abychom si rozuměli.', ccTitle:'Přidat příspěvek', ccAmount:'Vaše částka', ccSign:'Podpis', ccNamePh:'Vaše jméno', ccAmountPh:'Zadejte libovolnou částku', ccAnon:'Přispět anonymně', ccSubmit:'Přispět', ccProgressHd:'Průběh výběru', ccDonorsHd:'Přispěvatelé', ccOf:'z', ccRemain:'Zbývá vybrat', ccThanks:'Děkujeme za příspěvek!', ccAnonName:'Anonymní', ccNoNameErr:'Zadejte jméno, nebo zaškrtněte anonymní příspěvek', ccGoalReached:'Cíl dosažen!', ccCur:'Kč', flag:'<svg class="flag" viewBox="0 0 36 24" preserveAspectRatio="none"><rect width="36" height="12" fill="#fff"/><rect y="12" width="36" height="12" fill="#d7141a"/><path d="M0 0 L18 12 L0 24 Z" fill="#11457e"/></svg>' },
+  en:{ tagline:'Where your money piles up', login:'Sign in', register:'Sign up', name:'Name', email:'E-mail', password:'Password', enter:'Enter', create:'Create account', or:'or', google:'Continue with Google', apple:'Continue with Apple', noAcc:"Don't have an account?", regBtn:'Sign up', hasAcc:'Already have an account?', loginBtn:'Sign in', langTip:'So we understand each other.', ccTitle:'Add contribution', ccAmount:'Your amount', ccSign:'Signature', ccNamePh:'Your name', ccAmountPh:'Enter any amount', ccAnon:'Contribute anonymously', ccSubmit:'Contribute', ccProgressHd:'Collection progress', ccDonorsHd:'Contributors', ccOf:'of', ccRemain:'Left to collect', ccThanks:'Thank you for your contribution!', ccAnonName:'Anonymous', ccNoNameErr:'Enter a name, or check contribute anonymously', ccGoalReached:'Goal reached!', ccCur:'€', flag:'<svg class="flag" viewBox="0 0 36 24" preserveAspectRatio="none"><rect width="36" height="24" fill="#012169"/><path d="M0,0 36,24 M36,0 0,24" stroke="#fff" stroke-width="5"/><path d="M0,0 36,24 M36,0 0,24" stroke="#C8102E" stroke-width="3"/><path d="M18,0 V24 M0,12 H36" stroke="#fff" stroke-width="8"/><path d="M18,0 V24 M0,12 H36" stroke="#C8102E" stroke-width="4.5"/></svg>' }
 };
 // oslavné hlášky po odeslání příspěvku ({amount} = částka, {pot} = název potu) + tlačítko
 LL.cs.ccDoneBtn='Hotovo'; LL.en.ccDoneBtn='Done';
@@ -487,11 +504,11 @@ function applyLang(lang){
   set('cc-anon-l',d.ccAnon); set('cc-submit',d.ccSubmit); set('cc-cur',d.ccCur);
   set('cc-progress-hd',d.ccProgressHd); set('cc-donors-hd',d.ccDonorsHd); set('cc-of',d.ccOf);
   var nm=document.getElementById('cc-name'); if(nm) nm.placeholder=d.ccNamePh;
+  var amtI=document.getElementById('cc-amount'); if(amtI) amtI.placeholder=d.ccAmountPh;
   var _lc=document.getElementById('lang-cur'); if(_lc) _lc.innerHTML=d.flag;
   document.querySelectorAll('.lang-opt').forEach(function(o){ o.classList.toggle('active', o.dataset.lang===lang); });
   var _lt=document.getElementById('lang-toggle'); if(_lt) _lt.title=d.langTip;
   if(typeof renderContribState==='function') renderContribState();
-  if(typeof fitTagline==='function') setTimeout(fitTagline,0);
 }
 function setMode(m){
   mode=m; const isLogin=m==='login'; const d=LL[LANG];
@@ -632,6 +649,7 @@ var CONTRIB = {
   id:null,
   name:'Narozeniny Martiny',
   description:'Sešli jsme se, abychom Martině společně připravili nezapomenutelnou oslavu. Díky za každou korunu!',
+  mode:'self',   // 'self' = majitel pridava prispevek do vlastniho potu · 'donor' = cizi darce (zatim neimplementovano jako samostatna obrazovka)
   collected:1440, goal:2000,
   donors:[
     {name:'Tomáš K.', amount:200, anon:false},
@@ -646,31 +664,45 @@ var CONTRIB = {
 };
 function renderContribState(){
   var c=CONTRIB, d=LL[LANG]||LL.cs; var v=c.visibility||{};
+  var isSelf = c.mode==='self';
   var showAmount   = (v.amount!=null)     ? !!v.amount     : true;
   var showProgress = (v.progress!=null)   ? !!v.progress   : true;
   var showDonors   = (v.donors!=null)     ? !!v.donors     : true;
   var showIndiv    = (v.individual!=null) ? !!v.individual : true;
   var pct=Math.floor(c.collected/c.goal*100);   // floor: 1990/2000 = 99 %, ne 100 %; smí přesáhnout 100 % (přestřelení) – pruh se ořízne na 100 %
-  // ── blok "Průběh / Cílová částka" ──
-  var bp=document.getElementById('cc-block-progress'); if(bp) bp.classList.toggle('on', showProgress || showAmount);
-  var hd=document.getElementById('cc-progress-hd');
-  if(hd) hd.textContent = showProgress ? d.ccProgressHd : (LANG==='en'?'Target amount':'Cílová částka');
-  var col=document.getElementById('cc-collected'), of=document.getElementById('cc-of'), goal=document.getElementById('cc-goal'), pctEl=document.getElementById('cc-pct');
-  if(col){ col.textContent = showProgress ? ccMoney(c.collected) : ''; col.style.display = showProgress ? '' : 'none'; }
-  if(goal){ goal.textContent = ccMoney(c.goal); goal.style.display = showAmount ? '' : 'none'; }
-  if(of){ of.style.display = (showAmount && showProgress) ? '' : 'none'; }   // "z" jen když je vidět částka i průběh
-  if(pctEl){ pctEl.textContent = pct+'%'; pctEl.style.display = (showProgress && showAmount) ? '' : 'none'; }
-  var barWrap=document.querySelector('#cc-block-progress .cc-bar'); if(barWrap) barWrap.style.display = (showProgress && showAmount) ? '' : 'none';
-  var bar=document.getElementById('cc-bar-fill'); if(bar) bar.style.width=Math.min(100,pct)+'%';
-  // ── blok "Přispěvatelé" ──
-  var bd=document.getElementById('cc-block-donors'); if(bd) bd.classList.toggle('on', showDonors);
-  var box=document.getElementById('cc-donors'); if(box){ box.innerHTML='';
-    c.donors.slice().reverse().forEach(function(dn){
-      var row=document.createElement('div'); row.className='cc-donor'+(dn.anon?' anon':'');
-      var nm=dn.anon? d.ccAnonName : dn.name;
-      row.innerHTML='<span>'+nm+'</span>'+(showIndiv ? '<b>+ '+ccMoney(dn.amount)+'</b>' : '');   // částky jen když "jednotlivé příspěvky"
-      box.appendChild(row);
-    });
+  // pole "Podpis"/anonymně je jen pro cizí dárce - přispívám-li sám sobě, netřeba se podepisovat
+  var nf=document.getElementById('cc-name-field'); if(nf) nf.style.display = isSelf ? 'none' : '';
+  var spBlock=document.getElementById('cc-block-progress-self'); if(spBlock) spBlock.classList.toggle('on', isSelf);
+  if(isSelf){
+    // ── SELF: jen procenta + stylový bar + kolik zbývá do cíle ──
+    var remaining=Math.max(0, c.goal-c.collected);
+    var spct=document.getElementById('cc-self-pct'); if(spct) spct.textContent = Math.min(100,pct)+'%';
+    var sbar=document.getElementById('cc-self-bar-fill'); if(sbar) sbar.style.width=Math.min(100,pct)+'%';
+    var srem=document.getElementById('cc-self-remain');
+    if(srem) srem.innerHTML = remaining>0 ? (d.ccRemain+': <b>'+ccMoney(remaining)+'</b>') : ('<b>'+d.ccGoalReached+'</b>');
+    var bp0=document.getElementById('cc-block-progress'); if(bp0) bp0.classList.remove('on');
+    var bd0=document.getElementById('cc-block-donors'); if(bd0) bd0.classList.remove('on');
+  } else {
+    // ── DONOR (cizí dárce): průběh výběru + seznam přispěvatelů ──
+    var bp=document.getElementById('cc-block-progress'); if(bp) bp.classList.toggle('on', showProgress || showAmount);
+    var hd=document.getElementById('cc-progress-hd');
+    if(hd) hd.textContent = showProgress ? d.ccProgressHd : (LANG==='en'?'Target amount':'Cílová částka');
+    var col=document.getElementById('cc-collected'), of=document.getElementById('cc-of'), goal=document.getElementById('cc-goal'), pctEl=document.getElementById('cc-pct');
+    if(col){ col.textContent = showProgress ? ccMoney(c.collected) : ''; col.style.display = showProgress ? '' : 'none'; }
+    if(goal){ goal.textContent = ccMoney(c.goal); goal.style.display = showAmount ? '' : 'none'; }
+    if(of){ of.style.display = (showAmount && showProgress) ? '' : 'none'; }   // "z" jen když je vidět částka i průběh
+    if(pctEl){ pctEl.textContent = pct+'%'; pctEl.style.display = (showProgress && showAmount) ? '' : 'none'; }
+    var barWrap=document.querySelector('#cc-block-progress .cc-bar'); if(barWrap) barWrap.style.display = (showProgress && showAmount) ? '' : 'none';
+    var bar=document.getElementById('cc-bar-fill'); if(bar) bar.style.width=Math.min(100,pct)+'%';
+    var bd=document.getElementById('cc-block-donors'); if(bd) bd.classList.toggle('on', showDonors);
+    var box=document.getElementById('cc-donors'); if(box){ box.innerHTML='';
+      c.donors.slice().reverse().forEach(function(dn){
+        var row=document.createElement('div'); row.className='cc-donor'+(dn.anon?' anon':'');
+        var nm=dn.anon? d.ccAnonName : dn.name;
+        row.innerHTML='<span>'+nm+'</span>'+(showIndiv ? '<b>+ '+ccMoney(dn.amount)+'</b>' : '');   // částky jen když "jednotlivé příspěvky"
+        box.appendChild(row);
+      });
+    }
   }
   // hlavni glitchujici nadpis = nazev potu
   if(typeof buildWord==='function') buildWord(c.name);
@@ -692,24 +724,37 @@ function showOvergoalWarn(){
 function confirmOvergoal(){ document.getElementById('cc-warn').classList.remove('show'); _overgoalOK=true; submitContribution(); }
 function cancelOvergoal(){ document.getElementById('cc-warn').classList.remove('show'); _overgoalOK=false; var a=document.getElementById('cc-amount'); if(a){ a.focus(); a.select(); } }
 function submitContribution(){
-  var amtEl=document.getElementById('cc-amount'); var anon=document.getElementById('cc-anon').checked;
-  var nameEl=document.getElementById('cc-name');
+  var isSelf = CONTRIB.mode==='self';
+  var amtEl=document.getElementById('cc-amount');
+  var nameEl=document.getElementById('cc-name'), anonEl=document.getElementById('cc-anon');
   var amt=parseInt((amtEl.value||'').replace(/\s/g,''),10);
   if(LANG==='en' && !isNaN(amt)) amt=Math.round(amt*RATE);   // v EN se zadává v €, ukládáme v Kč
   if(!amt || amt<=0){ amtEl.focus(); return; }
   // přestřelení cíle → nejdřív upozornění (pokud dárce ještě nepotvrdil)
   if(!_overgoalOK && (CONTRIB.collected + amt) > CONTRIB.goal){ showOvergoalWarn(); return; }
   _overgoalOK=false;
-  var nameRaw=(nameEl.value||'').trim();
-  var isAnon = anon || !nameRaw;
-  var nm = isAnon ? 'Anonymní' : nameRaw;
+  var nameRaw='', isAnon=false;
+  if(!isSelf){
+    var anon=anonEl.checked;
+    nameRaw=(nameEl.value||'').trim();
+    if(!anon && !nameRaw){
+      // ani jméno, ani zaškrtnuté "anonymně" - neschovávat se za tichý default, upozornit
+      nameEl.classList.add('cc-err');
+      var anonWrap=document.getElementById('cc-anon-wrap'); if(anonWrap) anonWrap.classList.add('cc-err');
+      nameEl.focus();
+      toast((LL[LANG]||LL.cs).ccNoNameErr);
+      return;
+    }
+    isAnon = anon || !nameRaw;
+  }
+  var nm = isSelf ? (LANG==='en'?'My contribution':'Můj příspěvek') : (isAnon ? 'Anonymní' : nameRaw);
   var willComplete = (CONTRIB.collected < CONTRIB.goal) && (CONTRIB.collected + amt >= CONTRIB.goal);
   // lokální náhled (kdyby dárce zůstal); do appky se zapíše přes contribApply
   CONTRIB.donors.push({ name:nm, amount:amt, anon:isAnon });
   CONTRIB.collected += amt;
   renderContribState();
-  amtEl.value=''; nameEl.value='';
-  _pendingContrib = { id:CONTRIB.id, amount:amt, name:(isAnon?'':nameRaw), anon:isAnon };
+  amtEl.value=''; if(!isSelf) nameEl.value='';
+  _pendingContrib = { id:CONTRIB.id, amount:amt, name:(isAnon?'':nameRaw), anon:isAnon, self:isSelf };
   showCelebrate(amt, CONTRIB.name, willComplete);
 }
 // oslavné mini-okno + konfety, pak návrat na obrazovku s poty
@@ -772,6 +817,7 @@ window.setContribPot=function(pot){
   if(pot.id!=null) CONTRIB.id = pot.id;
   CONTRIB.name = pot.name || CONTRIB.name;
   CONTRIB.description = pot.description!=null ? pot.description : '';
+  CONTRIB.mode = pot.mode==='donor' ? 'donor' : 'self';
   if(pot.collected!=null) CONTRIB.collected = pot.collected;
   if(pot.goal!=null) CONTRIB.goal = pot.goal;
   if(Array.isArray(pot.donors)) CONTRIB.donors = pot.donors;
@@ -787,7 +833,10 @@ window.setContribPot=function(pot){
 window.addEventListener('message', function(e){ if(e.data && e.data.sporion==='contribPot') window.setContribPot(e.data.pot); });
 (function(){
   var anon=document.getElementById('cc-anon'), nameEl=document.getElementById('cc-name'), amtEl=document.getElementById('cc-amount');
-  if(anon) anon.addEventListener('change', function(){ if(nameEl){ nameEl.disabled=anon.checked; if(anon.checked) nameEl.value=''; } });
+  var anonWrap=document.getElementById('cc-anon-wrap');
+  function clearNameErr(){ if(nameEl) nameEl.classList.remove('cc-err'); if(anonWrap) anonWrap.classList.remove('cc-err'); }
+  if(anon) anon.addEventListener('change', function(){ if(nameEl){ nameEl.disabled=anon.checked; if(anon.checked) nameEl.value=''; } clearNameErr(); });
+  if(nameEl) nameEl.addEventListener('input', clearNameErr);
   [amtEl,nameEl].forEach(function(el){ if(el) el.addEventListener('keydown', function(ev){ if(ev.key==='Enter'){ ev.preventDefault(); submitContribution(); } }); });
   applyLang('cs');
   renderContribState();
