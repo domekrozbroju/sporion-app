@@ -241,11 +241,12 @@ body::before, body::after { display:none !important; }   /* pryč šum i scanlin
 .cc-donor { display:flex; justify-content:space-between; font-family:'Outfit',sans-serif; font-size:12px; color:#3a3f45; }
 .cc-donor b { font-weight:600; color:#0a0b0e; }
 .cc-donor.anon span:first-child { color:#9aa0a6; font-style:italic; }
-/* SELF režim (přispívám sám sobě do vlastního potu) - jen procenta, stylový bar, zbývá */
-.cc-self-pct { font-family:'Outfit',sans-serif; font-weight:700; font-size:34px; letter-spacing:-0.02em; color:#0a0b0e; text-align:center; margin-bottom:12px; }
-.cc-self-bar { height:14px; border-radius:100px; background:rgba(0,0,0,0.08); overflow:hidden; box-shadow:inset 0 1px 3px rgba(0,0,0,0.12); }
-.cc-self-bar > i { display:block; height:100%; width:0; border-radius:100px; background:linear-gradient(90deg,#2a2d33,#0a0b0e); transition:width 0.8s cubic-bezier(0.22,0.9,0.3,1); }
-.cc-self-remain { margin-top:12px; text-align:center; font-family:'Outfit',sans-serif; font-size:12px; letter-spacing:0.04em; color:#6c757d; }
+/* SELF režim (přispívám sám sobě do vlastního potu) - jen procenta, vertikální "teploměr", zbývá */
+.cc-self-pct { font-family:'Outfit',sans-serif; font-weight:700; font-size:34px; letter-spacing:-0.02em; color:#0a0b0e; text-align:center; margin-bottom:14px; }
+.cc-self-bar-wrap { display:flex; justify-content:center; margin:0 0 6px; }
+.cc-self-bar { position:relative; width:34px; height:150px; border-radius:100px; background:rgba(0,0,0,0.08); overflow:hidden; box-shadow:inset 0 1px 3px rgba(0,0,0,0.12); }
+.cc-self-bar > i { position:absolute; left:0; bottom:0; width:100%; height:0; border-radius:100px; background:linear-gradient(0deg,#2a2d33,#0a0b0e); transition:height 0.8s cubic-bezier(0.22,0.9,0.3,1); }
+.cc-self-remain { margin-top:14px; text-align:center; font-family:'Outfit',sans-serif; font-size:12px; letter-spacing:0.04em; color:#6c757d; }
 .cc-self-remain b { color:#0a0b0e; font-weight:600; }
 /* zvýraznění, když dárce nezadal jméno ani nezaškrtl anonymní příspěvek */
 .cc-input.cc-err { border-color:#d64545 !important; }
@@ -300,7 +301,7 @@ body::before, body::after { display:none !important; }   /* pryč šum i scanlin
       <!-- SELF režim (přispívám do vlastního potu) - jen procenta + stylový bar + zbývá -->
       <div class="cc-info-block" id="cc-block-progress-self">
         <div class="cc-self-pct" id="cc-self-pct">0%</div>
-        <div class="cc-self-bar"><i id="cc-self-bar-fill"></i></div>
+        <div class="cc-self-bar-wrap"><div class="cc-self-bar"><i id="cc-self-bar-fill"></i></div></div>
         <div class="cc-self-remain" id="cc-self-remain"></div>
       </div>
       <!-- DONOR režim (cizí dárce) - průběh výběru + seznam přispěvatelů -->
@@ -677,7 +678,7 @@ function renderContribState(){
     // ── SELF: jen procenta + stylový bar + kolik zbývá do cíle ──
     var remaining=Math.max(0, c.goal-c.collected);
     var spct=document.getElementById('cc-self-pct'); if(spct) spct.textContent = Math.min(100,pct)+'%';
-    var sbar=document.getElementById('cc-self-bar-fill'); if(sbar) sbar.style.width=Math.min(100,pct)+'%';
+    var sbar=document.getElementById('cc-self-bar-fill'); if(sbar) sbar.style.height=Math.min(100,pct)+'%';
     var srem=document.getElementById('cc-self-remain');
     if(srem) srem.innerHTML = remaining>0 ? (d.ccRemain+': <b>'+ccMoney(remaining)+'</b>') : ('<b>'+d.ccGoalReached+'</b>');
     var bp0=document.getElementById('cc-block-progress'); if(bp0) bp0.classList.remove('on');

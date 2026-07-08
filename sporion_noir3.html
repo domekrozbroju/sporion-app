@@ -551,7 +551,14 @@ html:has(.np-modal.show), html:has(.logout-modal.show) { overflow:hidden; }
 .np-foot { position:relative; }
 .np-bubble { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%) scale(0.92); max-width:88%; background:#ff3b3b; color:#fff; font-family:'Comfortaa',sans-serif; font-size:17px; font-weight:700; line-height:1.45; text-align:center; padding:22px 28px; opacity:0; pointer-events:none; transition:opacity 0.2s, transform 0.2s; z-index:30; box-shadow:0 0 40px rgba(255,59,59,0.65); border-radius:8px; }
 .np-bubble.show { opacity:1; transform:translate(-50%,-50%) scale(1); }
-.detail-del-wrap { display:flex; justify-content:center; margin:18px 0 40px; }
+.detail-withdraw-wrap { margin:32px 0 0; }
+.detail-withdraw { width:100%; font-family:'Comfortaa',sans-serif; font-size:12px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; display:flex; align-items:center; justify-content:center; gap:10px; padding:15px; background:var(--blue); color:var(--bg); border:none; border-radius:10px; cursor:pointer; box-shadow:0 0 16px rgba(0,207,255,0.35); transition:opacity 0.2s, transform 0.05s; }
+.detail-withdraw:hover { opacity:0.88; }
+.detail-withdraw:active { transform:translateY(1px); }
+.detail-withdraw:disabled { opacity:0.25; cursor:not-allowed; box-shadow:none; }
+.detail-withdraw:disabled:hover { opacity:0.25; }
+.detail-withdraw svg { width:16px; height:16px; }
+.detail-del-wrap { display:flex; justify-content:center; margin:14px 0 40px; }
 .detail-del { font-family:'Comfortaa',sans-serif; font-size:11px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; display:inline-flex; align-items:center; gap:8px; padding:11px 22px; background:none; border:1px solid rgba(255,90,90,0.5); color:#ff7a7a; cursor:pointer; transition:all 0.2s; }
 .detail-del:hover { color:#ff5a5a; border-color:#ff5a5a; box-shadow:0 0 14px rgba(255,90,90,0.35); }
 .detail-del svg { width:15px; height:15px; }
@@ -846,6 +853,9 @@ html, body { max-width:100vw; }
 
     <div class="sec-head" data-i18n="contributions">Příspěvky</div>
     <div class="contrib-box" id="contrib-list"></div>
+    <div class="detail-withdraw-wrap">
+      <button class="detail-withdraw" type="button" id="withdraw-btn" onclick="withdrawCurrentPot()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12V7H4a2 2 0 0 1 0-4h14a2 2 0 0 1 2 2v3M4 7v10a2 2 0 0 0 2 2h14v-3M18 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z"/></svg><span data-i18n="withdrawAmount">Vybrat částku</span></button>
+    </div>
     <div class="detail-del-wrap">
       <button class="detail-del" type="button" onclick="deleteCurrentPot()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/></svg><span data-i18n="deletePot">Smazat pot</span></button>
     </div>
@@ -1275,6 +1285,7 @@ function buildDashboard() {
 function showDetail(pot) {
   _currentPot = pot;
   _footer(false);
+  var _wb=document.getElementById('withdraw-btn'); if(_wb) _wb.disabled = !(pot.collected>0);
   /* přepínač zobrazení necháváme i na detailu, aby se ikonky nav (štětec/ozubené kolo) neposouvaly – gear zůstává na svém místě */
   document.getElementById('item-view').style.display='';
   const progress = Math.min(pot.collected / pot.goal, 1);
@@ -1456,6 +1467,25 @@ function deleteCurrentPot(){
     ]);
   }
 }
+// samostatny "Vybrat castku" (nad Smazat pot) - nevyzaduje mazani potu.
+// Pot jeste nedosahl cile → nabidnout vyber i vraceni darcum (stejna volba jako pri mazani).
+// Pot je dokonceny → jen potvrdit vyber, vraceni darcum uz nema smysl nabizet.
+function withdrawCurrentPot(){
+  if(!_currentPot) return; var pot=_currentPot;
+  if(pot.collected<=0) return;
+  if(pot.collected<pot.goal){
+    askChoice(t('potPre')+tName(pot)+t('notReachedMid')+money(pot.collected)+t('whatMoney'), [
+      {label:t('withdrawBtn'), primary:true, cb:function(){ archivePot(pot.id,'withdrawn'); showDashboard(); }},
+      {label:t('refundBtn'), cb:function(){ archivePot(pot.id,'refunded'); showDashboard(); }},
+      {label:t('back')}
+    ]);
+  } else {
+    askChoice(t('potPre')+tName(pot)+t('withdrawDoneMid')+money(pot.collected)+t('withdrawDoneEnd'), [
+      {label:t('withdrawBtn'), primary:true, cb:function(){ archivePot(pot.id,'withdrawn'); showDashboard(); }},
+      {label:t('back')}
+    ]);
+  }
+}
 function createPot(){
   const nameEl=document.getElementById('np-name'), goalEl=document.getElementById('np-goal');
   const name=(nameEl.value||'').trim();
@@ -1543,8 +1573,8 @@ function tName(p){ return (APPLANG==='en' && p && p.name_en) ? p.name_en : (p?p.
 function tOcc(p){ return (APPLANG==='en' && p && p.occasion_en) ? p.occasion_en : (p?p.occasion:''); }
 function tAnon(n){ return (APPLANG==='en' && /^Anonym/.test(n||'')) ? 'Anonymous' : n; }
 var I18N={
- cs:{ yourPots:'Vaše money pots', newPotBtn:'+ Nový pot', addPot:'+ Přidat nový pot', active:'aktivních', done:'hotovo', badgeDone:'Hotovo', badgeDoneChk:'✓ Hotovo', badgeNew:'Nový', newPot:'Nový pot', back:'Zpět', name:'Název', desc:'Popis', optional:'(nepovinné)', goal:'Cílová částka', photo:'Fotka', dropTxt:'Přetáhni sem obrázek nebo klikni pro výběr z počítače', share:'Sdílení', visibleToDonors:'Viditelné pro dárce', createPot:'Vytvořit pot', amountHint:'Min. 100 Kč · max 50 000 Kč', contributors:'přispěvatelů', myContribution:'Můj příspěvek', stContrib:'Přispěvatelů', stAvg:'Průměr. příspěvek', stMax:'Největší příspěvek', stRemain:'Zbývá vybrat', predDate:'Předpokládané datum', predDays:'Zbývá dní', predNote:'Dle tempa příspěvků', contributions:'Příspěvky', deletePot:'Smazat pot', doneEx:'Splněno!', term:'Termín', histEmpty:'Zatím žádné archivované poty.', restore:'Obnovit', purge:'Smazat navždy', refunded:'Vráceno dárcům', withdrawn:'Peníze vybrány', delPre:'Opravdu chcete pot „', delPost:'“ smazat?', purgePre:'Smazat „', purgePost:'“ navždy?', notReachedMid:'“ zatím nedosáhl cíle. Vybráno ', whatMoney:'. Co s penězi?', potPre:'Pot „', refundBtn:'Vrátit dárcům', withdrawBtn:'Vybrat peníze', smazatBtn:'Smazat', logoutQ:'Opravdu se chcete odhlásit?', ano:'Ano', ne:'Ne', account:'Účet', jmeno:'Jméno', jazyk:'Jazyk', historie:'Historie potů', bubbleLow:'O takový bakšiš si, člověče, řekni svojí tetce. Minimální částka je 100 Kč. :)', bubbleHigh:'To už je trochu moc, člověče. Maximální částka je 50 000 Kč. O větší obnos napiš panu Muskovi. :)' },
- en:{ yourPots:'Your money pots', newPotBtn:'+ New pot', addPot:'+ Add new pot', active:'active', done:'done', badgeDone:'Done', badgeDoneChk:'✓ Done', badgeNew:'New', newPot:'New pot', back:'Back', name:'Name', desc:'Description', optional:'(optional)', goal:'Target amount', photo:'Photo', dropTxt:'Drag an image here or click to pick from your computer', share:'Sharing', visibleToDonors:'Visible to donors', createPot:'Create pot', amountHint:'Min. 100 Kč · max 50 000 Kč', contributors:'contributors', myContribution:'My contribution', stContrib:'Contributors', stAvg:'Avg. contribution', stMax:'Largest contribution', stRemain:'Left to collect', predDate:'Estimated date', predDays:'Days left', predNote:'Based on contribution pace', contributions:'Contributions', deletePot:'Delete pot', doneEx:'Done!', term:'Deadline', histEmpty:'No archived pots yet.', restore:'Restore', purge:'Delete forever', refunded:'Refunded to donors', withdrawn:'Money withdrawn', delPre:'Do you really want to delete pot „', delPost:'“?', purgePre:'Delete „', purgePost:'“ forever?', notReachedMid:"“ hasn't reached its goal yet. Collected ", whatMoney:'. What about the money?', potPre:'Pot „', refundBtn:'Refund donors', withdrawBtn:'Withdraw money', smazatBtn:'Delete', logoutQ:'Do you really want to log out?', ano:'Yes', ne:'No', account:'Account', jmeno:'Name', jazyk:'Language', historie:'Pot history', bubbleLow:"That's pocket change, mate — go ask your auntie. Minimum is 100 Kč. :)", bubbleHigh:"That's a bit much, mate. Maximum is 50 000 Kč. For more, email Mr. Musk. :)" }
+ cs:{ yourPots:'Vaše money pots', newPotBtn:'+ Nový pot', addPot:'+ Přidat nový pot', active:'aktivních', done:'hotovo', badgeDone:'Hotovo', badgeDoneChk:'✓ Hotovo', badgeNew:'Nový', newPot:'Nový pot', back:'Zpět', name:'Název', desc:'Popis', optional:'(nepovinné)', goal:'Cílová částka', photo:'Fotka', dropTxt:'Přetáhni sem obrázek nebo klikni pro výběr z počítače', share:'Sdílení', visibleToDonors:'Viditelné pro dárce', createPot:'Vytvořit pot', amountHint:'Min. 100 Kč · max 50 000 Kč', contributors:'přispěvatelů', myContribution:'Můj příspěvek', stContrib:'Přispěvatelů', stAvg:'Průměr. příspěvek', stMax:'Největší příspěvek', stRemain:'Zbývá vybrat', predDate:'Předpokládané datum', predDays:'Zbývá dní', predNote:'Dle tempa příspěvků', contributions:'Příspěvky', deletePot:'Smazat pot', withdrawAmount:'Vybrat částku', withdrawDoneMid:'“ je dokončen (vybráno ', withdrawDoneEnd:'). Opravdu chcete částku vybrat?', doneEx:'Splněno!', term:'Termín', histEmpty:'Zatím žádné archivované poty.', restore:'Obnovit', purge:'Smazat navždy', refunded:'Vráceno dárcům', withdrawn:'Peníze vybrány', delPre:'Opravdu chcete pot „', delPost:'“ smazat?', purgePre:'Smazat „', purgePost:'“ navždy?', notReachedMid:'“ zatím nedosáhl cíle. Vybráno ', whatMoney:'. Co s penězi?', potPre:'Pot „', refundBtn:'Vrátit dárcům', withdrawBtn:'Vybrat peníze', smazatBtn:'Smazat', logoutQ:'Opravdu se chcete odhlásit?', ano:'Ano', ne:'Ne', account:'Účet', jmeno:'Jméno', jazyk:'Jazyk', historie:'Historie potů', bubbleLow:'O takový bakšiš si, člověče, řekni svojí tetce. Minimální částka je 100 Kč. :)', bubbleHigh:'To už je trochu moc, člověče. Maximální částka je 50 000 Kč. O větší obnos napiš panu Muskovi. :)' },
+ en:{ yourPots:'Your money pots', newPotBtn:'+ New pot', addPot:'+ Add new pot', active:'active', done:'done', badgeDone:'Done', badgeDoneChk:'✓ Done', badgeNew:'New', newPot:'New pot', back:'Back', name:'Name', desc:'Description', optional:'(optional)', goal:'Target amount', photo:'Photo', dropTxt:'Drag an image here or click to pick from your computer', share:'Sharing', visibleToDonors:'Visible to donors', createPot:'Create pot', amountHint:'Min. 100 Kč · max 50 000 Kč', contributors:'contributors', myContribution:'My contribution', stContrib:'Contributors', stAvg:'Avg. contribution', stMax:'Largest contribution', stRemain:'Left to collect', predDate:'Estimated date', predDays:'Days left', predNote:'Based on contribution pace', contributions:'Contributions', deletePot:'Delete pot', withdrawAmount:'Withdraw amount', withdrawDoneMid:'“ is complete (collected ', withdrawDoneEnd:'). Do you really want to withdraw the amount?', doneEx:'Done!', term:'Deadline', histEmpty:'No archived pots yet.', restore:'Restore', purge:'Delete forever', refunded:'Refunded to donors', withdrawn:'Money withdrawn', delPre:'Do you really want to delete pot „', delPost:'“?', purgePre:'Delete „', purgePost:'“ forever?', notReachedMid:"“ hasn't reached its goal yet. Collected ", whatMoney:'. What about the money?', potPre:'Pot „', refundBtn:'Refund donors', withdrawBtn:'Withdraw money', smazatBtn:'Delete', logoutQ:'Do you really want to log out?', ano:'Yes', ne:'No', account:'Account', jmeno:'Name', jazyk:'Language', historie:'Pot history', bubbleLow:"That's pocket change, mate — go ask your auntie. Minimum is 100 Kč. :)", bubbleHigh:"That's a bit much, mate. Maximum is 50 000 Kč. For more, email Mr. Musk. :)" }
 };
 function t(k){ var d=I18N[APPLANG]||I18N.cs; return (d&&d[k]!=null)?d[k]:(I18N.cs[k]!=null?I18N.cs[k]:k); }
 function applyStatic(){ document.querySelectorAll('[data-i18n]').forEach(function(el){ el.textContent=t(el.getAttribute('data-i18n')); }); document.querySelectorAll('[data-i18n-ph]').forEach(function(el){ el.placeholder=t(el.getAttribute('data-i18n-ph')); }); document.querySelectorAll('[data-i18n-title]').forEach(function(el){ el.title=t(el.getAttribute('data-i18n-title')); }); }
