@@ -306,11 +306,9 @@
   .detail-withdraw-wrap { margin:26px 0 0; }
   .detail-withdraw { width:100%; font-family:'Silkscreen',monospace; font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:10px; padding:14px; background:#000; color:#fff; border:2px solid #000; cursor:pointer; letter-spacing:.5px; }
   .detail-withdraw:hover { background:#222; }
-  .detail-withdraw:disabled { opacity:0.35; cursor:not-allowed; background:#888; border-color:#888; }
-  .detail-withdraw:disabled:hover { background:#888; }
   .detail-withdraw svg { width:15px; height:15px; }
-  .detail-del-wrap { display:flex; justify-content:center; margin:10px 0 26px; }
-  .detail-del { font-family:'Silkscreen',monospace; font-size:10px; display:inline-flex; align-items:center; gap:8px; padding:11px 18px; background:#fff; border:2px solid #000; color:#e11; cursor:pointer; }
+  .detail-del-wrap { margin:10px 0 26px; }
+  .detail-del { width:100%; font-family:'Silkscreen',monospace; font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:10px; padding:14px; background:#fff; border:2px solid #000; color:#e11; cursor:pointer; letter-spacing:.5px; }
   .detail-del:hover { background:#e11; color:#fff; }
   .detail-del svg { width:14px; height:14px; }
   .hist-row { flex-wrap:wrap; row-gap:8px; padding:9px 12px; }
@@ -607,10 +605,10 @@
 
     <div class="sec-head" data-i18n="contribSec">&gt; PRISPEVKY</div>
     <div class="contrib-box" id="contrib-list"></div>
-    <div class="detail-withdraw-wrap">
+    <div class="detail-withdraw-wrap" id="withdraw-wrap">
       <button class="detail-withdraw" type="button" id="withdraw-btn" onclick="withdrawCurrentPot()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12V7H4a2 2 0 0 1 0-4h14a2 2 0 0 1 2 2v3M4 7v10a2 2 0 0 0 2 2h14v-3M18 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z"/></svg><span data-i18n="withdrawAmount">VYBRAT CASTKU</span></button>
     </div>
-    <div class="detail-del-wrap">
+    <div class="detail-del-wrap" id="delete-wrap">
       <button class="detail-del" type="button" onclick="deleteCurrentPot()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/></svg><span data-i18n="deletePot">SMAZAT POT</span></button>
     </div>
 
@@ -996,39 +994,26 @@ function renderHistory(){
   });
 }
 let _currentPot = null;
+// Smazat pot - vzdy jednoduche potvrzeni (zadna volba vraceni darcum); pokud v potu jeste
+// zbyvaly penize, archivuje se rovnou jako "vybrano". Tlacitko mizi u dokoncenych potu.
 function deleteCurrentPot(){
   if(!_currentPot) return; var pot=_currentPot;
-  if(pot.collected>0 && pot.collected<pot.goal){
-    askChoice(t('potPre')+tName(pot)+t('notReachedMid')+money(pot.collected)+t('whatMoney'), [
-      {label:t('refundBtn'), primary:true, cb:function(){ archivePot(pot.id,'refunded'); showDashboard(); }},
-      {label:t('withdrawBtn'), cb:function(){ archivePot(pot.id,'withdrawn'); showDashboard(); }},
-      {label:t('back')}
-    ]);
-  } else {
-    askChoice(t('delPre')+tName(pot)+t('delPost'), [
-      {label:t('smazatBtn'), primary:true, cb:function(){ archivePot(pot.id, pot.collected>0?'withdrawn':''); showDashboard(); }},
-      {label:t('back')}
-    ]);
-  }
+  askChoice(t('delPre')+tName(pot)+t('delPost'), [
+    {label:t('smazatBtn'), primary:true, cb:function(){ archivePot(pot.id, pot.collected>0?'withdrawn':''); showDashboard(); }},
+    {label:t('back')}
+  ]);
 }
-// samostatny "Vybrat castku" (nad Smazat pot) - nevyzaduje mazani potu.
-// Pot jeste nedosahl cile → nabidnout vyber i vraceni darcum (stejna volba jako pri mazani).
-// Pot je dokonceny → jen potvrdit vyber, vraceni darcum uz nema smysl nabizet.
+// samostatny "Vybrat castku" - jednoduche potvrzeni, zadna volba vraceni darcum.
 function withdrawCurrentPot(){
   if(!_currentPot) return; var pot=_currentPot;
   if(pot.collected<=0) return;
-  if(pot.collected<pot.goal){
-    askChoice(t('potPre')+tName(pot)+t('notReachedMid')+money(pot.collected)+t('whatMoney'), [
-      {label:t('withdrawBtn'), primary:true, cb:function(){ archivePot(pot.id,'withdrawn'); showDashboard(); }},
-      {label:t('refundBtn'), cb:function(){ archivePot(pot.id,'refunded'); showDashboard(); }},
-      {label:t('back')}
-    ]);
-  } else {
-    askChoice(t('potPre')+tName(pot)+t('withdrawDoneMid')+money(pot.collected)+t('withdrawDoneEnd'), [
-      {label:t('withdrawBtn'), primary:true, cb:function(){ archivePot(pot.id,'withdrawn'); showDashboard(); }},
-      {label:t('back')}
-    ]);
-  }
+  var msg = pot.collected<pot.goal
+    ? t('potPre')+tName(pot)+t('notReachedMid')+money(pot.collected)+t('confirmWithdrawQ')
+    : t('potPre')+tName(pot)+t('withdrawDoneMid')+money(pot.collected)+t('withdrawDoneEnd');
+  askChoice(msg, [
+    {label:t('withdrawBtn'), primary:true, cb:function(){ archivePot(pot.id,'withdrawn'); showDashboard(); }},
+    {label:t('back')}
+  ]);
 }
 function createPot(){
   const nameEl=document.getElementById('np-name'), goalEl=document.getElementById('np-goal');
@@ -1118,8 +1103,8 @@ function tName(p){ return (APPLANG==='en' && p && p.name_en) ? p.name_en : (p?p.
 function tOcc(p){ return (APPLANG==='en' && p && p.occasion_en) ? p.occasion_en : (p?p.occasion:''); }
 function tAnon(n){ return (APPLANG==='en' && /^Anonym/.test(n||'')) ? 'Anonymous' : n; }
 var I18N={
- cs:{ newPotBtn:'+ Novy pot', addCardBtn:'[ + NOVY POT ] >', active:'aktivnich', done:'hotovo', badgeDone:'HOTOVO', badgeNew:'NOVY', newPot:'NOVY POT', settings:'NASTAVENI', back:'ZPET', name:'NAZEV', desc:'POPIS', optional:'(nepovinne)', goal:'CILOVA CASTKA', photo:'FOTKA', dropTxt:'Pretahni sem obrazek nebo klikni pro vyber z pocitace', share:'SDILENI', visibleToDonors:'VIDITELNE PRO DARCE', createPot:'VYTVORIT POT', amountHint:'Min 100 Kc / max 50000 Kc', contributors:'prispevatelu', myContribution:'Muj prispevek', stContrib:'Prispevatelu', stAvg:'Prumer. prispevek', stMax:'Nejvetsi prispevek', stRemain:'Zbyva vybrat', predDate:'Predpokladane datum', predDays:'Zbyva dni', predNote:'Dle tempa prispevku', progressSec:'> PRUBEH VYBERU', estimateSec:'> ODHAD DOKONCENI', contribSec:'> PRISPEVKY', deletePot:'SMAZAT POT', withdrawAmount:'VYBRAT CASTKU', withdrawDoneMid:' je dokoncen (vybrano ', withdrawDoneEnd:'). Opravdu chcete castku vybrat?', doneEx:'SPLNENO!', term:'Termin', histEmpty:'Zatim zadne archivovane poty.', restore:'OBNOVIT', purge:'SMAZAT', refunded:'Vraceno darcum', withdrawn:'Penize vybrany', delPre:'Opravdu chcete pot ', delPost:' smazat?', purgePre:'Smazat ', purgePost:' navzdy?', potPre:'Pot ', notReachedMid:' zatim nedosahl cile. Vybrano ', whatMoney:'. Co s penezi?', refundBtn:'Vratit darcum', withdrawBtn:'Vybrat penize', smazatBtn:'Smazat', logoutQ:'Opravdu se chcete odhlasit?', ano:'Ano', ne:'Ne', account:'[ UCET ]', jazyk:'[ JAZYK ]', historie:'[ HISTORIE POTU ]', jmeno:'Jmeno', bubbleLow:'O takovy baksis si, clovece, rekni svoji tetce. Minimalni castka je 100 Kc. :)', bubbleHigh:'To uz je trochu moc, clovece. Maximalni castka je 50000 Kc. O vetsi obnos napis panu Muskovi. :)' },
- en:{ newPotBtn:'+ NEW POT', addCardBtn:'[ + NEW POT ] >', active:'active', done:'done', badgeDone:'DONE', badgeNew:'NEW', newPot:'NEW POT', settings:'SETTINGS', back:'BACK', name:'NAME', desc:'DESCRIPTION', optional:'(optional)', goal:'TARGET AMOUNT', photo:'PHOTO', dropTxt:'Drag an image here or click to pick from your computer', share:'SHARING', visibleToDonors:'VISIBLE TO DONORS', createPot:'CREATE POT', amountHint:'Min 100 Kc / max 50000 Kc', contributors:'contributors', myContribution:'My contribution', stContrib:'Contributors', stAvg:'Avg. contribution', stMax:'Largest contribution', stRemain:'Left to collect', predDate:'Estimated date', predDays:'Days left', predNote:'Based on contribution pace', progressSec:'> PROGRESS', estimateSec:'> ESTIMATE', contribSec:'> CONTRIBUTIONS', deletePot:'DELETE POT', withdrawAmount:'WITHDRAW AMOUNT', withdrawDoneMid:' is complete (collected ', withdrawDoneEnd:'). Do you really want to withdraw the amount?', doneEx:'DONE!', term:'Deadline', histEmpty:'No archived pots yet.', restore:'RESTORE', purge:'DELETE', refunded:'Refunded to donors', withdrawn:'Money withdrawn', delPre:'Do you really want to delete pot ', delPost:'?', purgePre:'Delete ', purgePost:' forever?', potPre:'Pot ', notReachedMid:' has not reached its goal yet. Collected ', whatMoney:'. What about the money?', refundBtn:'Refund donors', withdrawBtn:'Withdraw money', smazatBtn:'Delete', logoutQ:'Do you really want to log out?', ano:'Yes', ne:'No', account:'[ ACCOUNT ]', jazyk:'[ LANGUAGE ]', historie:'[ POT HISTORY ]', jmeno:'Name', bubbleLow:"Thats pocket change, mate - go ask your auntie. Minimum is 100 Kc. :)", bubbleHigh:"Thats a bit much, mate. Maximum is 50000 Kc. For more, email Mr. Musk. :)" }
+ cs:{ newPotBtn:'+ Novy pot', addCardBtn:'[ + NOVY POT ] >', active:'aktivnich', done:'hotovo', badgeDone:'HOTOVO', badgeNew:'NOVY', newPot:'NOVY POT', settings:'NASTAVENI', back:'ZPET', name:'NAZEV', desc:'POPIS', optional:'(nepovinne)', goal:'CILOVA CASTKA', photo:'FOTKA', dropTxt:'Pretahni sem obrazek nebo klikni pro vyber z pocitace', share:'SDILENI', visibleToDonors:'VIDITELNE PRO DARCE', createPot:'VYTVORIT POT', amountHint:'Min 100 Kc / max 50000 Kc', contributors:'prispevatelu', myContribution:'Muj prispevek', stContrib:'Prispevatelu', stAvg:'Prumer. prispevek', stMax:'Nejvetsi prispevek', stRemain:'Zbyva vybrat', predDate:'Predpokladane datum', predDays:'Zbyva dni', predNote:'Dle tempa prispevku', progressSec:'> PRUBEH VYBERU', estimateSec:'> ODHAD DOKONCENI', contribSec:'> PRISPEVKY', deletePot:'SMAZAT POT', withdrawAmount:'VYBRAT CASTKU', withdrawDoneMid:' je dokoncen (vybrano ', withdrawDoneEnd:'). Opravdu chcete castku vybrat?', confirmWithdrawQ:'. Opravdu chcete castku vybrat?', doneEx:'SPLNENO!', term:'Termin', histEmpty:'Zatim zadne archivovane poty.', restore:'OBNOVIT', purge:'SMAZAT', refunded:'Vraceno darcum', withdrawn:'Penize vybrany', delPre:'Opravdu chcete pot ', delPost:' smazat?', purgePre:'Smazat ', purgePost:' navzdy?', potPre:'Pot ', notReachedMid:' zatim nedosahl cile. Vybrano ', whatMoney:'. Co s penezi?', refundBtn:'Vratit darcum', withdrawBtn:'Vybrat penize', smazatBtn:'Smazat', logoutQ:'Opravdu se chcete odhlasit?', ano:'Ano', ne:'Ne', account:'[ UCET ]', jazyk:'[ JAZYK ]', historie:'[ HISTORIE POTU ]', jmeno:'Jmeno', bubbleLow:'O takovy baksis si, clovece, rekni svoji tetce. Minimalni castka je 100 Kc. :)', bubbleHigh:'To uz je trochu moc, clovece. Maximalni castka je 50000 Kc. O vetsi obnos napis panu Muskovi. :)' },
+ en:{ newPotBtn:'+ NEW POT', addCardBtn:'[ + NEW POT ] >', active:'active', done:'done', badgeDone:'DONE', badgeNew:'NEW', newPot:'NEW POT', settings:'SETTINGS', back:'BACK', name:'NAME', desc:'DESCRIPTION', optional:'(optional)', goal:'TARGET AMOUNT', photo:'PHOTO', dropTxt:'Drag an image here or click to pick from your computer', share:'SHARING', visibleToDonors:'VISIBLE TO DONORS', createPot:'CREATE POT', amountHint:'Min 100 Kc / max 50000 Kc', contributors:'contributors', myContribution:'My contribution', stContrib:'Contributors', stAvg:'Avg. contribution', stMax:'Largest contribution', stRemain:'Left to collect', predDate:'Estimated date', predDays:'Days left', predNote:'Based on contribution pace', progressSec:'> PROGRESS', estimateSec:'> ESTIMATE', contribSec:'> CONTRIBUTIONS', deletePot:'DELETE POT', withdrawAmount:'WITHDRAW AMOUNT', withdrawDoneMid:' is complete (collected ', withdrawDoneEnd:'). Do you really want to withdraw the amount?', confirmWithdrawQ:'. Do you really want to withdraw the amount?', doneEx:'DONE!', term:'Deadline', histEmpty:'No archived pots yet.', restore:'RESTORE', purge:'DELETE', refunded:'Refunded to donors', withdrawn:'Money withdrawn', delPre:'Do you really want to delete pot ', delPost:'?', purgePre:'Delete ', purgePost:' forever?', potPre:'Pot ', notReachedMid:' has not reached its goal yet. Collected ', whatMoney:'. What about the money?', refundBtn:'Refund donors', withdrawBtn:'Withdraw money', smazatBtn:'Delete', logoutQ:'Do you really want to log out?', ano:'Yes', ne:'No', account:'[ ACCOUNT ]', jazyk:'[ LANGUAGE ]', historie:'[ POT HISTORY ]', jmeno:'Name', bubbleLow:"Thats pocket change, mate - go ask your auntie. Minimum is 100 Kc. :)", bubbleHigh:"Thats a bit much, mate. Maximum is 50000 Kc. For more, email Mr. Musk. :)" }
 };
 function t(k){ var d=I18N[APPLANG]||I18N.cs; return (d&&d[k]!=null)?d[k]:(I18N.cs[k]!=null?I18N.cs[k]:k); }
 function applyStatic(){ document.querySelectorAll('[data-i18n]').forEach(function(el){ el.textContent=t(el.getAttribute('data-i18n')); }); document.querySelectorAll('[data-i18n-ph]').forEach(function(el){ el.placeholder=t(el.getAttribute('data-i18n-ph')); }); document.querySelectorAll('[data-i18n-title]').forEach(function(el){ el.title=t(el.getAttribute('data-i18n-title')); }); }
@@ -1208,7 +1193,8 @@ function buildDashboard(){
 function showDetail(pot){
   _currentPot = pot;
   _footer(false);
-  var _wb=document.getElementById('withdraw-btn'); if(_wb) _wb.disabled = !(pot.collected>0);
+  var _ww=document.getElementById('withdraw-wrap'); if(_ww) _ww.style.display = pot.collected>0 ? '' : 'none';
+  var _dw=document.getElementById('delete-wrap'); if(_dw) _dw.style.display = pot.collected<pot.goal ? '' : 'none';
   /* prepinac zobrazeni nechavame i na detailu, aby se ikonky nav (stetec/ozubene kolo) neposouvaly - gear zustava na svem miste */
   document.getElementById('item-view').style.display='';
   const progress=Math.min(pot.collected/pot.goal,1);
